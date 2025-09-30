@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    {% block meta %} {% endblock meta %}
+
+    <title>Movezz</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link
+      href="https://cdn.jsdelivr.net/npm/daisyui@5"
+      rel="stylesheet"
+      type="text/css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link
+      href="https://cdn.jsdelivr.net/npm/daisyui@5/themes.css"
+      rel="stylesheet"
+      type="text/css"
+    />
+  </head>
+  <body class="flex flex-col min-h-screen" >
+    {% comment %} ini nanti buat navbar {% endcomment %}
+    {% comment %} {% include "navbar.html" %} {% endcomment %}
+    <div class="flex-1 px-5 max-w-7xl mx-auto">
+      <main class="py-6">{% block content %}{% endblock %}</main>
+    </div>
+
+  </body>
+  {% comment %} ini nanti buat footer {% endcomment %}
+  {% comment %} {% include "footer.html" %} {% endcomment %}
+</html>
