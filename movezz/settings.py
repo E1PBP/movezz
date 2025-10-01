@@ -43,6 +43,12 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "auth_module",
+    "broadcast_module",
+    "marketplace_module",
+    "message_module",
+    "profile_module",
+    "feeds_module",
 ]
 
 MIDDLEWARE = [
