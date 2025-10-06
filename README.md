@@ -46,8 +46,7 @@ Menjadi pusat aktivitas pengguna di mana mereka dapat membagikan momen olahraga,
 - Like, comment, dan share posting
 - Feed utama berisi posting dari pengguna yang di-follow + rekomendasi olahraga populer
 - Infinite scroll & lazy media loading
-- Atur visibilitas posting (publik, followers, close friends)
-  Simpan posting sebagai draft & jadwalkan publikasi
+- Atur visibilitas posting (publik, followers, close friends) Simpan posting sebagai draft & jadwalkan publikasi **(opsional)**
 
 ### 2. **Profile (Aktivitas & Jaringan)**
 
@@ -56,13 +55,11 @@ Menjadi pusat aktivitas pengguna di mana mereka dapat membagikan momen olahraga,
 Profil yang menampilkan identitas olahraga dan aktivitas pengguna dalam komunitas Fitur-fitur:
 
 - Halaman profil: bio, olahraga favorit, statistik latihan
-- Timeline aktivitas: latihan terbaru, pencapaian, dan posting pengguna
+- Postingan pengguna
 - Sistem following/followers
-- Status real-time “Sedang Berolahraga <jenis olahraga>” (opsional, integrasi sensor/fit tracker)
-- Riwayat event dan hasil pertandingan
-- Galeri media per olahraga/event
+- Status real-time “Sedang Berolahraga <jenis olahraga>” **(opsional)**
 - Badges & level pencapaian
-- Tautan ke listing marketplace & event broadcast pribadi
+- Tabs marketplace & event broadcast pribadi
 
 ### 3. **Messaging (Pesan & Grup)**
 
@@ -70,12 +67,11 @@ Profil yang menampilkan identitas olahraga dan aktivitas pengguna dalam komunita
 
 Fitur komunikasi antar pengguna, baik personal maupun grup komunitas olahraga. Fitur-fitur:
 
-- Chat 1-on-1 & grup (opsional) (tim, komunitas, penyelenggara event)
-- Kirim gambar
-- Reaksi emoji, pin, dan pencarian pesan (opsional)
-- Bagikan posting feed, event, atau barang marketplace langsung ke chat (opsional)
+- Chat 1-on-1 & grup **(opsional)** (tim, komunitas, penyelenggara event)
+- Kirim gambar **(opsional)**
+- Bagikan posting feed langsung ke chat **(opsional)**
 - Pesan permintaan untuk non-followers
-- Status pesan (terkirim, dibaca), dan notifikasi real-time (via Django Channels + Redis)
+- Status pesan (terkirim, dibaca), dan notifikasi real-time (via Django Channels)
 
 ### 4. **Marketplace (Perlengkapan & Barang Olahraga)**
 
@@ -89,11 +85,7 @@ Fitur-fitur:
 - Filter & sort berdasarkan olahraga, harga, kondisi, lokasi
 - Wishlist, follow penjual, dan chat langsung dari listing
 - Status barang: aktif, reserved, terjual
-- Sistem pelaporan listing dan verifikasi penjual
 - Rating & ulasan transaksi
-- Simpan pencarian (saved search) dan notifikasi barang baru
-- Transaksi & pembayaran terintegrasi + biaya layanan (opsional)
-  Integrasi ongkir otomatis (opsional)
 
 ### 5. **Broadcast (Siaran & Event Publik)**
 
@@ -104,8 +96,7 @@ Modul untuk menyiarkan kegiatan olahraga publik, seperti fun run, sparring, atau
 - Buat event siaran: judul, olahraga, lokasi, waktu, kapasitas, level, biaya
 - Pendaftaran peserta (join/leave, waitlist otomatis)
 - Mode siaran:
-  - Live ticker (skor/point real-time)
-  - Live highlight (foto/video pendek dari panitia/peserta)
+  - Live ticker (skor/point real-time) **(opsional)**
 - Halaman event publik: daftar peserta, scoreboard, bracket turnamen
 - Atur visibilitas event (publik, link privat, komunitas tertentu)
 
@@ -155,6 +146,10 @@ https://muhamad-hakim41-movezz.pbp.cs.ui.ac.id/
 ## Link Design Figma
 
 https://www.figma.com/design/x4q0GDfJB0dQ2ZXl8uuXDZ/Design-Movezz?node-id=0-1&t=62HMu5tm1V2KTkKk-1
+
+## Link DB Diagram (May Change In The Future)
+
+https://dbdiagram.io/d/Movezz-68db9fa4d2b621e4228f0778
 
 ## Cara Menjalankan
 
