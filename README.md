@@ -18,8 +18,6 @@ Repositori ini berisi tugas kelompok untuk mata kuliah Pemrograman Berbasis Plat
 - Roberto Eugenio Sugiarto (2406355640)
 - Amberley Vidya Putri (2406495533)
 
----
-
 ## Deskripsi Proyek
 
 Movezz adalah aplikasi sosial media yang ditujukan untuk para pecinta olahraga, baik itu penggemar sepak bola, pelari, gym, maupun olahraga lainnya. Movezz menyediakan fitur utama seperti feeds beranda untuk berbagi dan melihat aktivitas, profil pengguna, chat dan messaging untuk berkomunikasi antar anggota, serta fitur broadcast untuk mengumumkan informasi penting kepada komunitas.
@@ -111,27 +109,48 @@ Modul untuk menyiarkan kegiatan olahraga publik, seperti fun run, sparring, atau
 - Halaman event publik: daftar peserta, scoreboard, bracket turnamen
 - Atur visibilitas event (publik, link privat, komunitas tertentu)
 
+### 6. **Authentication (Register and Login)**
+
+**PIC** : All member
+
+Modul untuk melakukan autentikasi seperti mendaftar akun dan login.
+
+- Mendaftarkan akun baru ke aplikasi
+- Login ke aplikasi
+
 ## Link sumber dataset
+
+Coming Soon
 
 ## Jenis pengguna website
 
 Feeds -
 User [.....]
 Admin [...]
+
 Profile -
 User [.....]
 Admin [...]
-Messaging
+
+Messaging -
 User [.....]
 Admin [...]
-Marketplace
+
+Marketplace -
 User [.....]
 Admin [...]
-Broadcast
+
+Broadcast -
+User [.....]
+Admin [...]
+
+Auth -
 User [.....]
 Admin [...]
 
 ## Link PWS
+
+https://muhamad-hakim41-movezz.pbp.cs.ui.ac.id/
 
 ## Link Design Figma
 
