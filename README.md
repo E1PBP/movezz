@@ -6,10 +6,10 @@
 ![Django](https://img.shields.io/badge/django-5.0-green)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
-
 Repositori ini berisi tugas kelompok untuk mata kuliah Pemrograman Berbasis Platform (PBP) Semester 3.
 
 ---
+
 ## Daftar Anggota Kelompok
 
 - Muhamad Hakim Nizami (2406399485)
@@ -18,8 +18,8 @@ Repositori ini berisi tugas kelompok untuk mata kuliah Pemrograman Berbasis Plat
 - Roberto Eugenio Sugiarto (2406355640)
 - Amberley Vidya Putri (2406495533)
 
-
 ---
+
 ## Deskripsi Proyek
 
 Movezz adalah aplikasi sosial media yang ditujukan untuk para pecinta olahraga, baik itu penggemar sepak bola, pelari, gym, maupun olahraga lainnya. Movezz menyediakan fitur utama seperti feeds beranda untuk berbagi dan melihat aktivitas, profil pengguna, chat dan messaging untuk berkomunikasi antar anggota, serta fitur broadcast untuk mengumumkan informasi penting kepada komunitas.
@@ -34,50 +34,154 @@ Untuk mendukung komunikasi antar anggota, Movezz menyediakan fitur chat dan mess
 
 Dengan berbagai fitur yang terintegrasi, Movezz bertujuan menjadi platform utama bagi para pecinta olahraga di Indonesia. Aplikasi ini tidak hanya memfasilitasi interaksi sosial, tetapi juga mendorong gaya hidup sehat, kolaborasi, dan semangat sportivitas di kalangan penggunanya. Melalui Movezz, diharapkan tercipta ekosistem olahraga digital yang inklusif, inspiratif, dan saling mendukung.
 
----
+## Daftar Module
+
+### 1. **Feeds (Timeline & Posting)**
+
+**PIC** : Muhammad Hakim Nizami (2406399485)
+
+Menjadi pusat aktivitas pengguna di mana mereka dapat membagikan momen olahraga, tips, atau highlight pertandingan. Fitur-fitur:
+
+- Buat posting (teks, foto atau highlight pertandingan)
+- Tag olahraga (mis. futsal, lari, basket), lokasi, dan mention pengguna
+- Gunakan hashtag & kategori event (latihan, sparring, turnamen)
+- Like, comment, dan share posting
+- Feed utama berisi posting dari pengguna yang di-follow + rekomendasi olahraga populer
+- Infinite scroll & lazy media loading
+- Atur visibilitas posting (publik, followers, close friends)
+  Simpan posting sebagai draft & jadwalkan publikasi
+
+### 2. **Profile (Aktivitas & Jaringan)**
+
+**PIC** : Nadin Ananda (2406351806)
+
+Profil yang menampilkan identitas olahraga dan aktivitas pengguna dalam komunitas Fitur-fitur:
+
+- Halaman profil: bio, olahraga favorit, statistik latihan
+- Timeline aktivitas: latihan terbaru, pencapaian, dan posting pengguna
+- Sistem following/followers
+- Status real-time “Sedang Berolahraga <jenis olahraga>” (opsional, integrasi sensor/fit tracker)
+- Riwayat event dan hasil pertandingan
+- Galeri media per olahraga/event
+- Badges & level pencapaian
+- Tautan ke listing marketplace & event broadcast pribadi
+
+### 3. **Messaging (Pesan & Grup)**
+
+**PIC** : Heraldo Arman (2406420702)
+
+Fitur komunikasi antar pengguna, baik personal maupun grup komunitas olahraga. Fitur-fitur:
+
+- Chat 1-on-1 & grup (opsional) (tim, komunitas, penyelenggara event)
+- Kirim gambar
+- Reaksi emoji, pin, dan pencarian pesan (opsional)
+- Bagikan posting feed, event, atau barang marketplace langsung ke chat (opsional)
+- Pesan permintaan untuk non-followers
+- Status pesan (terkirim, dibaca), dan notifikasi real-time (via Django Channels + Redis)
+
+### 4. **Marketplace (Perlengkapan & Barang Olahraga)**
+
+**PIC** : Amberley Vidya Putri (2406495533)
+
+Tempat jual-beli alat, perlengkapan, dan barang olahraga baru atau bekas antar pengguna.
+
+Fitur-fitur:
+
+- Buat listing barang: foto, kategori olahraga, kondisi, deskripsi, harga, lokasi
+- Filter & sort berdasarkan olahraga, harga, kondisi, lokasi
+- Wishlist, follow penjual, dan chat langsung dari listing
+- Status barang: aktif, reserved, terjual
+- Sistem pelaporan listing dan verifikasi penjual
+- Rating & ulasan transaksi
+- Simpan pencarian (saved search) dan notifikasi barang baru
+- Transaksi & pembayaran terintegrasi + biaya layanan (opsional)
+  Integrasi ongkir otomatis (opsional)
+
+### 5. **Broadcast (Siaran & Event Publik)**
+
+**PIC** : Roberto Eugenio Sugiarto (2406355640)
+
+Modul untuk menyiarkan kegiatan olahraga publik, seperti fun run, sparring, atau turnamen kecil. Fitur-fitur:
+
+- Buat event siaran: judul, olahraga, lokasi, waktu, kapasitas, level, biaya
+- Pendaftaran peserta (join/leave, waitlist otomatis)
+- Mode siaran:
+  - Live ticker (skor/point real-time)
+  - Live highlight (foto/video pendek dari panitia/peserta)
+- Halaman event publik: daftar peserta, scoreboard, bracket turnamen
+- Atur visibilitas event (publik, link privat, komunitas tertentu)
+
+## Link sumber dataset
+
+## Jenis pengguna website
+
+Feeds -
+User [.....]
+Admin [...]
+Profile -
+User [.....]
+Admin [...]
+Messaging
+User [.....]
+Admin [...]
+Marketplace
+User [.....]
+Admin [...]
+Broadcast
+User [.....]
+Admin [...]
+
+## Link PWS
+
+## Link Design Figma
+
+https://www.figma.com/design/x4q0GDfJB0dQ2ZXl8uuXDZ/Design-Movezz?node-id=0-1&t=62HMu5tm1V2KTkKk-1
+
 ## Cara Menjalankan
 
 1. **Clone repositori ini:**
-    ```bash
-    git clone https://github.com/E1PBP/movezz.git
-    ```
+   ```bash
+   git clone https://github.com/E1PBP/movezz.git
+   ```
 2. **Masuk ke direktori proyek:**
-    ```bash
-    cd movezz
-    ```
+   ```bash
+   cd movezz
+   ```
 3. **Buat dan aktifkan virtual environment (opsional tapi direkomendasikan):**
-    ```bash
-    python -m venv venv
-    source venv/bin/activate  # Linux/Mac
-    venv\Scripts\activate     # Windows
-    ```
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # Linux/Mac
+   venv\Scripts\activate     # Windows
+   ```
 4. **Install dependencies yang dibutuhkan:**
-    ```bash
-    pip install -r requirements.txt
-    ```
+   ```bash
+   pip install -r requirements.txt
+   ```
 5. **Atur environment variable dengan membuat file `.env` di root folder:**
-    ```env
-    DB_NAME=
-    DB_HOST=
-    DB_PORT=
-    DB_USER=
-    DB_PASSWORD=
-    SCHEMA=
-    PRODUCTION=False
-    ```
+   ```env
+   DB_NAME=
+   DB_HOST=
+   DB_PORT=
+   DB_USER=
+   DB_PASSWORD=
+   SCHEMA=
+   PRODUCTION=False
+   ```
 6. **Jalankan migrasi database:**
-    ```bash
-    python manage.py migrate
-    ```
+   ```bash
+   python manage.py migrate
+   ```
 7. **Jalankan server pengembangan Django:**
-    ```bash
-    python manage.py runserver
-    ```
+   ```bash
+   python manage.py runserver
+   ```
 
 Akses aplikasi di `http://localhost:8000/`.
 
 ---
+
 ## Struktur Folder
+
 ```
 .
 ├── .env / .env.example / .env.production   # File konfigurasi environment
@@ -101,6 +205,7 @@ Akses aplikasi di `http://localhost:8000/`.
 ```
 
 **Keterangan:**
+
 - Setiap folder modul (`*_module`) berisi fitur utama aplikasi.
 - Folder `movezz/` berisi pengaturan dan routing utama Django.
 - Folder `static/` dan `templates/` menyimpan aset frontend.
@@ -109,8 +214,8 @@ Akses aplikasi di `http://localhost:8000/`.
 - Folder `common/` berisi utilitas dan script manajemen data.
 - File dan folder lain mendukung pengembangan, deployment, dan dokumentasi.
 
-
 ---
+
 ## Tech Stack
 
 - **Backend:** [Django](https://www.djangoproject.com/) (Python)
