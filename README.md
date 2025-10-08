@@ -111,7 +111,16 @@ Modul untuk melakukan autentikasi seperti mendaftar akun dan login.
 
 ## Link sumber dataset
 
-Coming Soon
+Note: Mungkin tidak semuanya digunakan
+
+- https://www.kaggle.com/datasets/hasyimabdillah/workoutexercises-images
+- https://www.kaggle.com/datasets/omarxadel/fitness-exercises-dataset
+- https://universe.roboflow.com/search?q=class%3Aexercise
+- https://www.kaggle.com/datasets/rishikeshkonapure/sports-image-dataset
+- https://www.kaggle.com/datasets/gpiosenka/sports-classification
+- https://www.kaggle.com/datasets/sarthakkapaliya/instagram-caption-data
+- https://huggingface.co/datasets/kkcosmos/instagram-images-with-captions
+- https://huggingface.co/datasets/Waterfront/social-media-captions
 
 ## Jenis pengguna website
 
