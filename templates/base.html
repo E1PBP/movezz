@@ -18,14 +18,16 @@
       type="text/css"
     />
   </head>
-  <body class="flex flex-col min-h-screen" >
-    {% comment %} ini nanti buat navbar {% endcomment %}
+  <body class="flex flex-col min-h-screen bg-base-200 text-base-content transition-all duration-300">
+    {% comment %} buat navbar nanti {% endcomment %}
     {% comment %} {% include "navbar.html" %} {% endcomment %}
-    <div class="flex-1 px-5 max-w-7xl mx-auto">
-      <main class="py-6">{% block content %}{% endblock %}</main>
-    </div>
 
+    <main class="flex-1 w-full px-4 sm:px-6 lg:px-8 py-6">
+      <div class="max-w-7xl mx-auto">
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+    {% comment %} buat footer nanti {% endcomment %}
+    {% comment %} {% include "footer.html" %} {% endcomment %}
   </body>
-  {% comment %} ini nanti buat footer {% endcomment %}
-  {% comment %} {% include "footer.html" %} {% endcomment %}
 </html>
