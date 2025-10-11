@@ -29,7 +29,7 @@ urlpatterns = [
     path("marketplace/", include("marketplace_module.urls")),
     path("broadcast/", include("broadcast_module.urls")),
     path("messages/", include("message_module.urls")),
-] 
+]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
