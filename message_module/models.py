@@ -8,6 +8,19 @@ from common.utils.validator_image import validate_image_size
 
 
 class Conversation(models.Model):
+    """A model representing a conversation between users.
+    Attributes:
+        id (UUIDField): The unique identifier for the conversation.
+        created_by (ForeignKey): The user who created the conversation.
+        title (CharField): An optional title for the conversation.
+        last_message_preview (CharField): A preview of the last message in the conversation.
+        last_message_at (DateTimeField): The timestamp of the last message in the conversation.
+        created_at (DateTimeField): The timestamp when the conversation was created.
+        updated_at (DateTimeField): The timestamp when the conversation was last updated.
+    Methods:
+        update_last_message(message): Updates the last message preview and timestamp.
+        __str__(): Returns a string representation of the conversation.
+    """
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     created_by = models.ForeignKey(
         User,
@@ -30,6 +43,19 @@ class Conversation(models.Model):
 
 
 class Message(models.Model):
+    """A model representing a message within a conversation.
+    Attributes:
+        id (UUIDField): The unique identifier for the message.
+        conversation (ForeignKey): The conversation to which the message belongs.
+        sender (ForeignKey): The user who sent the message.
+        body (TextField): The text content of the message.
+        image (CloudinaryField): An optional image associated with the message.
+        created_at (DateTimeField): The timestamp when the message was created.
+    Methods:
+        sender_display_name(): Returns the display name of the sender.
+        sender_display_avatar(): Returns the avatar URL of the sender.
+        __str__(): Returns a string representation of the message.
+    """
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     conversation = models.ForeignKey(
         Conversation,
@@ -60,6 +86,18 @@ class Message(models.Model):
 
 
 class ConversationMember(models.Model):
+    """
+    A model representing a member of a conversation.
+    Attributes:
+        conversation (ForeignKey): The conversation to which the member belongs.
+        user (ForeignKey): The user who is a member of the conversation.
+        joined_at (DateTimeField): The timestamp when the user joined the conversation.
+        last_read_at (DateTimeField): The timestamp when the user last read messages in the conversation.
+    Meta:
+        unique_together (tuple): Ensures that a user can only be a member of a conversation once.
+    Methods:
+        __str__(): Returns a string representation of the conversation member.
+    """
     conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     joined_at = models.DateTimeField(default=timezone.now)

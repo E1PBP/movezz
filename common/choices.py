@@ -1,5 +1,17 @@
 """
-ini adalah file untuk menyimpan pilihan pilihan (enum type) yang digunakan di berbagai model
+This module defines various Django model choices as enumerations using `models.TextChoices`.
+These choices are used to standardize and restrict the values for specific fields across the application.
+Classes:
+    PostVisibility: Choices for post visibility settings (Public, Followers, Close Friends).
+    ChatType: Choices for chat types (Direct, Group).
+    MemberRole: Choices for member roles in a group or chat (Member, Admin).
+    ListingStatus: Choices for the status of a listing (Active, Reserved, Sold).
+    ListingCondition: Choices for the condition of a listing (Brand New, Used).
+    EventVisibility: Choices for event visibility (Public, Link Only, Community).
+    EventLevel: Choices for event difficulty level (Beginner, Intermediate, Advanced, All).
+    ParticipantStatus: Choices for participant status in an event (Joined, Waitlisted, Left, Cancelled).
+    UpdateType: Choices for types of updates (Text, Score).
+
 """
 
 from django.db import models
