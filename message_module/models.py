@@ -1,63 +1,70 @@
-from django.db import models
 from uuid import uuid4
-from django.contrib.auth.models import User
-from profile_module.models import Profile
+from django.db import models
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-# Create your models here.
+from django.contrib.auth.models import User
 
 
-class Conversations(models.Model):
+class Conversation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_conversations')
-    class ChatType(models.TextChoices):
-        DIRECT = "direct", _("Direct")
-        GROUP = "group", _("Group")
-
-    chat_type = models.CharField(
-        max_length=10,
-        choices=ChatType.choices,
-        default=ChatType.DIRECT,
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="created_conversations"
     )
-    
-    title = models.CharField(max_length=255, blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    member_count = models.IntegerField(default=0)
 
-    last_message_id = models.UUIDField(blank=True, null=True, editable=False)
-    last_message_at = models.DateTimeField(blank=True, null=True, editable=False)
-    last_message_preview = models.TextField(blank=True, null=True, editable=False)
+    title = models.CharField(max_length=255, blank=True, null=True)
+    last_message_preview = models.CharField(max_length=200, blank=True, null=True)
+    last_message_at = models.DateTimeField(null=True, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def update_last_message(self, message):
-        self.last_message_id = message.id
-        self.last_message_at = message.created_at
         self.last_message_preview = message.body[:100]
-        self.save(update_fields=["last_message_id", "last_message_at", "last_message_preview"])
-        
-        
-    updated_at = models.DateTimeField(auto_now=True)
-    
+        self.last_message_at = message.created_at
+        self.save(update_fields=["last_message_preview", "last_message_at"])
+
     def __str__(self):
         return f"Conversation {self.id} ({self.chat_type})"
-    
-    
-    
-class Messages(models.Model):
-    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
-    # conversation_id = models.UUIDField()
+
+
+class Message(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    body = models.TextField()
+    conversation = models.ForeignKey(
+        Conversation,
+        on_delete=models.CASCADE,
+        related_name="messages"
+    )
+    sender = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="sent_messages"
+    )
+    body = models.TextField(blank=True)
 
     @property
     def sender_display_name(self):
-        return getattr(self.sender.profile, 'display_name', self.sender.username)
+        return getattr(self.sender.profile, "display_name", self.sender.username)
 
     @property
     def sender_display_avatar(self):
-        return getattr(self.sender.profile, 'avatar', "")
-    conversation = models.ForeignKey('Conversations', on_delete=models.CASCADE, related_name='messages')
-    
-    
+        return getattr(self.sender.profile, "avatar", "")
+
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
     def __str__(self):
         return f"Message from {self.sender_display_name} at {self.created_at}"
+
+
+class ConversationMember(models.Model):
+    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    joined_at = models.DateTimeField(default=timezone.now)
+    last_read_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ("conversation", "user")
+
+    def __str__(self):
+        return f"{self.user} in {self.conversation}"

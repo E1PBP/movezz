@@ -1,83 +1,48 @@
+from django.conf import settings
 from django.db import models
+from django.utils import timezone
+from common.models import Sport, Badge
 from django.contrib.auth.models import User
-from uuid import uuid4
 
-# Create your models here.
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    display_name = models.CharField(max_length=80, blank=True)
-    bio = models.TextField(blank=True)
-    location = models.CharField(max_length=120, blank=True)
-    avatar = models.ImageField(blank=True) # mungkin nanti ini bisa diubah lagi
-    cover = models.ImageField(blank=True) # mungkin nanti ini bisa diubah lagi
-    current_status = models.CharField(max_length=120, blank=True)
-    current_sport_id = models.ForeignKey('Sports', on_delete=models.SET_NULL, null=True, blank=True)
-    level = models.IntegerField(default=1)
-    points = models.IntegerField(default=0)
-    stats_posts = models.IntegerField(default=0)
-    stats_duration_min = models.IntegerField(default=0)
-    stats_distance_km = models.DecimalField(max_digits=8, decimal_places=2, default=0)
+    display_name = models.CharField(max_length=80, blank=True, null=True)
+    bio = models.TextField(blank=True, null=True)
+    link = models.TextField(blank=True, null=True)
+    avatar_url = models.TextField(blank=True, null=True)
+    current_sport = models.ForeignKey(Sport, on_delete=models.SET_NULL, null=True, blank=True)
+    post_count = models.BigIntegerField(default=0)
+    broadcast_count = models.BigIntegerField(default=0)
+    following_count = models.BigIntegerField(default=0)
     followers_count = models.BigIntegerField(default=0)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    
+    is_verified = models.BooleanField(default=False)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(default=timezone.now)
+
     def __str__(self):
-        return self.user.username
-    
-    class Meta:
-        db_table = 'profiles'
-        verbose_name = 'Profile'
-        verbose_name_plural = 'Profiles'
+        return self.display_name or str(self.user)
 
-
-class Sports(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    name = models.CharField(max_length=80)
-    icon_url = models.ImageField(blank=True) # mungkin nanti ini bisa diubah lagi
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    def __str__(self):
-        return self.name
-    
-    class Meta:
-        db_table = 'sports'
-        verbose_name = 'Sport'
-        verbose_name_plural = 'Sports'
-        
-class UserSports(models.Model):
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
-    sport_id = models.ForeignKey(Sports, on_delete=models.CASCADE)
-    profiency_level = models.IntegerField(default=1)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    
-    
-    def __str__(self):
-        return f"{self.user_id.username} - {self.sport_id.name}"
-
-
-class Follows(models.Model):
-    follower = models.ForeignKey(User, on_delete=models.CASCADE, related_name='following_set')
-    following = models.ForeignKey(User, on_delete=models.CASCADE, related_name='follower_set')
-    created_at = models.DateTimeField(auto_now_add=True)
+class UserSport(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    sport = models.ForeignKey(Sport, on_delete=models.CASCADE)
+    time_elapsed = models.DurationField(default='0')
+    created_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
-        unique_together = ('follower', 'following')
-        db_table = 'follows'
-        verbose_name = 'Follow'
-        verbose_name_plural = 'Follows'
+        unique_together = ("user", "sport")
 
-    def __str__(self):
-        return f"{self.follower.username} follows {self.following.username}"
-    
-    
-class Badges(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    code = models.CharField(max_length=80, unique=True)
-    name = models.CharField(max_length=120)
-    description = models.TextField(blank=True)
-    icon = models.ImageField(blank=True) # mungkin nanti ini bisa diubah lagi
-    
+class Follow(models.Model):
+    follower = models.ForeignKey(User, related_name="follows_given", on_delete=models.CASCADE)
+    followee = models.ForeignKey(User, related_name="follows_received", on_delete=models.CASCADE)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        unique_together = ("follower", "followee")
+
 class UserBadge(models.Model):
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
-    badge_id = models.ForeignKey(Badges, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    badge = models.ForeignKey(Badge, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        unique_together = ("user", "badge")

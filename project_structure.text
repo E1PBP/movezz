@@ -1,0 +1,166 @@
+- .env
+- .env.example
+- .env.production
+- .github
+  - copilot-instructions.md
+  - workflows
+    - deploy.yml
+- .gitignore
+- auth_module
+  - admin.py
+  - apps.py
+  - forms.py
+  - migrations
+    - __init__.py
+    - __pycache__
+      - __init__.cpython-313.pyc
+  - models.py
+  - tests.py
+  - urls.py
+  - views.py
+  - __init__.py
+  - __pycache__
+    - admin.cpython-313.pyc
+    - apps.cpython-313.pyc
+    - models.cpython-313.pyc
+    - urls.cpython-313.pyc
+    - __init__.cpython-313.pyc
+- broadcast_module
+  - admin.py
+  - apps.py
+  - forms.py
+  - migrations
+    - __init__.py
+    - __pycache__
+      - __init__.cpython-313.pyc
+  - models.py
+  - tests.py
+  - urls.py
+  - views.py
+  - __init__.py
+  - __pycache__
+    - admin.cpython-313.pyc
+    - apps.cpython-313.pyc
+    - models.cpython-313.pyc
+    - urls.cpython-313.pyc
+    - __init__.cpython-313.pyc
+- common
+  - management
+    - command
+      - seed_data.py
+  - models_reference.py
+  - utils
+    - seed_helpers.py
+    
+- CONTRIBUTING.MD
+- db.sqlite3
+- feeds_module
+  - admin.py
+  - apps.py
+  - forms.py
+  - migrations
+    - __init__.py
+    - __pycache__
+      - __init__.cpython-313.pyc
+  - models.py
+  - templates
+    - main.html
+  - tests.py
+  - urls.py
+  - views.py
+  - __init__.py
+  - __pycache__
+    - admin.cpython-313.pyc
+    - apps.cpython-313.pyc
+    - models.cpython-313.pyc
+    - urls.cpython-313.pyc
+    - views.cpython-313.pyc
+    - __init__.cpython-313.pyc
+- LICENSE
+- manage.py
+- marketplace_module
+  - admin.py
+  - apps.py
+  - forms.py
+  - migrations
+    - __init__.py
+    - __pycache__
+      - __init__.cpython-313.pyc
+  - models.py
+  - tests.py
+  - urls.py
+  - views.py
+  - __init__.py
+  - __pycache__
+    - admin.cpython-313.pyc
+    - apps.cpython-313.pyc
+    - models.cpython-313.pyc
+    - urls.cpython-313.pyc
+    - __init__.cpython-313.pyc
+- message_module
+  - admin.py
+  - apps.py
+  - consumers.py
+  - forms.py
+  - migrations
+    - __init__.py
+    - __pycache__
+      - __init__.cpython-313.pyc
+  - models.py
+  - tests.py
+  - urls.py
+  - views.py
+  - __init__.py
+  - __pycache__
+    - admin.cpython-313.pyc
+    - apps.cpython-313.pyc
+    - models.cpython-313.pyc
+    - urls.cpython-313.pyc
+    - __init__.cpython-313.pyc
+- movezz
+  - asgi.py
+  - settings.py
+  - urls.py
+  - wsgi.py
+  - __init__.py
+  - __pycache__
+    - settings.cpython-313.pyc
+    - urls.cpython-313.pyc
+    - wsgi.cpython-313.pyc
+    - __init__.cpython-313.pyc
+- profile_module
+  - admin.py
+  - apps.py
+  - forms.py
+  - migrations
+    - __init__.py
+    - __pycache__
+      - __init__.cpython-313.pyc
+  - models.py
+  - tests.py
+  - urls.py
+  - views.py
+  - __init__.py
+  - __pycache__
+    - admin.cpython-313.pyc
+    - apps.cpython-313.pyc
+    - models.cpython-313.pyc
+    - __init__.cpython-313.pyc
+- README.md
+- requirements.txt
+- static
+  - css
+    - global.css
+  - images
+    - logo-text.svg
+    - logo.svg
+  - js
+    - index.js
+- templates
+  - 404.html
+  - 500.html
+  - base.html
+  - ds
+    - test.html
+  - footer.html
+  - navbar.html
