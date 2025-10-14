@@ -204,39 +204,126 @@ Akses aplikasi di `http://localhost:8000/`.
 
 ---
 
-## Struktur Folder
+## Struktur Folder Proyek Django
 
 ```
 .
-├── .env / .env.example / .env.production   # File konfigurasi environment
-├── .github/workflows/deploy.yml            # Workflow CI/CD GitHub Actions
-├── .gitignore                              # Daftar file/folder yang diabaikan git
-├── auth_module/                            # Modul autentikasi pengguna
-├── broadcast_module/                       # Modul fitur broadcast
-├── common/                                 # Utilitas dan manajemen data umum
-├── db.sqlite3                              # Database SQLite (default)
-├── feeds_module/                           # Modul fitur feeds
-├── LICENSE                                 # Lisensi proyek
-├── manage.py                               # Entrypoint manajemen Django
-├── marketplace_module/                     # Modul fitur marketplace
-├── message_module/                         # Modul fitur pesan/chat
-├── movezz/                                 # Konfigurasi utama Django project
-├── profile_module/                         # Modul profil pengguna
-├── README.md                               # Dokumentasi proyek
-├── requirements.txt                        # Daftar dependencies Python
-├── static/                                 # File statis (CSS, JS, gambar)
-└── templates/                              # Template HTML Django
+├── .env / .env.example / .env.production    # Konfigurasi environment (lokal, example, dan production)
+├── .github/
+│   └── workflows/
+│       └── deploy.yml                       # Workflow GitHub Actions untuk CI/CD (deployment otomatis)
+├── .gitignore                               # Daftar file/folder yang diabaikan oleh Git
+│
+├── auth_module/                             # Modul autentikasi dan manajemen user
+│   ├── models.py                            # Model user (jika extend dari default User)
+│   ├── forms.py                             # Form login/registrasi
+│   ├── views.py / urls.py                   # Endpoint login, logout, register
+│   └── admin.py                             # Integrasi dengan Django Admin
+│
+├── broadcast_module/                        # Modul untuk fitur broadcast/event
+│   ├── models.py                            # Model event dan gambar event
+│   ├── migrations/                          # Skema database dan revisi
+│   └── views.py / urls.py                   # Logika tampilan (CRUD event, dsb.)
+│
+├── common/                                  # Modul utilitas global dan shared components
+│   ├── choices.py                           # Enum/choices global untuk model
+│   ├── cloudinary_signals.py                # Integrasi sinyal Cloudinary untuk file upload
+│   ├── utils/
+│   │   ├── seed_helpers.py                  # Helper untuk seed data
+│   │   └── validator_image.py               # Validator ukuran/gambar Cloudinary
+│   ├── management/
+│   │   └── command/seed_data.py             # Custom command untuk populate data awal
+│   └── models.py                            # Model umum yang digunakan lintas modul
+│
+├── feeds_module/                            # Modul untuk fitur postingan/feeds pengguna
+│   ├── models.py                            # Model postingan dan gambar
+│   ├── templates/main.html                  # Template tampilan feed utama
+│   └── views.py / urls.py                   # Endpoint feed (list, create, dsb.)
+│
+├── marketplace_module/                      # Modul marketplace (jual/beli listing)
+│   ├── models.py                            # Model listing dan gambar
+│   ├── forms.py                             # Form untuk tambah/edit listing
+│   └── views.py / urls.py                   # Endpoint marketplace
+│
+├── message_module/                          # Modul pesan/chat antar pengguna
+│   ├── models.py                            # Model percakapan dan pesan
+│   ├── consumers.py                         # WebSocket consumer untuk real-time chat
+│   └── views.py / urls.py                   # Endpoint API/chat room
+│
+├── profile_module/                          # Modul profil pengguna
+│   ├── models.py                            # Model profil dan avatar (Cloudinary)
+│   └── views.py / urls.py                   # Tampilan profil, edit profil, dsb.
+│
+├── movezz/                                  # Folder utama proyek Django
+│   ├── settings.py                          # Konfigurasi utama Django (DB, Apps, Static, dsb.)
+│   ├── urls.py                              # Routing global untuk seluruh modul
+│   ├── asgi.py / wsgi.py                    # Entrypoint server (ASGI/WGSI)
+│   └── __init__.py                          # Menandakan package Python
+│
+├── static/                                  # File statis yang dikembangkan (belum dikompilasi)
+│   ├── css/global.css                       # Gaya global aplikasi
+│   ├── js/index.js                          # Script interaktif global
+│   └── images/logo.svg / logo-text.svg      # Aset logo dan ikon
+│
+├── staticfiles/                             # Hasil collectstatic (dikompilasi untuk deployment)
+│   ├── admin/                               # File bawaan Django admin
+│   ├── cloudinary/                          # Aset Cloudinary JS/HTML
+│   └── ...                                  # CSS, JS, dan images hasil build
+│
+├── templates/                               # Template HTML global
+│   ├── base.html                            # Template dasar (extends untuk semua halaman)
+│   ├── navbar.html / footer.html            # Komponen layout umum
+│   ├── 404.html / 500.html                  # Template error handler
+│
+├── CONTRIBUTING.MD                          # Panduan kontribusi untuk developer lain
+├── LICENSE                                  # Informasi lisensi proyek
+├── manage.py                                # Entrypoint manajemen Django
+├── requirements.txt                         # Daftar dependensi Python (pip install -r)
+├── README.md                                # Dokumentasi utama proyek
 ```
 
-**Keterangan:**
+---
 
-- Setiap folder modul (`*_module`) berisi fitur utama aplikasi.
-- Folder `movezz/` berisi pengaturan dan routing utama Django.
-- Folder `static/` dan `templates/` menyimpan aset frontend.
-- File `.env` dan variannya untuk konfigurasi environment.
-- File `manage.py` digunakan untuk menjalankan perintah Django.
-- Folder `common/` berisi utilitas dan script manajemen data.
-- File dan folder lain mendukung pengembangan, deployment, dan dokumentasi.
+### Penjelasan Tambahan
+
+#### Environment Configuration
+
+* **`.env`** → konfigurasi lokal.
+* **`.env.example`** → template contoh `.env` untuk developer lain.
+* **`.env.production`** → environment khusus deployment.
+
+#### Modularisasi Django
+
+Struktur proyek ini menggunakan **pendekatan modular per fitur**, di mana setiap fitur (auth, message, feeds, marketplace, broadcast, profile) berdiri sebagai **app Django terpisah**, memiliki:
+
+* `models.py` → struktur data
+* `views.py` → logika tampilan atau API
+* `urls.py` → routing internal
+* `forms.py` → validasi input/form pengguna
+* `admin.py` → integrasi dengan panel admin
+
+#### Folder `common/`
+
+Berfungsi sebagai **shared module** untuk kode yang digunakan lintas fitur:
+
+* Validator, signal, dan helper.
+* Command management untuk seed data awal (`python manage.py seed_data`).
+
+#### Folder `static/` dan `templates/`
+
+* **`static/`** menyimpan aset lokal selama pengembangan.
+* **`staticfiles/`** berisi hasil `collectstatic`, digunakan pada server produksi.
+* **`templates/`** berisi file HTML utama dan komponen layout seperti navbar/footer.
+
+#### Deployment
+
+Workflow CI/CD terdapat di:
+
+```
+.github/workflows/deploy.yml
+```
+
+yang mengatur proses otomatis build, collectstatic, dan deploy ke [pws](https://pbp.cs.ui.ac.id/web).
 
 ---
 
