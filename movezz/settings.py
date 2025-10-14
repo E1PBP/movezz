@@ -29,7 +29,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "muhamad-hakim41-movezz.pbp.cs.ui.ac.id"]
 
-CSRF_TRUSTED_ORIGINS = ["https://muhamad-hakim41-movezz.pbp.cs.ui.ac.id/"]
+CSRF_TRUSTED_ORIGINS = ["https://muhamad-hakim41-movezz.pbp.cs.ui.ac.id/", "https://muhamad-hakim41-movezz.pbp.cs.ui.ac.id"]
 
 
 PRODUCTION = os.getenv('PRODUCTION', 'False').lower() == 'true'

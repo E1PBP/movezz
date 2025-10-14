@@ -247,3 +247,4 @@ Akses aplikasi di `http://localhost:8000/`.
 - **Real-time Communication:** [Python Channels](https://channels.readthedocs.io/en/stable/)
 - **Database:** [PostgreSQL](https://www.postgresql.org/)
 - **Deployment & CI/CD:** [GitHub Actions](https://github.com/features/actions)
+- **Storage** (image): [Supabase](https://supabase.com/)
