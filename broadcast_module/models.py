@@ -3,7 +3,8 @@ from django.db import models
 from django.utils import timezone
 from common.models import Sport
 from django.contrib.auth.models import User
-
+from cloudinary.models import CloudinaryField
+from common.utils.validator_image import validate_image_size
 
 class Event(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -36,4 +37,4 @@ class UserEvent(models.Model):
 class EventImage(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     event = models.ForeignKey(Event, related_name="images", on_delete=models.CASCADE)
-    image_url = models.TextField()
+    image = CloudinaryField("image", validators=[validate_image_size], null=True, blank=True)

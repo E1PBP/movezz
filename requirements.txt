@@ -7,4 +7,5 @@ urllib3
 python-dotenv
 faker
 Pillow
-supabase
+cloudinary
+django-cloudinary-storage

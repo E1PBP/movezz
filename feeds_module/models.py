@@ -3,6 +3,9 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 from common.models import Sport, Hashtag
+from cloudinary.models import CloudinaryField
+from common.utils.validator_image import validate_image_size
+
 
 class Post(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -25,7 +28,8 @@ class Post(models.Model):
 class PostImage(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     post = models.ForeignKey(Post, related_name="images", on_delete=models.CASCADE)
-    image_url = models.TextField()
+    image = CloudinaryField("image", validators=[validate_image_size], null=True, blank=True)
+
 
 class PostLike(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE)

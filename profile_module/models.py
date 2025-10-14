@@ -1,15 +1,17 @@
-from django.conf import settings
 from django.db import models
 from django.utils import timezone
 from common.models import Sport, Badge
 from django.contrib.auth.models import User
+from cloudinary.models import CloudinaryField
+from common.utils.validator_image import validate_image_size
+
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     display_name = models.CharField(max_length=80, blank=True, null=True)
     bio = models.TextField(blank=True, null=True)
     link = models.TextField(blank=True, null=True)
-    avatar_url = models.TextField(blank=True, null=True)
+    avatar_url = CloudinaryField("avatar", blank=True, null=True, validators=[validate_image_size])
     current_sport = models.ForeignKey(Sport, on_delete=models.SET_NULL, null=True, blank=True)
     post_count = models.BigIntegerField(default=0)
     broadcast_count = models.BigIntegerField(default=0)

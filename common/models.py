@@ -17,7 +17,7 @@ class Badge(models.Model):
     id = models.BigAutoField(primary_key=True)
     code = models.CharField(max_length=50, unique=True)
     name = models.CharField(max_length=80)
-    icon_url = models.CharField(max_length=255, blank=True, null=True)
+    icon_url = models.CharField(max_length=255, blank=True, null=True) # ini nanti insert manual aja di django admin pake link. ga usah pake cloudinary
 
     def __str__(self):
         return self.name

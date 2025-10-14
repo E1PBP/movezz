@@ -3,6 +3,8 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import User
+from cloudinary.models import CloudinaryField
+from common.utils.validator_image import validate_image_size
 
 
 class Conversation(models.Model):
@@ -12,21 +14,19 @@ class Conversation(models.Model):
         on_delete=models.CASCADE,
         related_name="created_conversations"
     )
-
     title = models.CharField(max_length=255, blank=True, null=True)
     last_message_preview = models.CharField(max_length=200, blank=True, null=True)
     last_message_at = models.DateTimeField(null=True, blank=True)
-
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def update_last_message(self, message):
-        self.last_message_preview = message.body[:100]
+        self.last_message_preview = message.body[:100] if message.body else "📷 Image"
         self.last_message_at = message.created_at
         self.save(update_fields=["last_message_preview", "last_message_at"])
 
     def __str__(self):
-        return f"Conversation {self.id} ({self.chat_type})"
+        return f"Conversation {self.id}"
 
 
 class Message(models.Model):
@@ -42,6 +42,8 @@ class Message(models.Model):
         related_name="sent_messages"
     )
     body = models.TextField(blank=True)
+    image = CloudinaryField("image", blank=True, null=True, validators=[validate_image_size])
+    created_at = models.DateTimeField(auto_now_add=True)
 
     @property
     def sender_display_name(self):
@@ -51,9 +53,9 @@ class Message(models.Model):
     def sender_display_avatar(self):
         return getattr(self.sender.profile, "avatar", "")
 
-    created_at = models.DateTimeField(auto_now_add=True)
-
     def __str__(self):
+        if self.image:
+            return f"📷 Image from {self.sender_display_name}"
         return f"Message from {self.sender_display_name} at {self.created_at}"
 
 
