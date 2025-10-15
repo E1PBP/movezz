@@ -27,7 +27,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-lzhll+zrj2ihb1r*aqw&rye98tojuienf85srjxffzl+6_rf6p"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False   
+DEBUG = True
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "muhamad-hakim41-movezz.pbp.cs.ui.ac.id"]
 
@@ -141,6 +141,9 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
+
+LOGIN_URL = '/auth/login/'
+
 
 
 # Internationalization

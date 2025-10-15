@@ -17,14 +17,14 @@
           <li>
             <a
               href="#"
-              class="py-2 {% if active_page == 'for-you' %}text-lime-500 font-semibold{% else %}text-base-content/80{% endif %}"
+              class="py-2 {% if active_page == 'feeds' %}text-lime-500 font-semibold{% else %}text-base-content/80{% endif %}"
               >For You</a
             >
           </li>
           <li>
             <a
               href="#"
-              class="py-2 {% if active_page == 'broadcasts' %}text-primary font-semibold{% else %}text-base-content/80{% endif %}"
+              class="py-2 {% if active_page == 'broadcast' %}text-primary font-semibold{% else %}text-base-content/80{% endif %}"
               >Broadcasts</a
             >
           </li>
@@ -62,7 +62,9 @@
                 class="object-cover w-full h-full"
               />
               {% else %}
-              <span class="text-sm font-bold">M</span>
+              <span class="text-sm font-bold"
+                >{{ user.username|slice:":1"|upper }}</span
+              >
               {% endif %}
             </div>
             <i data-lucide="chevron-down" class="lucide-icon h-4 w-4"></i>
@@ -77,15 +79,11 @@
               class="block w-full text-center py-3 bg-base-100 text-base-content text-sm hover:bg-base-200 transition-colors"
               >Profile</a
             >
-            <form method="post" action="#">
-              {% csrf_token %}
-              <button
-                type="submit"
-                class="block w-full text-center py-3 bg-lime-400 text-base-content font-medium text-sm hover:bg-lime-400 focus:outline-none hover:cursor-pointer hover:bg-lime-500 transition-colors"
-              >
-                Logout
-              </button>
-            </form>
+            <a
+              href="{% url 'auth_module:logout' %}"
+              class="block w-full text-center py-3 bg-lime-400 text-base-content font-medium text-sm hover:bg-lime-400 focus:outline-none hover:cursor-pointer hover:bg-lime-500 transition-colors"
+              >Logout</a
+            >
           </div>
         </div>
 
@@ -105,7 +103,9 @@
                 class="object-cover w-full h-full"
               />
               {% else %}
-              <span class="text-sm font-bold">M</span>
+              <span class="text-sm font-bold"
+              >{{ user.username|slice:":1"|upper }}</span
+            >
               {% endif %}
             </div>
             <i data-lucide="chevron-down" class="lucide-icon h-4 w-4"></i>
@@ -135,15 +135,11 @@
               class="block w-full text-center py-3 bg-base-100 text-base-content text-sm hover:bg-base-200 transition-colors"
               >Profile</a
             >
-            <form method="post" action="#">
-              {% csrf_token %}
-              <button
-                type="submit"
-                class="block w-full text-center py-3 bg-lime-400 text-base-content font-medium text-sm hover:bg-lime-400 focus:outline-none hover:cursor-pointer hover:bg-lime-500 transition-colors"
-              >
-                Logout
-              </button>
-            </form>
+            <a
+              href="{% url 'auth_module:logout' %}"
+              class="block w-full text-center py-3 bg-lime-400 text-base-content font-medium text-sm hover:bg-lime-400 focus:outline-none hover:cursor-pointer hover:bg-lime-500 transition-colors"
+              >Logout</a
+            >
           </div>
         </div>
         {% comment %}

@@ -20,15 +20,17 @@ from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import include
+from django.views.generic import RedirectView
 
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("", include("feeds_module.urls")),
+    path("feeds/", include("feeds_module.urls")),
     path("auth/", include("auth_module.urls")),
     path("marketplace/", include("marketplace_module.urls")),
     path("broadcast/", include("broadcast_module.urls")),
     path("messages/", include("message_module.urls")),
+    path("", RedirectView.as_view(url="/feeds/", permanent=True)),
 ]
 
 if settings.DEBUG:
