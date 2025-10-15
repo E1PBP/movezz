@@ -25,6 +25,9 @@ class Profile(models.Model):
         updated_at (DateTimeField): The date and time the profile was last updated.
     Methods:
         __str__(): Returns the display name or username of the user.
+        update_following_count(): Updates the following count based on Follow relationships.
+        update_followers_count(): Updates the followers count based on Follow relationships.
+        update_all_counts(): Updates both following and followers counts.
 
     """
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
@@ -43,6 +46,27 @@ class Profile(models.Model):
 
     def __str__(self):
         return self.display_name or str(self.user)
+    
+    def update_following_count(self) -> None:
+        """Update the following count based on Follow relationships where this user is the follower."""
+        self.following_count = Follow.objects.filter(follower=self.user).count()
+        self.updated_at = timezone.now()
+        self.save(update_fields=['following_count', 'updated_at'])
+    
+    def update_followers_count(self) -> None:
+        """Update the followers count based on Follow relationships where this user is being followed."""
+        self.followers_count = Follow.objects.filter(followee=self.user).count()
+        self.updated_at = timezone.now()
+        self.save(update_fields=['followers_count', 'updated_at'])
+    
+    def update_all_counts(self) -> None:
+        """Update both following and followers counts based on Follow relationships."""
+        self.following_count = Follow.objects.filter(follower=self.user).count()
+        self.followers_count = Follow.objects.filter(followee=self.user).count()
+        self.updated_at = timezone.now()
+        self.save(update_fields=['following_count', 'followers_count', 'updated_at'])
+
+    
 
 class UserSport(models.Model):
     """
@@ -73,13 +97,50 @@ class Follow(models.Model):
         followee (ForeignKey): The user being followed.
         created_at (DateTimeField): The date and time the follow relationship was created.
     Methods:
-        None
-    Meta:
-        unique_together: Ensures that each follower-followee combination is unique.
+        save(): Override to update profile counts when follow relationship is created.
+        delete(): Override to update profile counts when follow relationship is deleted.
     """
     follower = models.ForeignKey(User, related_name="follows_given", on_delete=models.CASCADE)
     followee = models.ForeignKey(User, related_name="follows_received", on_delete=models.CASCADE)
     created_at = models.DateTimeField(default=timezone.now)
+
+    def save(self, *args, **kwargs) -> None:
+        """Override save to update profile counts when follow relationship is created."""
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+        
+        if is_new:
+            try:
+                follower_profile = Profile.objects.get(user=self.follower)
+                follower_profile.update_following_count()
+            except Profile.DoesNotExist:
+                pass
+            
+            try:
+                followee_profile = Profile.objects.get(user=self.followee)
+                followee_profile.update_followers_count()
+            except Profile.DoesNotExist:
+                pass
+
+    def delete(self, *args, **kwargs) -> None:
+        """Override delete to update profile counts when follow relationship is removed."""
+        follower_user = self.follower
+        followee_user = self.followee
+        
+        super().delete(*args, **kwargs)
+        
+        try:
+            follower_profile = Profile.objects.get(user=follower_user)
+            follower_profile.update_following_count()
+        except Profile.DoesNotExist:
+            pass
+        
+        # Update followee's followers count
+        try:
+            followee_profile = Profile.objects.get(user=followee_user)
+            followee_profile.update_followers_count()
+        except Profile.DoesNotExist:
+            pass
 
     class Meta:
         unique_together = ("follower", "followee")
