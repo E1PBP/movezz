@@ -1,6 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -31,6 +31,12 @@
     />
 
     <link rel="stylesheet" href="{% static 'css/global.css' %}" />
+
+    <script>
+      if (!localStorage.getItem('theme')) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    </script>
   </head>
   <body
     class="flex flex-col min-h-screen bg-base-200 text-base-content transition-all duration-300"
