@@ -1,4 +1,3 @@
-# your_app/management/commands/seed_profiles.py
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from django.db import transaction, IntegrityError
@@ -68,7 +67,6 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.MIGRATE_HEADING("Mulai seeding..."))
 
-        # optional reset: hapus user yang memakai prefix seeduser_
         if do_reset:
             self.stdout.write("Reset: menghapus semua user hasil seeding (email @example.com)...")
             qs = User.objects.filter(email__icontains="@example.com")
@@ -77,7 +75,7 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS(f"Deleted {count} seed users."))
 
 
-        # create sports & badges
+
         sport_names = [
             "Soccer", "Basketball", "Running", "Cycling",
             "Swimming", "Badminton", "Tennis", "Volleyball", "Climbing", "Boxing"
@@ -96,7 +94,7 @@ class Command(BaseCommand):
         ][:max(1, badges_count)]
         badges = create_or_get_badges(samples=badge_samples)
 
-        # optional hashtags
+
         if Hashtag is not None:
             tags = ["run", "fitness", "soccerlife", "cycling", "swim", "badminton"]
             for t in tags:
@@ -105,7 +103,7 @@ class Command(BaseCommand):
         created_users = []
         for i in range(users_count):
             username = fake.user_name()
-            # pastikan username unik
+
             while User.objects.filter(username=username).exists():
                 username = fake.user_name()
 
@@ -114,8 +112,6 @@ class Command(BaseCommand):
 
             user = User.objects.create_user(username=username, password=password, email=email)
 
-
-            # profile must exist before creating follows
             profile_defaults = {
                 "display_name": fake.name(),
                 "bio": fake.sentence(nb_words=12) + " Saya suka olahraga dan komunitas.",
@@ -133,22 +129,18 @@ class Command(BaseCommand):
 
             created_users.append(user)
 
-            # create user sport records
             if sports:
                 chosen = random.sample(sports, k=min(len(sports), random.randint(1, 3)))
                 for s in chosen:
-                    # use timedelta hours
                     hrs = random.randint(0, 200)
                     try:
                         UserSport.objects.get_or_create(user=user, sport=s, defaults={'time_elapsed': timedelta(hours=hrs)})
                     except Exception:
-                        # fallback if DurationField expects something else
                         try:
                             UserSport.objects.get_or_create(user=user, sport=s, defaults={'time_elapsed': "0"})
                         except Exception:
                             pass
 
-        # create follows (each user follows up to 4 others)
         for user in created_users:
             others = [u for u in created_users if u != user]
             n_follow = random.randint(0, min(4, len(others)))
@@ -156,13 +148,11 @@ class Command(BaseCommand):
                 continue
             to_follow = random.sample(others, k=n_follow)
             for followee in to_follow:
-                # use get_or_create to respect unique_together
                 try:
                     Follow.objects.get_or_create(follower=user, followee=followee)
                 except IntegrityError:
                     pass
 
-        # assign badges randomly (0..2 per user)
         for user in created_users:
             if not badges:
                 break
@@ -173,7 +163,6 @@ class Command(BaseCommand):
                 except IntegrityError:
                     pass
 
-        # optionally create a specific user (not superuser) with provided username/password
         if create_user:
             uname, pwd = create_user
             if User.objects.filter(username=uname).exists():
@@ -183,7 +172,6 @@ class Command(BaseCommand):
                 Profile.objects.create(user=u, display_name=uname, bio="Akun dibuat lewat seed script", link="")
                 self.stdout.write(self.style.SUCCESS(f"Created user {uname}"))
 
-        # update counts for all created users' profiles using the model methods
         for user in created_users:
             try:
                 profile = Profile.objects.get(user=user)
