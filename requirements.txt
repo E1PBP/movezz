@@ -9,3 +9,4 @@ faker
 Pillow
 cloudinary
 django-cloudinary-storage
+coverage

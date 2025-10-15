@@ -69,7 +69,8 @@
 Sebelum submit PR, jalankan test untuk memastikan tidak ada yang rusak:
 
 ```bash
-python manage.py test
+coverage run manage.py test
+coverage report
 ```
 
 Tambahkan test baru jika kamu menambah fitur baru.
