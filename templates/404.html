@@ -1,30 +1,197 @@
-{% extends 'base.html' %}
-{% block content %}
-<div class="min-h-screen flex flex-col items-center justify-center bg-base-200 text-base-content px-6 py-12">
-  <div class="max-w-md w-full text-center space-y-6">
-    <h1 class="text-9xl font-extrabold text-primary animate-bounce drop-shadow-lg">404</h1>
-    <h2 class="text-3xl md:text-4xl font-bold">Oops! Halaman tidak ditemukan 😢</h2>
-    <p class="text-gray-500">
-      Sepertinya kamu tersesat di ruang hampa internet.<br />
-      Jangan khawatir, kamu bisa kembali ke halaman utama.
-    </p>
+{% extends "base.html" %} {% load static %} {% block title %}Halaman Tidak
+Ditemukan{% endblock title %} {% block content %}
+<style>
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0) rotate(0deg);
+    }
+    33% {
+      transform: translateY(-20px) rotate(5deg);
+    }
+    66% {
+      transform: translateY(-10px) rotate(-5deg);
+    }
+  }
 
-    <div class="flex justify-center flex-wrap gap-4 mt-8">
-      <a href="/" class="btn btn-primary btn-wide shadow-md hover:shadow-lg transition-all duration-300">
-        Kembali ke Beranda
-      </a>
-      <button onclick="history.back()" class="btn btn-outline btn-secondary btn-wide hover:scale-105 transition-all duration-300">
-        Kembali ke Halaman Sebelumnya
-      </button>
-    </div>
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 
-    <div class="mt-12">
-      <img 
-        src="https://illustrations.popsy.co/violet/planet.svg" 
-        alt="Lost in Space" 
-        class="w-64 mx-auto animate-pulse opacity-90" 
-      />
+  @keyframes pulse-glow {
+    0%,
+    100% {
+      opacity: 0.6;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.05);
+    }
+  }
+
+  @keyframes orbit {
+    from {
+      transform: rotate(0deg) translateX(80px) rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg) translateX(80px) rotate(-360deg);
+    }
+  }
+
+  .animate-float {
+    animation: float 8s ease-in-out infinite;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.6s ease-out forwards;
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 3s ease-in-out infinite;
+  }
+
+  .animate-orbit {
+    animation: orbit 20s linear infinite;
+  }
+
+  .gradient-text {
+    background: linear-gradient(135deg, #84cc16 0%, #22c55e 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .glass-effect {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+</style>
+
+<div
+  class="flex items-center justify-center min-h-[calc(100vh-200px)] px-4 py-10 relative overflow-hidden"
+>
+  <!-- Decorative background elements -->
+  <div class="absolute inset-0 overflow-hidden pointer-events-none">
+    <div
+      class="absolute top-1/4 left-1/4 w-64 h-64 bg-lime-500/5 rounded-full blur-3xl animate-pulse-glow"
+    ></div>
+    <div
+      class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-green-500/5 rounded-full blur-3xl animate-pulse-glow"
+      style="animation-delay: 1.5s"
+    ></div>
+  </div>
+
+  <div
+    class="card w-full max-w-2xl bg-base-100 shadow-2xl text-center relative z-10 animate-fade-in"
+  >
+    <div class="card-body items-center p-8 md:p-12">
+      <!-- Main 404 with orbiting icons -->
+      <div class="relative mb-8 h-40 flex items-center justify-center">
+        <!-- Orbiting icons -->
+        <div class="absolute inset-0 flex items-center justify-center">
+          <i
+            data-lucide="compass"
+            class="w-8 h-8 text-lime-500 opacity-30 absolute animate-orbit"
+            style="animation-delay: 0s"
+          ></i>
+          <i
+            data-lucide="map-pin-off"
+            class="w-6 h-6 text-lime-500 opacity-30 absolute animate-orbit"
+            style="animation-delay: -5s"
+          ></i>
+          <i
+            data-lucide="navigation"
+            class="w-7 h-7 text-lime-500 opacity-30 absolute animate-orbit"
+            style="animation-delay: -10s"
+          ></i>
+        </div>
+
+        <!-- Main 404 number -->
+        <h1
+          class="text-9xl md:text-[12rem] font-black gradient-text drop-shadow-2xl relative z-10 animate-float"
+        >
+          404
+        </h1>
+      </div>
+
+      <!-- Title and description -->
+      <div class="space-y-4 mb-8 animate-fade-in" style="animation-delay: 0.2s">
+        <h2 class="text-3xl md:text-4xl font-bold">
+          Oops! You've Gone Offside! ⚽
+        </h2>
+        <p class="text-base-content/70 text-lg max-w-md mx-auto">
+          The page you're looking for might have been moved, deleted, or is
+          taking a water break.
+        </p>
+      </div>
+
+      <!-- Action buttons -->
+      <div
+        class="flex flex-col sm:flex-row gap-4 justify-center w-full mb-8 animate-fade-in"
+        style="animation-delay: 0.6s"
+      >
+        <a
+          href="/"
+          class="btn bg-lime-500 hover:bg-lime-600 text-white border-0 rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 gap-2"
+        >
+          <i data-lucide="home" class="w-5 h-5"></i>
+          Back to Home
+        </a>
+        <button
+          onclick="window.history.back()"
+          class="btn btn-outline btn-neutral rounded-full hover:scale-105 transition-all duration-300 gap-2"
+        >
+          <i data-lucide="arrow-left" class="w-5 h-5"></i>
+          Go Back
+        </button>
+      </div>
+
+      <div class="w-full animate-fade-in" style="animation-delay: 0.8s">
+        <div class="divider text-sm opacity-50">Or try these popular pages</div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mt-6">
+          <a
+            href=""
+            class="glass-effect p-4 rounded-xl hover:bg-lime-500/10 transition-all duration-300 hover:scale-105 group flex flex-col items-center justify-center"
+          >
+            <i
+              data-lucide="house"
+              class="w-6 h-6 mx-auto mb-2 text-lime-500 group-hover:scale-110 transition-transform"
+            ></i>
+            <span class="text-sm font-medium">Feeds</span>
+          </a>
+          <a
+            href=""
+            class="glass-effect p-4 rounded-xl hover:bg-lime-500/10 transition-all duration-300 hover:scale-105 group flex flex-col items-center justify-center"
+          >
+            <i
+              data-lucide="newspaper"
+              class="w-6 h-6 mx-auto mb-2 text-lime-500 group-hover:scale-110 transition-transform"
+            ></i>
+            <span class="text-sm font-medium">Broadcast</span>
+          </a>
+          <a
+            href=""
+            class="glass-effect p-4 rounded-xl hover:bg-lime-500/10 transition-all duration-300 hover:scale-105 group flex flex-col items-center justify-center"
+          >
+            <i
+              data-lucide="store"
+              class="w-6 h-6 mx-auto mb-2 text-lime-500 group-hover:scale-110 transition-transform"
+            ></i>
+            <span class="text-sm font-medium">Marketplace</span>
+          </a>
+        </div>
+      </div>
     </div>
   </div>
 </div>
+
 {% endblock content %}
