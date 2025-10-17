@@ -1,0 +1,47 @@
+<input type="checkbox" id="new-convo-modal" class="modal-toggle" />
+<div class="modal" role="dialog">
+  <div class="modal-box w-full max-w-md rounded-2xl">
+    <h2 class="text-lg font-bold mb-4">Start a new conversation</h2>
+
+    <div class="form-control mb-4">
+      <input
+        type="text"
+        id="user-search"
+        placeholder="Search for account..."
+        class="input input-bordered focus:outline-none focus:ring-2 focus:ring-green-500"
+      />
+    </div>
+
+    <div class="max-h-64 overflow-y-auto space-y-2">
+      {% for u in users %}
+      <form method="POST" class="w-full">
+        {% csrf_token %}
+        <button
+          name="username"
+          value="{{ u.username }}"
+          type="submit"
+          class="flex items-center gap-3 w-full p-3 rounded-xl hover:bg-base-200 transition-all text-left"
+        >
+          <img
+            src="{{ u.profile.avatar.url|default:'/static/img/default-avatar.png' }}"
+            class="w-10 h-10 rounded-full object-cover flex-shrink-0"
+            alt="{{ u.username }}"
+          />
+          <div class="flex-1 min-w-0">
+            <p class="font-medium truncate">{{ u.username }}</p>
+          </div>
+        </button>
+      </form>
+      {% empty %}
+      <p class="text-base-content/60 text-sm text-center py-4">
+        No users found.
+      </p>
+      {% endfor %}
+    </div>
+
+    <div class="modal-action mt-6">
+      <label for="new-convo-modal" class="btn btn-ghost">Cancel</label>
+    </div>
+  </div>
+  <label class="modal-backdrop" for="new-convo-modal">Close</label>
+</div>
