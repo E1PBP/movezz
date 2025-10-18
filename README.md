@@ -71,7 +71,7 @@ Fitur komunikasi antar pengguna, baik personal maupun grup komunitas olahraga. F
 - Kirim gambar **(opsional)**
 - Bagikan posting feed langsung ke chat **(opsional)**
 - Pesan permintaan untuk non-followers
-- Status pesan (terkirim, dibaca), dan notifikasi real-time (via Django Channels)
+- Status pesan (terkirim, dibaca), dan notifikasi real-time (dengan polling)
 
 ### 4. **Marketplace (Perlengkapan & Barang Olahraga)**
 
@@ -331,7 +331,6 @@ yang mengatur proses otomatis build, collectstatic, dan deploy ke [pws](https://
 
 - **Backend:** [Django](https://www.djangoproject.com/) (Python)
 - **Frontend:** [Tailwind CSS](https://tailwindcss.com/), [DaisyUI](https://daisyui.com/)
-- **Real-time Communication:** [Python Channels](https://channels.readthedocs.io/en/stable/)
 - **Database:** [PostgreSQL](https://www.postgresql.org/)
 - **Deployment & CI/CD:** [GitHub Actions](https://github.com/features/actions)
 - **Storage** (image): [Cloudinary](https://cloudinary.com)

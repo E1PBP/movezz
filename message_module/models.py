@@ -5,7 +5,8 @@ from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import User
 from cloudinary.models import CloudinaryField
 from common.utils.validator_image import validate_image_size
-
+from profile_module.models import Profile
+from django.core.exceptions import ValidationError
 
 class Conversation(models.Model):
     """A model representing a conversation between users.
@@ -33,13 +34,26 @@ class Conversation(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def clean(self):
+        """Ensure that a conversation has at most 2 members."""
+        if self.pk and self.members.count() > 2:
+            raise ValidationError("A private conversation can only have two members.")
+
+    def get_participants(self):
+        return User.objects.filter(conversationmember__conversation=self)
+    
+
+    def get_other_participant(self, user):
+        return self.get_participants().exclude(id=user.id).first()
+    
     def update_last_message(self, message):
         self.last_message_preview = message.body[:100] if message.body else "📷 Image"
         self.last_message_at = message.created_at
         self.save(update_fields=["last_message_preview", "last_message_at"])
 
     def __str__(self):
-        return f"Conversation {self.id}"
+        members = ", ".join([u.username for u in self.get_participants()])
+        return f"Conversation ({members})"
 
 
 class Message(models.Model):
@@ -73,11 +87,13 @@ class Message(models.Model):
 
     @property
     def sender_display_name(self):
-        return getattr(self.sender.profile, "display_name", self.sender.username)
+        sender_profile = Profile.objects.filter(user=self.sender).first()
+        return getattr(sender_profile, "display_name", self.sender.username)
 
     @property
     def sender_display_avatar(self):
-        return getattr(self.sender.profile, "avatar", "")
+        sender_profile = Profile.objects.filter(user=self.sender).first()
+        return getattr(sender_profile, "avatar", "")
 
     def __str__(self):
         if self.image:
@@ -98,13 +114,26 @@ class ConversationMember(models.Model):
     Methods:
         __str__(): Returns a string representation of the conversation member.
     """
-    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE)
+    conversation = models.ForeignKey(
+        Conversation,
+        on_delete=models.CASCADE,
+        related_name="members"
+    )
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     joined_at = models.DateTimeField(default=timezone.now)
     last_read_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         unique_together = ("conversation", "user")
+
+    def clean(self):
+        """Prevent adding more than 2 members to a conversation."""
+        if self.conversation.members.exclude(pk=self.pk).count() >= 2:
+            raise ValidationError("A private conversation can only have two members.")
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.user} in {self.conversation}"
