@@ -156,9 +156,8 @@ https://muhamad-hakim41-movezz.pbp.cs.ui.ac.id/
 
 https://www.figma.com/design/x4q0GDfJB0dQ2ZXl8uuXDZ/Design-Movezz?node-id=0-1&t=62HMu5tm1V2KTkKk-1
 
-## Link DB Diagram (May Change In The Future)
+## Link DB Diagram 
 
-https://dbdiagram.io/d/Movezz-68db9fa4d2b621e4228f0778
 https://dbdiagram.io/d/movezz-2-68e696cad2b621e422e8abc6
 
 ## Cara Menjalankan
