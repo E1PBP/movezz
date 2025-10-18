@@ -3,7 +3,7 @@
   <div class="max-w-7xl mx-auto px-2 lg:px-4">
     <div class="relative h-16 flex items-center">
       <div class="flex items-center flex-shrink-0">
-        <a href="#" class="inline-flex items-center">
+        <a href="{% url 'feeds_module:main_view' %}" class="inline-flex items-center">
           <img
             src="{% static 'images/logo-text.svg' %}"
             alt="Movezz"
@@ -16,7 +16,7 @@
         <ul class="flex space-x-10 text-sm">
           <li>
             <a
-              href="#"
+              href="{% url 'feeds_module:main_view' %}"
               class="py-2 {% if active_page == 'feeds' %}text-lime-500 font-semibold{% else %}text-base-content/80{% endif %}"
               >For You</a
             >
@@ -39,12 +39,13 @@
       </div>
 
       <div class="ml-auto flex items-center space-x-3">
-        <button
+        <a
+          href="{% url 'message_module:chat_home' %}"
           class="btn btn-ghost btn-circle sm:inline-flex"
           aria-label="Messages"
         >
           <img src="{% static 'images/message-icon.svg' %}" alt="message" />
-        </button>
+        </a>
 
         <div class="hidden md:block dropdown dropdown-end">
           <label
@@ -116,7 +117,7 @@
             class="dropdown-content mt-2 w-50 rounded-xl overflow-hidden border border-base-300 shadow-md"
           >
             <a
-              href="#"
+              href="{% url 'feeds_module:main_view' %}"
               class="block w-full text-center py-3 bg-base-100 text-base-content text-sm hover:bg-base-200 transition-colors"
               >For You</a
             >
