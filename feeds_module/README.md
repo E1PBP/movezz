@@ -1,4 +1,4 @@
-## Modul: _[Nama Modul]_
+## Modul: Feeds
 
 beri ❌ jika belum dan ✅ jika sudah
 
