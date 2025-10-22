@@ -107,7 +107,6 @@ def send_message(request, conversation_id):
     if not body and not image_file:
         return JsonResponse({"error": "Empty message"}, status=400)
 
-    # (opsional) Validasi tipe gambar
     if image_file:
         allowed = {"image/jpeg", "image/png", "image/webp", "image/gif"}
         if image_file.content_type not in allowed:

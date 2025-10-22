@@ -306,7 +306,7 @@ Struktur proyek ini menggunakan **pendekatan modular per fitur**, di mana setiap
 Berfungsi sebagai **shared module** untuk kode yang digunakan lintas fitur:
 
 * Validator, signal, dan helper.
-* Command management untuk seed data awal (`python manage.py seed_data`).
+* Command management untuk seed data awal (`python manage.py seed_profiles`).
 
 #### Folder `static/` dan `templates/`
 

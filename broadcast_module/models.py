@@ -41,9 +41,10 @@ class Event(models.Model):
     author_display_name = models.CharField(max_length=80, blank=True, null=True)
     author_avatar_url = models.TextField(blank=True, null=True)
     author_badges_url = models.TextField(blank=True, null=True)
-    community_id = models.UUIDField(null=True, blank=True)
-    sport = models.ForeignKey(Sport, on_delete=models.SET_NULL, null=True, blank=True)
-    title = models.CharField(max_length=120)
+    # community_id = models.UUIDField(null=True, blank=True)
+    image = CloudinaryField("image", validators=[validate_image_size], null=True, blank=True)
+    # sport = models.ForeignKey(Sport, on_delete=models.SET_NULL, null=True, blank=True)
+    # title = models.CharField(max_length=120)
     description = models.TextField(blank=True, null=True)
     is_pinned = models.BooleanField(default=False)
     location_name = models.CharField(max_length=120, blank=True, null=True)
@@ -80,7 +81,7 @@ class Event(models.Model):
     def __str__(self):
         return self.title
 
-class UserEvent(models.Model):
+# class UserEvent(models.Model):
     """
     Represents the association between a User and an Event.
     This model tracks which users are linked to which events, along with the timestamp
@@ -93,14 +94,14 @@ class UserEvent(models.Model):
         unique_together: Ensures that each (user, event) pair is unique.
     """
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    event = models.ForeignKey(Event, on_delete=models.CASCADE)
-    created_at = models.DateTimeField(default=timezone.now)
+    # user = models.ForeignKey(User, on_delete=models.CASCADE)
+    # event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    # created_at = models.DateTimeField(default=timezone.now)
 
-    class Meta:
-        unique_together = ("user", "event")
+    # class Meta:
+        # unique_together = ("user", "event")
 
-class EventImage(models.Model):
+# class EventImage(models.Model):
     """
     Model representing an image associated with an event.
     Attributes:
@@ -109,6 +110,6 @@ class EventImage(models.Model):
         image (CloudinaryField): Image file stored in Cloudinary, validated for size, optional.
     """
     
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    event = models.ForeignKey(Event, related_name="images", on_delete=models.CASCADE)
-    image = CloudinaryField("image", validators=[validate_image_size], null=True, blank=True)
+    # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    # event = models.ForeignKey(Event, related_name="images", on_delete=models.CASCADE)
+    # image = CloudinaryField("image", validators=[validate_image_size], null=True, blank=True)
