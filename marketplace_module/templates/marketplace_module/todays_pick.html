@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% load static currency %}
+{% block content %}
+<h1 class="text-2xl sm:text-3xl font-semibold tracking-tight mb-6">Today’s Pick</h1>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for listing in listings %}
+    <article
+        class="card bg-base-100 border border-base-300/60 shadow-sm hover:shadow-md hover:ring-1 hover:ring-base-300 transition-all duration-300 overflow-hidden relative rounded-[16px]">
+        <!-- display image -->
+        <figure class="h-[300px] sm:h-[320px] lg:h-[340px] overflow-hidden">
+            <img src="{{ listing.image_url }}" alt="{{ listing.title }}" class="w-full h-full object-cover"
+                loading="lazy" decoding="async" />
+        </figure>
+
+        <!-- body -->
+        <div class="p-4 pt-3 pb-3">
+            <!-- price -->
+            <p class="text-[20px] leading-[28px] font-semibold mb-1">
+                {{ listing.price|rupiah }}
+            </p>
+
+            <!-- title and condition -->
+            <div class="flex items-center justify-between gap-2">
+                <h2 class="text-[18px] leading-[18px] font-semibold line-clamp-1">
+                    {{ listing.title }}
+                </h2>
+
+                <span class="px-3 py-1 text-[14px] leading-[18px] font-semibold rounded-full
+                                {% if listing.condition == 'BRAND_NEW' %}
+                                    bg-lime-400 text-[#3F6212]
+                                {% else %}
+                                    bg-orange-300 text-[#7C2D12]
+                                {% endif %}">
+                    {% if listing.condition == 'BRAND_NEW' %}Brand New{% else %}Used{% endif %}
+                </span>
+            </div>
+
+            <!-- location -->
+            <div class="mt-2 text-sm text-base-content/70 inline-flex items-center gap-1">
+                <span class="truncate">{{ listing.location }}</span>
+            </div>
+
+            <!-- whole-card anchor -->
+            <a href="{% url 'marketplace_module:listing_detail' listing.id %}" class="absolute inset-0"
+                aria-label="Open {{ listing.title }}"></a>
+        </div>
+    </article>
+    {% endfor %}
+</div>
+
+<script>
+    if (window.lucide) { window.lucide.createIcons(); }
+</script>
+{% endblock %}
