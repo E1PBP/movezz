@@ -125,7 +125,7 @@ def send_message(request, conversation_id):
         "sender": msg.sender.username,
         "body": msg.body,
         "image_url": (msg.image.url if msg.image else None),
-        "created_at": msg.created_at.strftime("%Y-%m-%d %H:%M"),
+        "created_at": timezone.localtime(msg.created_at).strftime("%Y-%m-%d %H:%M"),
     })
 
 
@@ -166,6 +166,7 @@ def poll_messages(request, conversation_id):
     for msg in new_messages:
         prof = getattr(msg.sender, 'profile', None)
         avatar_url = getattr(getattr(prof, 'avatar_url', None), 'url', None) if prof else None
+        local_created = timezone.localtime(msg.created_at)
         data.append({
             "id": str(msg.id),
             "sender": msg.sender.username,
@@ -174,6 +175,6 @@ def poll_messages(request, conversation_id):
             "body": msg.body,
             "image_url": (msg.image.url if msg.image else None),
             "is_self": msg.sender == request.user,
-            "created_at": msg.created_at.strftime("%Y-%m-%d %H:%M"),
+            "created_at": local_created.strftime("%Y-%m-%d %H:%M"),
         })
     return JsonResponse({"messages": data})
