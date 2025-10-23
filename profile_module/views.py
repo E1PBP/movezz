@@ -11,6 +11,9 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.utils import timezone
 from django.http import JsonResponse, Http404
+from django.urls import reverse
+from django.views.decorators.http import require_http_methods
+from .forms import CreatePostForm, PostUpdateForm
 
 def format_short_number(number: int) -> str:
     integer_number = int(number or 0)
@@ -180,19 +183,24 @@ def post_update_ajax(request, pk):
     Post = _get_post_model()
     if not Post:
         return JsonResponse({"detail": "Post model not found."}, status=404)
+    
     postingan = get_object_or_404(Post, pk=pk)
     if request.user != postingan.user:
         return JsonResponse({"detail": "Forbidden"}, status=403)
+    
+    form = PostUpdateForm(request.POST)
+    if not form.is_valid():
+        return JsonResponse({"error": "invalid", "details": form.errors}, status=400)
 
-    caption = request.POST.get("caption", "").strip()
+    update_fields = []
+    caption = (form.cleaned_data.get("caption") or "").strip()
     if hasattr(postingan, "caption"):
         postingan.caption = caption
-        update_fields = ["caption"]
-    else:
-        update_fields = []
+        update_fields.append("caption")
     if hasattr(postingan, "updated_at"):
         postingan.updated_at = timezone.now()
         update_fields.append("updated_at")
+
     postingan.save(update_fields=update_fields or None)
     return JsonResponse({"ok": True, "caption": caption})
 
@@ -208,6 +216,79 @@ def post_delete_ajax(request, pk):
         return JsonResponse({"detail": "Forbidden"}, status=403)
     postingan.delete()
     return JsonResponse({"ok": True})
+
+@require_http_methods(["POST"])
+@login_required
+def create_post_ajax(request):
+    try:
+        Post = _get_post_model()
+        if not Post:
+            return JsonResponse({"error": "model_not_found"}, status=500)
+
+        form = CreatePostForm(request.POST, request.FILES)
+        if not form.is_valid():
+            return JsonResponse({"error": "invalid", "details": form.errors}, status=400)
+
+        data = form.cleaned_data
+        post = Post()
+
+        # Author 
+        if hasattr(post, "user"):
+            post.user = request.user
+        elif hasattr(post, "author"):
+            post.author = request.user
+        else:
+            return JsonResponse({"error": "no_author_field"}, status=500)
+
+        # Caption
+        if hasattr(post, "caption"):
+            post.caption = (data.get("caption") or "").strip()
+
+        # Tournament / Exercise / Duration
+        if hasattr(post, "tournament"):
+            post.tournament = data.get("tournament") or ""
+        if hasattr(post, "exercise"):
+            post.exercise = data.get("exercise") or ""
+        if hasattr(post, "duration_minutes"):
+            hour = data.get("time_h") or 0
+            minutes = data.get("time_m") or 0
+            post.duration_minutes = int(hour) * 60 + int(minutes)
+
+        # Upload Image
+        img_file = data.get("image")
+        img_url  = data.get("image_url")
+        set_image = False
+        if img_file and hasattr(post, "image"):
+            post.image = img_file
+            set_image = True
+        if not set_image and img_url:
+            if hasattr(post, "image_url"):
+                post.image_url = img_url
+                set_image = True
+            elif hasattr(post, "photo_url"):
+                post.photo_url = img_url
+                set_image = True
+
+        if hasattr(post, "created_at") and not getattr(post, "created_at", None):
+            post.created_at = timezone.now()
+
+        post.save()
+
+        try:
+            profile = request.user.profile
+            profile.post_count = (profile.post_count or 0) + 1
+            profile.save(update_fields=["post_count"])
+        except Profile.DoesNotExist:
+            pass
+
+        detail_url = reverse("post_detail", kwargs={"username": request.user.username, "pk": post.pk})
+        return JsonResponse({"status": "success", "id": str(post.pk), "detail_url": detail_url, "created": True})
+
+    except Exception as e:
+        import traceback
+        print("ERROR creating post:", e)
+        print(traceback.format_exc())
+        return JsonResponse({"error": "exception", "message": str(e)}, status=500)
 
 
 
