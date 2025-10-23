@@ -156,9 +156,8 @@ https://muhamad-hakim41-movezz.pbp.cs.ui.ac.id/
 
 https://www.figma.com/design/x4q0GDfJB0dQ2ZXl8uuXDZ/Design-Movezz?node-id=0-1&t=62HMu5tm1V2KTkKk-1
 
-## Link DB Diagram (May Change In The Future)
+## Link DB Diagram 
 
-https://dbdiagram.io/d/Movezz-68db9fa4d2b621e4228f0778
 https://dbdiagram.io/d/movezz-2-68e696cad2b621e422e8abc6
 
 ## Cara Menjalankan
@@ -190,6 +189,10 @@ https://dbdiagram.io/d/movezz-2-68e696cad2b621e422e8abc6
    DB_PASSWORD=
    SCHEMA=
    PRODUCTION=False
+
+   CLOUDINARY_CLOUD_NAME=
+   CLOUDINARY_API_KEY=
+   CLOUDINARY_API_SECRET=
    ```
 6. **Jalankan migrasi database:**
    ```bash
@@ -200,7 +203,7 @@ https://dbdiagram.io/d/movezz-2-68e696cad2b621e422e8abc6
    python manage.py runserver
    ```
 
-Akses aplikasi di `http://localhost:8000/`.
+Akses aplikasi di `http://127.0.0.1:8000/`.
 
 ---
 
@@ -307,7 +310,7 @@ Struktur proyek ini menggunakan **pendekatan modular per fitur**, di mana setiap
 Berfungsi sebagai **shared module** untuk kode yang digunakan lintas fitur:
 
 * Validator, signal, dan helper.
-* Command management untuk seed data awal (`python manage.py seed_data`).
+* Command management untuk seed data awal (`python manage.py seed_profiles`).
 
 #### Folder `static/` dan `templates/`
 
