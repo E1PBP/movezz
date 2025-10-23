@@ -63,8 +63,6 @@ class Profile(models.Model):
         self.updated_at = timezone.now()
         self.save(update_fields=['following_count', 'followers_count', 'updated_at'])
 
-    
-
 class UserSport(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     sport = models.ForeignKey(Sport, on_delete=models.CASCADE)
