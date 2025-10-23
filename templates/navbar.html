@@ -31,7 +31,7 @@
           </li>
           <li>
             <a
-              href="#"
+              href="{% url 'marketplace_module:todays_pick' %}"
               class="py-2 {% if active_page == 'marketplace' %}font-semibold{% else %}text-base-content/80{% endif %}"
               {% if active_page == 'marketplace' %}style="color: #A3E635;"{% endif %}
               >Marketplace</a
@@ -129,7 +129,7 @@
               >Broadcast</a
             >
             <a
-              href="#"
+              href="{% url 'marketplace_module:todays_pick' %}"
               class="block w-full text-center py-3 bg-base-100 text-base-content text-sm hover:bg-base-200 transition-colors"
               >Marketplace</a
             >
