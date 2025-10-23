@@ -1,0 +1,133 @@
+{% load feeds_extras %}
+<div class="card w-full bg-base-100 shadow-sm overflow-hidden relative">
+    <div class="card-body z-10">
+        {% if post.images.all %}
+        {# Layout for posts WITH an image (Two Columns) #}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Left Column -->
+            <div>
+                <div class="flex items-center gap-3">
+                    <div class="avatar">
+                        <div class="w-12 rounded-full">
+                            {% if post.author_avatar_url %}
+                            <img src="{{ post.author_avatar_url }}" alt="{{ post.author_display_name }}" />
+                            {% else %}
+                            <div class="w-12 h-12 bg-primary text-primary-content flex items-center justify-center">
+                                <span class="text-xl font-bold">{{ post.user.username|slice:":1"|upper }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-lg">{{ post.author_display_name|default:post.user.username }}</span>
+                            <span class="text-neutral-500">@{{ post.user.username }}</span>
+                            {% if post.author_badges_url %}
+                                {% for badge_url in post.author_badges_url|split:"," %}
+                                    {% if badge_url %}
+                                    <img src="{{ badge_url }}" alt="Badge" class="w-4 h-4">
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                        <div class="text-sm text-neutral-500">{{ post.location_name }}</div>
+                    </div>
+                </div>
+                <div class="mt-4 relative w-full aspect-4/3 rounded-lg overflow-hidden">
+                    <img src="{{ post.images.first.image.url }}" alt="Post image" class="absolute w-full h-full object-cover" />
+                </div>
+            </div>
+            <!-- Right Column -->
+            <div class="flex flex-col justify-between">
+                <div>
+                    <p class="text-neutral-700">{{ post.text }}</p>
+                    <p class="text-sm text-neutral-400 mt-2">Created at : {{ post.created_at|date:"d M, Y" }}</p>
+                </div>
+                <div>
+                    <div class="flex mb-4 flex-wrap gap-2">
+                        {% for post_hashtag in post.posthashtag_set.all %}
+                        <span class="badge badge-lg p-3 font-semibold rounded-full text-lime-800 bg-lime-200">
+                            #{{ post_hashtag.hashtag.tag }}
+                        </span>
+                        {% endfor %}
+                        {% if post.sport %}
+                        <span class="badge badge-lg p-3 font-semibold rounded-full text-orange-900 bg-orange-200">
+                            #{{ post.sport.name }}
+                        </span>
+                        {% endif %}
+                    </div>
+                    <div class="flex text-neutral-600 items-center gap-4">
+                        <div class="flex gap-1 items-center">
+                            {{ post.likes_count }}
+                            <i data-lucide="heart" class="w-5 h-5 shrink-0"></i>
+                        </div>
+                        <div class="flex gap-1 items-center">
+                            {{ post.comments_count }}
+                            <i data-lucide="message-circle" class="w-5 h-5 shrink-0"></i>
+                        </div>
+                        <i data-lucide="share" class="w-5 h-5 shrink-0"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        {# Layout for posts WITHOUT an image (Single Column) #}
+        <div>
+            <div class="flex items-center gap-3">
+                <div class="avatar">
+                    <div class="w-12 rounded-full">
+                        {% if post.author_avatar_url %}
+                        <img src="{{ post.author_avatar_url }}" alt="{{ post.author_display_name }}" />
+                        {% else %}
+                        <div class="w-12 h-12 bg-primary text-primary-content flex items-center justify-center">
+                            <span class="text-xl font-bold">{{ post.user.username|slice:":1"|upper }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-bold text-lg">{{ post.author_display_name|default:post.user.username }}</span>
+                        <span class="text-neutral-500">@{{ post.user.username }}</span>
+                        {% if post.author_badges_url %}
+                            {% for badge_url in post.author_badges_url|split:"," %}
+                                {% if badge_url %}
+                                <img src="{{ badge_url }}" alt="Badge" class="w-4 h-4">
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    <div class="text-sm text-neutral-500">{{ post.location_name }}</div>
+                </div>
+            </div>
+            <div class="mt-4">
+                <p class="text-neutral-700">{{ post.text }}</p>
+                <p class="text-sm text-neutral-400 mt-2">Created at : {{ post.created_at|date:"d M, Y" }}</p>
+                <div class="flex mt-4 mb-4 flex-wrap gap-2">
+                    {% for post_hashtag in post.posthashtag_set.all %}
+                    <span class="badge badge-lg p-3 font-semibold rounded-full text-lime-800 bg-lime-200">
+                        #{{ post_hashtag.hashtag.tag }}
+                    </span>
+                    {% endfor %}
+                    {% if post.sport %}
+                    <span class="badge badge-lg p-3 font-semibold rounded-full text-orange-900 bg-orange-200">
+                        #{{ post.sport.name }}
+                    </span>
+                    {% endif %}
+                </div>
+                <div class="flex text-neutral-600 items-center gap-4">
+                    <div class="flex gap-1 items-center">
+                        {{ post.likes_count }}
+                        <i data-lucide="heart" class="w-5 h-5 shrink-0"></i>
+                    </div>
+                    <div class="flex gap-1 items-center">
+                        {{ post.comments_count }}
+                        <i data-lucide="message-circle" class="w-5 h-5 shrink-0"></i>
+                    </div>
+                    <i data-lucide="share" class="w-5 h-5 shrink-0"></i>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>

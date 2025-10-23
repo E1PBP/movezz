@@ -6,17 +6,14 @@ from profile_module.models import Follow
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 
-# Create your views here.
 @login_required
 def main_view(request):
-    active_tab = request.GET.get('tab', 'foryou')  # Default to 'foryou'
+    active_tab = request.GET.get('tab', 'foryou') 
 
     if active_tab == 'following':
-        # Get the list of users that the current user is following
         following_users = Follow.objects.filter(follower=request.user).values_list('followee', flat=True)
         posts = Post.objects.filter(user__in=following_users).order_by('-created_at')
     else:
-        # 'foryou' tab shows all posts
         posts = Post.objects.all().order_by('-created_at')
 
     form = PostForm()
@@ -45,7 +42,6 @@ def create_post_ajax(request):
     badge_urls = [user_badge.badge.icon_url for user_badge in user_badges if user_badge.badge.icon_url]
     post.author_badges_url = ",".join(badge_urls)
 
-    # Process hashtags first
     hashtag_str = request.POST.get('hashtags')
     hashtags_to_add = []
     if hashtag_str:
@@ -63,11 +59,11 @@ def create_post_ajax(request):
             PostHashtag(post=post, hashtag=hashtag) for hashtag in hashtags_to_add
         ])
 
-    time_str = request.POST.get('hour')
-    if time_str:
-        post.created_at = post.created_at.replace(hour=int(time_str), minute=0, second=0, microsecond=0)
+    time_h = request.POST.get('time_h')
+    time_m = request.POST.get('time_m')
+    if time_h and time_m:
+        post.created_at = post.created_at.replace(hour=int(time_h), minute=int(time_m), second=0, microsecond=0)
         post.save()
-
 
     if image_form.is_valid() and request.FILES.get('image'):
         post_image = image_form.save(commit=False)
