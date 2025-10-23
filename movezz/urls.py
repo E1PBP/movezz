@@ -26,6 +26,7 @@ from django.views.generic import RedirectView
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("feeds/", include("feeds_module.urls")),
+    path("profile/", include("profile_module.urls")),
     path("auth/", include("auth_module.urls")),
     path("marketplace/", include("marketplace_module.urls")),
     path("broadcast/", include("broadcast_module.urls")),

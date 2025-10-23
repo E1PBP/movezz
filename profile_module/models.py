@@ -48,39 +48,22 @@ class Profile(models.Model):
         return self.display_name or str(self.user)
     
     def update_following_count(self) -> None:
-        """Update the following count based on Follow relationships where this user is the follower."""
         self.following_count = Follow.objects.filter(follower=self.user).count()
         self.updated_at = timezone.now()
         self.save(update_fields=['following_count', 'updated_at'])
     
     def update_followers_count(self) -> None:
-        """Update the followers count based on Follow relationships where this user is being followed."""
         self.followers_count = Follow.objects.filter(followee=self.user).count()
         self.updated_at = timezone.now()
         self.save(update_fields=['followers_count', 'updated_at'])
     
     def update_all_counts(self) -> None:
-        """Update both following and followers counts based on Follow relationships."""
         self.following_count = Follow.objects.filter(follower=self.user).count()
         self.followers_count = Follow.objects.filter(followee=self.user).count()
         self.updated_at = timezone.now()
         self.save(update_fields=['following_count', 'followers_count', 'updated_at'])
 
-    
-
 class UserSport(models.Model):
-    """
-    Represents the time a user has spent on a particular sport.
-    Attributes:
-        user (ForeignKey): The user associated with the sport.
-        sport (ForeignKey): The sport associated with the user.
-        time_elapsed (DurationField): The total time the user has spent on the sport.
-        created_at (DateTimeField): The date and time the record was created.
-    Methods:
-        None
-    Meta:
-        unique_together: Ensures that each user-sport combination is unique.
-    """
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     sport = models.ForeignKey(Sport, on_delete=models.CASCADE)
     time_elapsed = models.DurationField(default='0')
@@ -90,22 +73,11 @@ class UserSport(models.Model):
         unique_together = ("user", "sport")
 
 class Follow(models.Model):
-    """
-    Represents a follow relationship between two users.
-    Attributes:
-        follower (ForeignKey): The user who is following another user.
-        followee (ForeignKey): The user being followed.
-        created_at (DateTimeField): The date and time the follow relationship was created.
-    Methods:
-        save(): Override to update profile counts when follow relationship is created.
-        delete(): Override to update profile counts when follow relationship is deleted.
-    """
     follower = models.ForeignKey(User, related_name="follows_given", on_delete=models.CASCADE)
     followee = models.ForeignKey(User, related_name="follows_received", on_delete=models.CASCADE)
     created_at = models.DateTimeField(default=timezone.now)
 
     def save(self, *args, **kwargs) -> None:
-        """Override save to update profile counts when follow relationship is created."""
         is_new = self.pk is None
         super().save(*args, **kwargs)
         
@@ -123,7 +95,6 @@ class Follow(models.Model):
                 pass
 
     def delete(self, *args, **kwargs) -> None:
-        """Override delete to update profile counts when follow relationship is removed."""
         follower_user = self.follower
         followee_user = self.followee
         
@@ -135,7 +106,6 @@ class Follow(models.Model):
         except Profile.DoesNotExist:
             pass
         
-        # Update followee's followers count
         try:
             followee_profile = Profile.objects.get(user=followee_user)
             followee_profile.update_followers_count()
@@ -146,17 +116,6 @@ class Follow(models.Model):
         unique_together = ("follower", "followee")
 
 class UserBadge(models.Model):
-    """
-    Represents a badge awarded to a user.
-    Attributes:
-        user (ForeignKey): The user who received the badge.
-        badge (ForeignKey): The badge awarded to the user.
-        created_at (DateTimeField): The date and time the badge was awarded.
-    Methods:
-        None
-    Meta:
-        unique_together: Ensures that each user-badge combination is unique.
-    """
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     badge = models.ForeignKey(Badge, on_delete=models.CASCADE)
     created_at = models.DateTimeField(default=timezone.now)
