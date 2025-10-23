@@ -87,13 +87,18 @@ class Message(models.Model):
 
     @property
     def sender_display_name(self):
+        if hasattr(self.sender, 'profile') and self.sender.profile:
+            return getattr(self.sender.profile, "display_name", self.sender.username)
+
         sender_profile = Profile.objects.filter(user=self.sender).first()
         return getattr(sender_profile, "display_name", self.sender.username)
 
     @property
     def sender_display_avatar(self):
+        if hasattr(self.sender, 'profile') and self.sender.profile:
+            return getattr(self.sender.profile, "avatar_url", "") 
         sender_profile = Profile.objects.filter(user=self.sender).first()
-        return getattr(sender_profile, "avatar", "")
+        return getattr(sender_profile, "avatar_url", "")
 
     def __str__(self):
         if self.image:

@@ -36,7 +36,7 @@
       {% endwith %}
       <div class="flex-1">
         <h2 class="font-semibold text-lg">
-          {{ selected_conversation.other_user.profile.display_name }}
+          {{ selected_conversation.other_user.profile.display_name|default:selected_conversation.other_user.username }}
         </h2>
         <p class="text-xs text-base-content/60">
           @{{ selected_conversation.other_user.username|lower }}
@@ -237,7 +237,7 @@
             </div>
             <div class="flex-1 min-w-0">
               <p class="font-semibold truncate">
-                {{ convo.other_user.profile.display_name }}
+                {{ convo.other_user.profile.display_name|default:convo.other_user.username }}
               </p>
               <p class="text-sm text-base-content/60 truncate">
                 {{ convo.last_message_preview|default:"No messages yet" }}
@@ -317,7 +317,7 @@
           {% endif %} {% endwith %}
 
           <div class="flex-1 min-w-0">
-            <p class="font-medium truncate">{{u.profile.display_name}}</p>
+            <p class="font-medium truncate">{{u.profile.display_name|default:u.username}}</p>
             <p class="truncate">@{{ u.username }}</p>
           </div>
         </button>
@@ -619,18 +619,25 @@
           }
 
           wrapper.innerHTML = `
-              <div class="flex gap-2 max-w-xs lg:max-w-md">
-                ${
-                  !msg.is_self
-                    ? `<img src="${msg.sender_avatar}" class="w-8 h-8 rounded-full object-cover flex-shrink-0" alt="${msg.sender}">`
-                    : ""
-                }
-                <div class="flex flex-col ${msg.is_self ? "items-end" : ""}">
-                  ${parts.join("")}
-                    <span class="text-xs text-base-content/50 mt-1 px-2">${msg.created_at}</span>
-                </div>
+            <div class="flex gap-2 max-w-xs lg:max-w-md">
+              ${
+                !msg.is_self
+                  ? msg.sender_avatar 
+                    ? `<img src="${msg.sender_avatar}" class="w-8 h-8 rounded-full object-cover flex-shrink-0" alt="${msg.sender}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                       <div class="w-8 h-8 rounded-full bg-primary text-primary-content flex items-center justify-center flex-shrink-0" style="display: none;">
+                         <span class="text-xs font-bold">${msg.sender.charAt(0).toUpperCase()}</span>
+                       </div>`
+                    : `<div class="w-8 h-8 rounded-full bg-primary text-primary-content flex items-center justify-center flex-shrink-0">
+                         <span class="text-xs font-bold">${msg.sender.charAt(0).toUpperCase()}</span>
+                       </div>`
+                  : ""
+              }
+              <div class="flex flex-col ${msg.is_self ? "items-end" : ""}">
+                ${parts.join("")}
+                <span class="text-xs text-base-content/50 mt-1 px-2">${msg.created_at}</span>
               </div>
-            `;
+            </div>
+          `;
           chatMessages.appendChild(wrapper);
         });
 
