@@ -192,7 +192,7 @@
 >
 
       {% comment %} sidebar header {% endcomment %}
-      <div class="p-4 sticky top-0 pt-20 bg-base-100">
+      <div class="p-4 sticky top-0 pt-20 lg:pt-4 bg-base-100">
         <h2 class="text-xl font-bold mb-4">Messages</h2>
         <div class="form-control">
           <input
@@ -627,14 +627,7 @@
                 }
                 <div class="flex flex-col ${msg.is_self ? "items-end" : ""}">
                   ${parts.join("")}
-                    <span class="text-xs text-base-content/50 mt-1 px-2">${new Date(msg.created_at).toLocaleString('en-CA', {
-                    year: 'numeric',
-                    month: '2-digit', 
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: false
-                    }).replace(',', '')}</span>
+                    <span class="text-xs text-base-content/50 mt-1 px-2">${msg.created_at}</span>
                 </div>
               </div>
             `;
