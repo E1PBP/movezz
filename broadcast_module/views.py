@@ -4,22 +4,26 @@ from django.views.decorators.http import require_http_methods
 from django.core.paginator import Paginator
 from django.db.models import F
 from django.utils import timezone
-
 from .models import Event
 from .forms import EventForm
-
+from typing import Any
 
 @require_http_methods(["GET"])
-def broadcast_list(request):
-    """Main broadcast list page with trending/latest tabs."""
-    events = Event.objects.order_by('-total_click').select_related('user')
+def broadcast_list(request) -> Any:
+    events = (
+        Event.objects
+        .select_related('user', 'user__profile')
+        .annotate(user_is_verified=F('user__profile__is_verified'))
+        .order_by('-total_click')
+    )
+
     paginator = Paginator(events, 10)
-    
+    page = 1
     try:
-        events_page = paginator.page(1)
+        events_page = paginator.page(page)
     except Exception:
         events_page = paginator.page(1)
-    
+
     return render(request, 'broadcasts/event_list.html', {
         'events': events_page.object_list,
         'initial_tab': 'trending',
@@ -27,18 +31,23 @@ def broadcast_list(request):
     })
 
 
+
 @require_http_methods(["GET"])
 def get_trending_events(request):
-    """AJAX endpoint for trending events (sorted by clicks)."""
     page = request.GET.get('page', 1)
-    events = Event.objects.select_related('user').order_by('-total_click')
+    events = (
+        Event.objects
+        .select_related('user', 'user__profile')
+        .annotate(user_is_verified=F('user__profile__is_verified'))
+        .order_by('-total_click')
+    )
     paginator = Paginator(events, 10)
-    
+
     try:
         events_page = paginator.page(page)
     except Exception:
         return JsonResponse({'error': 'Invalid page'}, status=400)
-    
+
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         html = render(request, 'broadcasts/event_card.html', {
             'events': events_page.object_list,
@@ -48,7 +57,7 @@ def get_trending_events(request):
             'has_next': events_page.has_next(),
             'total_pages': paginator.num_pages
         })
-    
+
     return render(request, 'broadcasts/event_list.html', {
         'events': events_page.object_list,
         'initial_tab': 'trending',
@@ -57,16 +66,20 @@ def get_trending_events(request):
 
 @require_http_methods(["GET"])
 def get_latest_events(request):
-    """AJAX endpoint for latest events (sorted by upcoming start time)."""
     page = request.GET.get('page', 1)
-    events = Event.objects.select_related('user').order_by('start_time')
+    events = (
+        Event.objects
+        .select_related('user', 'user__profile')
+        .annotate(user_is_verified=F('user__profile__is_verified'))
+        .order_by('start_time')
+    )
     paginator = Paginator(events, 10)
-    
+
     try:
         events_page = paginator.page(page)
     except Exception:
         return JsonResponse({'error': 'Invalid page'}, status=400)
-    
+
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         html = render(request, 'broadcasts/event_card.html', {
             'events': events_page.object_list,
@@ -76,7 +89,7 @@ def get_latest_events(request):
             'has_next': events_page.has_next(),
             'total_pages': paginator.num_pages
         })
-    
+
     return render(request, 'broadcasts/event_list.html', {
         'events': events_page.object_list,
         'initial_tab': 'latest',
