@@ -189,6 +189,10 @@ https://dbdiagram.io/d/movezz-2-68e696cad2b621e422e8abc6
    DB_PASSWORD=
    SCHEMA=
    PRODUCTION=False
+
+   CLOUDINARY_CLOUD_NAME=
+   CLOUDINARY_API_KEY=
+   CLOUDINARY_API_SECRET=
    ```
 6. **Jalankan migrasi database:**
    ```bash
@@ -199,7 +203,7 @@ https://dbdiagram.io/d/movezz-2-68e696cad2b621e422e8abc6
    python manage.py runserver
    ```
 
-Akses aplikasi di `http://localhost:8000/`.
+Akses aplikasi di `http://127.0.0.1:8000/`.
 
 ---
 
