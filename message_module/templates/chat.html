@@ -36,7 +36,7 @@
       {% endwith %}
       <div class="flex-1">
         <h2 class="font-semibold text-lg">
-          {{ selected_conversation.other_user.profile.display_name }}
+          {{ selected_conversation.other_user.profile.display_name|default:selected_conversation.other_user.username }}
         </h2>
         <p class="text-xs text-base-content/60">
           @{{ selected_conversation.other_user.username|lower }}
@@ -237,7 +237,7 @@
             </div>
             <div class="flex-1 min-w-0">
               <p class="font-semibold truncate">
-                {{ convo.other_user.profile.display_name }}
+                {{ convo.other_user.profile.display_name|default:convo.other_user.username }}
               </p>
               <p class="text-sm text-base-content/60 truncate">
                 {{ convo.last_message_preview|default:"No messages yet" }}
@@ -317,7 +317,7 @@
           {% endif %} {% endwith %}
 
           <div class="flex-1 min-w-0">
-            <p class="font-medium truncate">{{u.profile.display_name}}</p>
+            <p class="font-medium truncate">{{u.profile.display_name|default:u.username}}</p>
             <p class="truncate">@{{ u.username }}</p>
           </div>
         </button>
