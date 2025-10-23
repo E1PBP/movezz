@@ -1,17 +1,32 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from .forms import PostForm, PostImageForm
 from .models import Post, PostHashtag, Hashtag
+from profile_module.models import Follow
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 
 # Create your views here.
 @login_required
 def main_view(request):
-    posts = Post.objects.all().order_by('-created_at')
+    active_tab = request.GET.get('tab', 'foryou')  # Default to 'foryou'
+
+    if active_tab == 'following':
+        # Get the list of users that the current user is following
+        following_users = Follow.objects.filter(follower=request.user).values_list('followee', flat=True)
+        posts = Post.objects.filter(user__in=following_users).order_by('-created_at')
+    else:
+        # 'foryou' tab shows all posts
+        posts = Post.objects.all().order_by('-created_at')
+
     form = PostForm()
     image_form = PostImageForm()
-    context = {'form': form, 'image_form': image_form, 'posts': posts}
+    context = {
+        'form': form,
+        'image_form': image_form,
+        'posts': posts,
+        'active_tab': active_tab
+    }
     return render(request, 'main.html', context)
 
 @login_required

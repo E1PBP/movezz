@@ -48,10 +48,8 @@
     </div>
     <div class="mt-4">
       <div role="tablist" class="tabs tabs-border w-full text-lime-500 mb-2">
-        <a role="tab" class="tab hover:text-lime-600 w-1/2">For You</a>
-        <a role="tab" class="tab hover:text-lime-600 w-1/2 tab-active"
-          >Following</a
-        >
+        <a href="?tab=foryou" role="tab" class="tab hover:text-lime-600 w-1/2 {% if active_tab == 'foryou' %}tab-active{% endif %}">For You</a>
+        <a href="?tab=following" role="tab" class="tab hover:text-lime-600 w-1/2 {% if active_tab == 'following' %}tab-active{% endif %}">Following</a>
       </div>
       <div class="space-y-4">
         {% for post in posts %}
