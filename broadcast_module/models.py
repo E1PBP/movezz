@@ -37,14 +37,11 @@ class Event(models.Model):
         __str__(): Returns the title of the event.
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     author_display_name = models.CharField(max_length=80, blank=True, null=True)
     author_avatar_url = models.TextField(blank=True, null=True)
     author_badges_url = models.TextField(blank=True, null=True)
-    # community_id = models.UUIDField(null=True, blank=True)
     image = CloudinaryField("image", validators=[validate_image_size], null=True, blank=True)
-    # sport = models.ForeignKey(Sport, on_delete=models.SET_NULL, null=True, blank=True)
-    # title = models.CharField(max_length=120)
     description = models.TextField(blank=True, null=True)
     is_pinned = models.BooleanField(default=False)
     location_name = models.CharField(max_length=120, blank=True, null=True)
@@ -54,6 +51,7 @@ class Event(models.Model):
     end_time = models.DateTimeField(null=True, blank=True)
     fee = models.BigIntegerField(null=True, blank=True)
     total_click = models.BigIntegerField(default=0)
+    rsvp_url = models.URLField(blank=True, null=True)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(default=timezone.now)
     
@@ -77,39 +75,3 @@ class Event(models.Model):
         if self.is_pinned:
             Event.objects.exclude(pk=self.pk).filter(is_pinned=True).update(is_pinned=False)
         super().save(*args, **kwargs)
-
-    def __str__(self):
-        return self.title
-
-# class UserEvent(models.Model):
-    """
-    Represents the association between a User and an Event.
-    This model tracks which users are linked to which events, along with the timestamp
-    when the association was created. Each user-event pair is unique.
-    Attributes:
-        user (ForeignKey): Reference to the User participating in the event.
-        event (ForeignKey): Reference to the Event the user is associated with.
-        created_at (DateTimeField): Timestamp when the association was created.
-    Meta:
-        unique_together: Ensures that each (user, event) pair is unique.
-    """
-
-    # user = models.ForeignKey(User, on_delete=models.CASCADE)
-    # event = models.ForeignKey(Event, on_delete=models.CASCADE)
-    # created_at = models.DateTimeField(default=timezone.now)
-
-    # class Meta:
-        # unique_together = ("user", "event")
-
-# class EventImage(models.Model):
-    """
-    Model representing an image associated with an event.
-    Attributes:
-        id (UUIDField): Unique identifier for the image.
-        event (ForeignKey): Reference to the related Event object.
-        image (CloudinaryField): Image file stored in Cloudinary, validated for size, optional.
-    """
-    
-    # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    # event = models.ForeignKey(Event, related_name="images", on_delete=models.CASCADE)
-    # image = CloudinaryField("image", validators=[validate_image_size], null=True, blank=True)

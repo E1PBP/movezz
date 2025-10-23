@@ -23,15 +23,17 @@
           </li>
           <li>
             <a
-              href="#"
-              class="py-2 {% if active_page == 'broadcast' %}text-primary font-semibold{% else %}text-base-content/80{% endif %}"
+              href="{% url 'broadcast_module:list' %}"
+              class="py-2 {% if active_page == 'broadcast' %}font-semibold{% else %}text-base-content/80{% endif %}"
+              {% if active_page == 'broadcast' %}style="color: #A3E635;"{% endif %}
               >Broadcasts</a
             >
           </li>
           <li>
             <a
               href="{% url 'marketplace_module:todays_pick' %}"
-              class="py-2 {% if active_page == 'marketplace' %}text-primary font-semibold{% else %}text-base-content/80{% endif %}"
+              class="py-2 {% if active_page == 'marketplace' %}font-semibold{% else %}text-base-content/80{% endif %}"
+              {% if active_page == 'marketplace' %}style="color: #A3E635;"{% endif %}
               >Marketplace</a
             >
           </li>
@@ -76,7 +78,7 @@
             class="dropdown-content mt-2 w-50 rounded-xl overflow-hidden border border-base-300 shadow-md"
           >
             <a
-              href="#"
+              href="{% url 'profile_module:profile_detail' username=user.username %}"
               class="block w-full text-center py-3 bg-base-100 text-base-content text-sm hover:bg-base-200 transition-colors"
               >Profile</a
             >
@@ -122,7 +124,7 @@
               >For You</a
             >
             <a
-              href="#"
+              href="{% url 'broadcast_module:list' %}"
               class="block w-full text-center py-3 bg-base-100 text-base-content text-sm hover:bg-base-200 transition-colors"
               >Broadcast</a
             >
@@ -132,7 +134,7 @@
               >Marketplace</a
             >
             <a
-              href="#"
+              href="{% url 'profile_module:profile_detail' username=user.username%}"
               class="block w-full text-center py-3 bg-base-100 text-base-content text-sm hover:bg-base-200 transition-colors"
               >Profile</a
             >

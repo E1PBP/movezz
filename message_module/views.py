@@ -9,6 +9,7 @@ import logging
 from django.contrib.auth.models import User
 from profile_module.models import Profile
 from django.db.models import Prefetch
+from django.utils.html import escape
 
 logger = logging.getLogger(__name__)
 
@@ -99,7 +100,10 @@ def send_message(request, conversation_id):
     Returns:
         JsonResponse: A JSON response containing the new message details.
     """
-    conversation = get_object_or_404(Conversation, id=conversation_id)
+    conversation = get_object_or_404(
+        Conversation.objects.filter(members__user=request.user), 
+        id=conversation_id
+    )
 
     body = (request.POST.get("message") or "").strip()
     image_file = request.FILES.get("image")
@@ -123,9 +127,9 @@ def send_message(request, conversation_id):
     return JsonResponse({
         "id": str(msg.id),
         "sender": msg.sender.username,
-        "body": msg.body,
+        "body": escape(msg.body),
         "image_url": (msg.image.url if msg.image else None),
-        "created_at": msg.created_at.strftime("%Y-%m-%d %H:%M"),
+        "created_at": timezone.localtime(msg.created_at).strftime("%Y-%m-%d %H:%M"),
     })
 
 
@@ -166,14 +170,15 @@ def poll_messages(request, conversation_id):
     for msg in new_messages:
         prof = getattr(msg.sender, 'profile', None)
         avatar_url = getattr(getattr(prof, 'avatar_url', None), 'url', None) if prof else None
+        local_created = timezone.localtime(msg.created_at)
         data.append({
             "id": str(msg.id),
             "sender": msg.sender.username,
             "sender_avatar": avatar_url,
             "sender_initial": initial_for(msg.sender),
-            "body": msg.body,
+            "body": escape(msg.body),
             "image_url": (msg.image.url if msg.image else None),
             "is_self": msg.sender == request.user,
-            "created_at": msg.created_at.strftime("%Y-%m-%d %H:%M"),
+            "created_at": local_created.strftime("%Y-%m-%d %H:%M"),
         })
     return JsonResponse({"messages": data})
