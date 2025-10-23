@@ -13,7 +13,6 @@ urlpatterns = [
     path("@<str:username>/unfollow/", views.unfollow_user, name="unfollow"),
     path("api/follow/<str:username>/toggle/", views.follow_toggle_ajax, name="follow_toggle"),
     path("api/posts/<slug:pk>/update/", views.post_update_ajax, name="post_update"),
-    path("api/posts/<slug:pk>/delete/", views.post_delete_ajax, name="post_delete"),
-    path("create-post/ajax/", views.create_post_ajax, name="create_post_ajax"),
+    path("api/posts/<slug:pk>/delete/", views.post_delete_ajax, name="post_delete")
 ]
 

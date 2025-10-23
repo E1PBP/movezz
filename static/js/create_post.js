@@ -1,13 +1,20 @@
-<script>
-    lucide.createIcons();
-  
     function openPostModal() {
-      const text = document.querySelector(
+      const postFormPreTextarea = document.querySelector(
         '#post-form-pre textarea[name="text"]'
-      ).value;
-      document.querySelector('#post-form-final textarea[name="text"]').value =
-        text;
-      document.getElementById("post-modal").showModal();
+      );
+      const finalFormTextarea = document.querySelector('#post-form-final textarea[name="text"]');
+
+      if (postFormPreTextarea && finalFormTextarea) {
+        finalFormTextarea.value = postFormPreTextarea.value;
+        postFormPreTextarea.value = ''; // Clear the pre-form textarea
+      } else if (finalFormTextarea) {
+        finalFormTextarea.value = ''; // Ensure modal is empty if no pre-form
+      }
+
+      const modal = document.getElementById("post-modal");
+      if (modal) {
+        modal.showModal();
+      }
     }
   
     const hashtagContainer = document.getElementById('hashtag-container');
@@ -102,4 +109,3 @@
             console.error("Error:", error);
           });
       });
-  </script>
