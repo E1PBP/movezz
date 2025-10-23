@@ -161,4 +161,3 @@ def listing_detail(request, pk):
 		'images': [{'image': {'url': listing['image_url']}}],
 	}
 	return render(request, 'marketplace_module/listing_detail.html', context)
-# Create your views here.
