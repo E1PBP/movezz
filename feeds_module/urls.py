@@ -1,10 +1,10 @@
 from django.urls import path
-from feeds_module.views import main_view
+from feeds_module.views import main_view, create_post_ajax
 
 app_name = 'feeds_module'
 
 urlpatterns = [
     path('', main_view, name='main_view'),
-    
+    path('create_post/', create_post_ajax, name='create_post_ajax'),
 ]
 
