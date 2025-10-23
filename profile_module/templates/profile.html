@@ -39,9 +39,11 @@
       {% if profile.display_name %}
         <p class="mt-2 font-semibold">{{ profile.display_name }}</p>
       {% endif %}
+
       {% if profile.bio %}
         <p class="mt-1">{{ profile.bio }}</p>
       {% endif %}
+
       {% if profile.link %}
         <p class="mt-1 inline-flex items-center gap-2 text-base-content/80">
           <i data-lucide="link" class="w-4 h-4"></i>
@@ -65,6 +67,7 @@
       <div class="card bg-base-100 shadow-sm overflow-hidden relative">
         <div class="card-body p-4">
           <h3 class="font-semibold text-xl text-amber-500">Today's Activities</h3>
+          
           {% if profile.current_sport %}
             <p class="mt-1 flex items-center gap-2">
               {{ profile.current_sport.name }}
@@ -91,11 +94,13 @@
       </div>
 
       {% if is_self %}
-        <div class="flexs gap-3">
-        <a href="#" class="btn btn-primary bg-lime-500 border-lime-500 hover:bg-lime-600 hover:border-lime-600 text-white">
-          <i data-lucide="plus" class="w-4 h-4"></i>
-          Create Post
-        </a>
+        <div class="flex gap-3">
+          <button id="open-create-modal"
+                  type="button"
+                  class="btn btn-primary bg-lime-500 border-lime-500 hover:bg-lime-600 hover:border-lime-600 text-white">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            Create Post
+          </button>
 
          <a href="#" class="btn btn-primary bg-orange-400 border-orange-400 hover:bg-orange-600 hover:border-orange-600 text-white">
             <i data-lucide="megaphone" class="w-4 h-4"></i>
@@ -123,19 +128,19 @@
   <!-- TABS -->
     <div role="tablist" class="mt-6 tabs w-full text-base-content/80 mb-2">
         <a role="tab"
-        href="{% url 'profile_module:profile_detail' username=page_user.username %}?tab=posts"
-        class="tab w-1/2 {% if active_tab != 'broadcasts' %}font-semibold text-lime-600{% else %}hover:text-lime-600{% endif %}">
-        <i data-lucide="grid" class="mr-1.5 w-4 h-4"></i> Posts
+            href="{% url 'profile_module:profile_detail' username=page_user.username %}?tab=posts"
+            class="tab w-1/2 {% if active_tab != 'broadcasts' %}font-semibold text-lime-600{% else %}hover:text-lime-600{% endif %}">
+            <i data-lucide="grid" class="mr-1.5 w-4 h-4"></i> Posts
         </a>
         <a role="tab"
-        href="{% url 'profile_module:profile_detail' username=page_user.username %}?tab=broadcasts"
-        class="tab w-1/2 
-        {% if active_tab == 'broadcasts' %}
-        font-semibold text-lime-600
-        {% else %}
-        hover:text-lime-600
-        {% endif %}">
-        <i data-lucide="megaphone" class="mr-1.5 w-4 h-4"></i> Broadcast
+            href="{% url 'profile_module:profile_detail' username=page_user.username %}?tab=broadcasts"
+            class="tab w-1/2 
+            {% if active_tab == 'broadcasts' %}
+            font-semibold text-lime-600
+            {% else %}
+            hover:text-lime-600
+            {% endif %}">
+            <i data-lucide="megaphone" class="mr-1.5 w-4 h-4"></i> Broadcast
         </a>
     </div>
 
@@ -245,13 +250,125 @@
   <!-- POSTS GRID -->
   <section class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
     {% for post in posts %}
-      <figure class="rounded-2xl overflow-hidden border bg-base-100">
-        <img src="{{ post.image_url }}" alt="{{ post.alt_text|default:'post' }}"
-             class="w-full h-[240px] md:h-[260px] object-cover" />
-      </figure>
+      {% if post.id %}
+        <a href="{% url 'profile_module:post_detail' username=page_user.username pk=post.id %}"
+           class="rounded-2xl overflow-hidden border bg-base-100 block">
+          <img src="{{ post.image_url }}" alt="{{ post.alt_text|default:'post' }}"
+               class="w-full h-[240px] md:h-[260px] object-cover" />
+        </a>
+      {% else %}
+        <figure class="rounded-2xl overflow-hidden border bg-base-100">
+          <img src="{{ post.image_url }}" alt="{{ post.alt_text|default:'post' }}"
+               class="w-full h-[240px] md:h-[260px] object-cover" />
+        </figure>
+      {% endif %}
     {% empty %}
       <p class="text-base-content/60">Belum ada post.</p>
     {% endfor %}
   </section>
 {% endif %}
+
+{% if is_self %}
+<div id="create-modal" class="fixed inset-0 z-50 hidden">
+  <div class="absolute inset-0 bg-black/40"></div>
+  <div class="absolute inset-0 overflow-y-auto">
+    <div class="min-h-full flex items-start sm:items-center justify-center p-4">
+      <div class="w-full max-w-2xl bg-base-100 rounded-2xl shadow-xl border border-base-200">
+        <div class="flex items-center justify-between px-5 py-4 border-b">
+          <h3 class="text-lg font-semibold">Create a new post</h3>
+          <button id="close-create-modal" type="button" class="btn btn-ghost btn-sm">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <form id="create-post-form" class="px-5 py-4 space-y-4" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="text-sm text-base-content/60">@{{ user.username }}</div>
+
+          <textarea name="caption" rows="3" class="textarea textarea-bordered w-full" placeholder="Type here…"></textarea>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-1 rounded-full bg-lime-100 text-lime-700 text-sm">Tournament</span>
+              <input name="tournament" class="input input-bordered w-full" placeholder="Type here…" />
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-1 rounded-full bg-orange-100 text-orange-700 text-sm">Exercise</span>
+              <input name="exercise" class="input input-bordered w-full" placeholder="Type here…" />
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <span class="px-2 py-1 rounded-full bg-amber-100 text-amber-700 text-sm">Time</span>
+            <input name="time_h" type="number" min="0" max="23" class="input input-bordered w-16 text-center" placeholder="00" />
+            <span>:</span>
+            <input name="time_m" type="number" min="0" max="59" class="input input-bordered w-16 text-center" placeholder="00" />
+          </div>
+
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <label for="id_image" class="btn btn-sm">
+                <i data-lucide="image" class="w-4 h-4"></i> Upload
+              </label>
+              <input id="id_image" type="file" name="image" accept="image/*" class="hidden">
+              <input name="image_url" type="url" class="input input-bordered w-64" placeholder="or paste image URL" />
+            </div>
+            <button type="submit" class="btn btn-primary bg-lime-500 border-lime-500 hover:bg-lime-600 hover:border-lime-600 text-white">
+              Post
+            </button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<script>
+  if (window.lucide && lucide.createIcons) lucide.createIcons();
+
+  function getCSRF(){
+    const m = document.querySelector('meta[name="csrf-token"]');
+    if (m) return m.content;
+    const name = 'csrftoken=';
+    const found = document.cookie.split(';').map(s=>s.trim()).find(s=>s.startsWith(name));
+    return found ? found.substring(name.length) : '';
+  }
+
+  const openBtn  = document.getElementById('open-create-modal');
+  const closeBtn = document.getElementById('close-create-modal');
+  const modal    = document.getElementById('create-modal');
+
+  function openModal(){ modal?.classList.remove('hidden'); }
+  function closeModal(){ modal?.classList.add('hidden'); }
+
+  openBtn?.addEventListener('click', openModal);
+  closeBtn?.addEventListener('click', closeModal);
+  modal?.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+  const form = document.getElementById('create-post-form');
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(form);
+
+    const result = await fetch("{% url 'profile_module:create_post_ajax' %}", {
+      method: "POST",
+      headers: { "X-CSRFToken": getCSRF() },
+      body: fd
+    });
+
+    const data = await result.json();
+    if (result.ok && data.status === "success") {
+      if (data.detail_url) { window.location.href = data.detail_url; return; }
+      window.location.reload();
+    } else {
+      alert("Failed to create post" + (data.message ? (": " + data.message) : ""));
+    }
+  });
+</script>
+
 {% endblock %}

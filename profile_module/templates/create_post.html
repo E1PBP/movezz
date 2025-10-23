@@ -1,0 +1,107 @@
+<!-- Modal Create Post -->
+<div id="create-modal" class="fixed inset-0 z-50 hidden" aria-hidden="true" data-modal>
+  <div class="absolute inset-0 bg-black/40"></div>
+
+  <div class="absolute inset-0 overflow-y-auto">
+    <div class="min-h-full flex items-start sm:items-center justify-center p-4">
+      <div class="w-full max-w-2xl bg-white rounded-2xl shadow-xl">
+        <!-- Header -->
+        <div class="flex items-center justify-between px-5 py-4 border-b">
+          <h3 class="text-lg font-semibold">Create a new post</h3>
+          <button id="close-create-modal" class="p-2 rounded hover:bg-gray-100">✕</button>
+        </div>
+
+        <!-- Body -->
+        <form id="create-post-form" class="px-5 py-4 space-y-4" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="text-sm text-gray-500">@{{ user.username }}</div>
+
+          <textarea name="caption" id="id_caption" rows="3"
+                    class="w-full rounded-lg border px-3 py-2"
+                    placeholder="Type here…"></textarea>
+
+          <!-- Tags Row -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-1 rounded-full bg-green-100 text-green-700 text-sm">Tournament</span>
+              <input name="tournament" id="id_tournament" class="flex-1 rounded-lg border px-3 py-2" placeholder="Type here…" />
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-1 rounded-full bg-orange-100 text-orange-700 text-sm">Exercise</span>
+              <input name="exercise" id="id_exercise" class="flex-1 rounded-lg border px-3 py-2" placeholder="Type here…" />
+            </div>
+          </div>
+
+          <!-- Time -->
+          <div class="flex items-center gap-3">
+            <span class="px-2 py-1 rounded-full bg-amber-100 text-amber-700 text-sm">Time</span>
+            <input name="time_h" id="id_time_h" type="number" min="0" max="23"
+                   class="w-16 rounded-lg border px-2 py-2 text-center" placeholder="00" />
+            <span>:</span>
+            <input name="time_m" id="id_time_m" type="number" min="0" max="59"
+                   class="w-16 rounded-lg border px-2 py-2 text-center" placeholder="00" />
+          </div>
+
+          <!-- Image picker -->
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <label class="inline-flex items-center gap-2 cursor-pointer">
+                <input type="file" name="image" id="id_image" class="hidden" accept="image/*">
+                <span class="px-2 py-1 rounded-lg border">Upload</span>
+              </label>
+              <input type="url" name="image_url" id="id_image_url"
+                     class="rounded-lg border px-3 py-2 w-64"
+                     placeholder="or paste image URL" />
+            </div>
+            <button type="submit"
+                    class="px-4 py-2 rounded-lg bg-lime-500 text-white font-semibold">
+              Post
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const openBtn  = document.getElementById('open-create-modal');
+  const closeBtn = document.getElementById('close-create-modal');
+  const modal    = document.getElementById('create-modal');
+  function openModal(){ modal.classList.remove('hidden'); }
+  function closeModal(){ modal.classList.add('hidden'); }
+  if (openBtn)  openBtn.addEventListener('click', openModal);
+  if (closeBtn) closeBtn.addEventListener('click', closeModal);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+  function getCsrf(){
+    const m = document.querySelector('meta[name="csrf-token"]');
+    if (m) return m.content;
+
+    const name = 'csrftoken=';
+    const c = document.cookie.split(';').map(s=>s.trim()).find(s=>s.startsWith(name));
+    return c ? c.substring(name.length) : '';
+  }
+
+  const form = document.getElementById('create-post-form');
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(form);
+
+    const res = await fetch("{% url 'create_post_ajax' %}", {
+      method: "POST",
+      headers: { "X-CSRFToken": getCsrf() },
+      body: fd
+    });
+
+    const data = await res.json();
+    if (res.ok && data.status === "success") {
+      if (data.detail_url) {
+        window.location.href = data.detail_url;
+        return;
+      }
+    } else {
+      alert("Failed to create post. " + (data.message || ""));
+    }
+  });
+</script>
