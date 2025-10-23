@@ -1,0 +1,337 @@
+{% extends 'base_marketplace.html' %}
+{% load static currency %}
+
+{% block marketplace_content %}
+
+<h1 class="text-2xl sm:text-3xl font-semibold tracking-tight mb-6">
+  Today's Pick
+</h1>
+
+<script id="mp-config" type="application/json">
+  {{ page_config_json|safe }}
+</script>
+
+<!-- FILTER BAR -->
+<div class="flex flex-col sm:flex-row sm:items-center mb-8 bg-white rounded-lg border border-gray-200 p-4 gap-3 sm:gap-4">
+  
+  <!-- search -->
+  <label class="input">
+    <svg class="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+      <g stroke-linejoin="round" stroke-linecap="round" stroke-width="2.5" fill="none" stroke="currentColor">
+        <circle cx="11" cy="11" r="8"></circle>
+        <path d="m21 21-4.3-4.3"></path>
+      </g>
+    </svg>
+    <input 
+      id="input-search" 
+      type="search" 
+      required 
+      placeholder="Search" 
+    />
+  </label>
+
+  <!-- filter chips -->
+  <form class="filter flex items-center gap-2">
+    <button id="chip-all" 
+      type="button" 
+      class="btn btn-xs sm:btn-sm btn-neutral btn-active" 
+      data-condition="">
+      All
+    </button>
+    <button 
+      id="chip-new" 
+      type="button" 
+      class="btn btn-xs sm:btn-sm btn-soft btn-accent" 
+      data-condition="BRAND_NEW">
+      Brand New
+    </button>
+    <button 
+      id="chip-used" 
+      type="button" 
+      class="btn btn-xs sm:btn-sm btn-soft btn-warning" 
+      data-condition="USED">
+      Used
+    </button>
+  </form>
+
+  <!-- refresh button -->
+  <button id="btn-refresh" class="btn btn-xs sm:btn-sm ml-auto">
+    <span class="hidden sm:inline">Refresh</span>
+    <i data-lucide="refresh-ccw" class="w-4 h-4 sm:ml-1"></i>
+  </button>
+</div>
+
+<!-- loading state -->
+<div id="loading" class="bg-base-100 rounded-lg border border-base-200 p-10 text-center hidden">
+  <span class="loading loading-spinner loading-md"></span>
+  <p class="mt-3 text-base-content/70">Loading listings…</p>
+</div>
+
+<!-- error state -->
+<div id="error" class="bg-base-100 rounded-lg border border-error p-6 text-center hidden">
+  <p class="text-error font-semibold">Failed to load data. Please try again.</p>
+</div>
+
+<!-- empty state -->
+<div id="empty" class="bg-base-100 rounded-lg border border-base-200 p-10 text-center hidden">
+  <p class="text-base-content/70">No listings found.</p>
+</div>
+
+<!-- grid -->
+<div 
+  id="grid" 
+  class="grid grid-cols-1 xs:grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 px-2 sm:px-0 hidden">
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // configuration
+  const CONFIG = JSON.parse(document.getElementById('mp-config').textContent);
+  const API_URL = CONFIG.apiListings;
+  const IS_AUTHENTICATED = CONFIG.isAuthenticated;
+
+  // DOM elements
+  const elements = {
+    grid: document.getElementById('grid'),
+    loading: document.getElementById('loading'),
+    error: document.getElementById('error'),
+    empty: document.getElementById('empty'),
+    chipAll: document.getElementById('chip-all'),
+    chipNew: document.getElementById('chip-new'),
+    chipUsed: document.getElementById('chip-used'),
+    searchInput: document.getElementById('input-search'),
+    refreshBtn: document.getElementById('btn-refresh')
+  };
+
+  // state
+  let activeCondition = '';
+  let wishlistSet = new Set();
+
+  function showSection({ loading = false, error = false, empty = false, grid = false }) {
+    elements.loading.classList.toggle('hidden', !loading);
+    elements.error.classList.toggle('hidden', !error);
+    elements.empty.classList.toggle('hidden', !empty);
+    elements.grid.classList.toggle('hidden', !grid);
+  }
+
+  function setActiveChip(condition) {
+    activeCondition = condition;
+    
+    // remove active state from all chips
+    [elements.chipAll, elements.chipNew, elements.chipUsed].forEach(btn => {
+      btn.classList.remove('btn-active');
+    });
+
+    // add active state to selected chip
+    if (!condition) {
+      elements.chipAll.classList.add('btn-active');
+    } else if (condition === 'BRAND_NEW') {
+      elements.chipNew.classList.add('btn-active');
+    } else if (condition === 'USED') {
+      elements.chipUsed.classList.add('btn-active');
+    }
+  }
+
+  // formatting
+  function formatIDR(amount) {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      maximumFractionDigits: 0
+    }).format(Number(amount || 0));
+  }
+
+  function getConditionClasses(condition) {
+    return condition === 'BRAND_NEW'
+      ? 'bg-lime-400 text-[#3F6212]'
+      : 'bg-orange-300 text-[#7C2D12]';
+  }
+
+  function getConditionLabel(condition) {
+    return condition === 'BRAND_NEW' ? 'Brand New' : 'Used';
+  }
+
+  // create card HTML
+  function createCardHTML(item) {
+    const safeTitle = DOMPurify.sanitize(item.title);
+    const safeImageUrl = DOMPurify.sanitize(item.image_url || '');
+    const safeLocation = IS_AUTHENTICATED 
+      ? DOMPurify.sanitize(item.location || '') 
+      : 'Login to view';
+    
+    const conditionClasses = getConditionClasses(item.condition);
+    const conditionLabel = getConditionLabel(item.condition);
+    
+    const detailUrl = CONFIG.detailUrlPattern.replace(
+      '00000000-0000-0000-0000-000000000000',
+      item.id
+    );
+
+    return `
+      <article class="relative card bg-base-100 border border-base-300/60 shadow-sm hover:shadow-md hover:ring-1 hover:ring-base-300 transition-all duration-300 overflow-hidden rounded-[16px] w-full max-w-[422px] mx-auto" 
+               style="height:447px;">
+        
+        <!-- Full Card Click Target -->
+        <a href="${detailUrl}" 
+           class="absolute inset-0 z-10" 
+           aria-label="Open ${safeTitle}">
+        </a>
+
+        <!-- Product Image -->
+        <figure class="h-[220px] sm:h-[320px] lg:h-[340px] overflow-hidden pointer-events-none">
+          <img 
+            src="${safeImageUrl}" 
+            alt="${safeTitle}" 
+            class="w-full h-full object-cover" 
+            loading="lazy" 
+            decoding="async"
+          />
+        </figure>
+
+        <!-- Wishlist Button -->
+        <div class="absolute top-3 right-3 z-20">
+          <button 
+            class="wishlist-btn grid place-items-center w-9 h-9 rounded-full bg-white/90 shadow ring-1 ring-black/5 text-base-content/40 hover:text-rose-500 pointer-events-auto" 
+            aria-pressed="false" 
+            title="Save">
+            <svg viewBox="0 0 28 28" class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M14 24.9083L12.3083 23.3683C6.3 17.92 2.33333 14.315 2.33333 9.91667C2.33333 6.31167 5.15666 3.5 8.74999 3.5C10.78 3.5 12.7283 4.445 14 5.92667C15.2717 4.445 17.22 3.5 19.25 3.5C22.8433 3.5 25.6667 6.31167 25.6667 9.91667C25.6667 14.315 21.7 17.92 15.6917 23.3683L14 24.9083Z" 
+                    fill="currentColor"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Card Body -->
+        <div class="p-3 sm:p-4 pt-3 pb-3 pointer-events-none" style="height:107px;">
+          <p class="text-base sm:text-[20px] leading-[24px] sm:leading-[28px] font-semibold mb-1">
+            ${formatIDR(item.price)}
+          </p>
+          
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+            <h2 class="text-sm sm:text-[18px] leading-[18px] font-semibold line-clamp-1">
+              ${safeTitle}
+            </h2>
+            <span class="px-3 py-1 text-xs sm:text-[14px] leading-[18px] font-semibold rounded-full ${conditionClasses}">
+              ${conditionLabel}
+            </span>
+          </div>
+          
+          <div class="mt-2 text-xs sm:text-sm text-base-content/70">
+            <span class="truncate">${safeLocation}</span>
+          </div>
+        </div>
+      </article>
+    `;
+  }
+
+  // event handlers
+  function setupWishlistListeners() {
+    elements.grid.addEventListener('click', function(e) {
+      const wishlistBtn = e.target.closest('.wishlist-btn');
+      if (!wishlistBtn) return;
+      
+      e.stopPropagation(); 
+      // implement wishlist logic
+    }, { passive: true });
+  }
+
+  // fetch data and render
+  async function fetchAndRender(showToastOnDone = false) {
+    try {
+      showSection({ loading: true });
+
+      const params = new URLSearchParams();
+      if (activeCondition) {
+        params.set('condition', activeCondition);
+      }
+      if (elements.searchInput.value.trim()) {
+        params.set('q', elements.searchInput.value.trim());
+      }
+
+      const response = await fetch(`${API_URL}?${params.toString()}`, {
+        headers: { 'Accept': 'application/json' }
+      });
+
+      if (!response.ok) {
+        throw new Error('Bad response');
+      }
+
+      const rawData = await response.json();
+      const listings = Array.isArray(rawData) 
+        ? rawData.map(item => ({ id: item.pk, ...item.fields })) 
+        : [];
+
+      elements.grid.innerHTML = '';
+
+      if (!listings || listings.length === 0) {
+        showSection({ empty: true });
+      } else {
+        elements.grid.innerHTML = listings.map(createCardHTML).join('');
+        
+        if (window.lucide) {
+          window.lucide.createIcons();
+        }
+        
+        showSection({ grid: true });
+      }
+
+      if (showToastOnDone) {
+        showToast('Refreshed');
+      }
+
+    } catch (error) {
+      console.error('Failed to fetch listings:', error);
+      showSection({ error: true });
+    }
+  }
+
+  function debounce(fn, delayMs = 300) {
+    let timeoutId;
+    return function(...args) {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => fn(...args), delayMs);
+    };
+  }
+
+  function setupEventListeners() {
+    elements.chipAll.addEventListener('click', () => {
+      setActiveChip('');
+      fetchAndRender(true);
+    });
+
+    elements.chipNew.addEventListener('click', () => {
+      setActiveChip('BRAND_NEW');
+      fetchAndRender(true);
+    });
+
+    elements.chipUsed.addEventListener('click', () => {
+      setActiveChip('USED');
+      fetchAndRender(true);
+    });
+
+    // search input with debounce
+    elements.searchInput.addEventListener(
+      'input',
+      debounce(() => fetchAndRender(), 250)
+    );
+
+    // refresh button
+    elements.refreshBtn.addEventListener('click', () => {
+      fetchAndRender(true);
+    });
+  }
+
+  function init() {
+    setupEventListeners();
+    setupWishlistListeners();
+    fetchAndRender();
+  }
+
+  init();
+
+})();
+</script>
+
+{% endblock %}
