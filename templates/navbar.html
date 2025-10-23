@@ -24,14 +24,16 @@
           <li>
             <a
               href="#"
-              class="py-2 {% if active_page == 'broadcast' %}text-primary font-semibold{% else %}text-base-content/80{% endif %}"
+              class="py-2 {% if active_page == 'broadcast' %}font-semibold{% else %}text-base-content/80{% endif %}"
+              {% if active_page == 'broadcast' %}style="color: #A3E635;"{% endif %}
               >Broadcasts</a
             >
           </li>
           <li>
             <a
               href="#"
-              class="py-2 {% if active_page == 'marketplace' %}text-primary font-semibold{% else %}text-base-content/80{% endif %}"
+              class="py-2 {% if active_page == 'marketplace' %}font-semibold{% else %}text-base-content/80{% endif %}"
+              {% if active_page == 'marketplace' %}style="color: #A3E635;"{% endif %}
               >Marketplace</a
             >
           </li>

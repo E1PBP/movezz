@@ -1,0 +1,351 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="flex gap-8">
+  <!-- Left: Main content (2/3) -->
+  <div class="w-2/3 flex flex-col">
+    <!-- Tabs Container -->
+    <div class="flex justify-between items-center mb-6">
+      <div id="tab-wrapper" class="flex-1 relative select-none">
+        <div class="flex gap-8 text-sm font-semibold">
+          <button id="trending-tab" role="tab" 
+                  aria-selected="{% if initial_tab == 'trending' %}true{% else %}false{% endif %}"
+                  class="py-3 flex items-center gap-2 {% if initial_tab == 'trending' %}{% else %}text-base-content/60{% endif %}"
+                  {% if initial_tab == 'trending' %}style="color: #A3E635;"{% endif %}
+                  onclick="switchTab('trending')">
+            <i data-lucide="flame" class="w-4 h-4"></i>
+            <span>Trending</span>
+          </button>
+          <button id="latest-tab" role="tab" 
+                  aria-selected="{% if initial_tab == 'latest' %}true{% else %}false{% endif %}"
+                  class="py-3 flex items-center gap-2 {% if initial_tab == 'latest' %}{% else %}text-base-content/60{% endif %}"
+                  {% if initial_tab == 'latest' %}style="color: #A3E635;"{% endif %}
+                  onclick="switchTab('latest')">
+            <i data-lucide="clock" class="w-4 h-4"></i>
+            <span>Latest</span>
+          </button>
+        </div>
+        <div class="absolute left-0 right-0 bottom-0 h-px bg-base-200"></div>
+        <div id="tab-indicator" class="absolute bottom-0 rounded-full transition-all duration-300 ease-out" 
+             style="height:4px; left:0; width:0; background-color: #A3E635;"></div>
+      </div>
+      <button class="btn btn-warning ml-4" onclick="showCreateModal()">+ Create New Broadcast</button>
+    </div>
+
+    <!-- Events List -->
+    <div class="flex flex-col gap-6" id="events-container">
+      {% include 'broadcasts/event_card.html' %}
+    </div>
+  </div>
+
+  <!-- Right: Sidebar (1/3) -->
+  <div class="w-1/3">
+    <div class="text-base-content/50 text-sm">Sidebar content here</div>
+  </div>
+</div>
+
+<!-- Create Broadcast Modal -->
+<div id="broadcastModal" class="hidden fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
+  <div class="bg-base-100 rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+    <!-- Header -->
+    <div class="sticky top-0 bg-base-100 border-b border-base-200 px-6 py-4 flex items-center justify-between">
+      <h2 class="text-xl font-semibold">Create New Broadcast</h2>
+      <button type="button" class="btn btn-sm btn-ghost" onclick="hideCreateModal()">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+    
+    <!-- Body -->
+    <form id="broadcastForm" enctype="multipart/form-data" class="p-6">
+      {% csrf_token %}
+      <div class="space-y-4">
+        <div>
+          <label for="description" class="label">
+            <span class="label-text font-medium">Description</span>
+          </label>
+          <textarea id="description" name="description" rows="4" 
+                    class="textarea textarea-bordered w-full" 
+                    placeholder="What's happening?" required></textarea>
+        </div>
+
+        <div>
+          <label for="start_time" class="label">
+            <span class="label-text font-medium">Start Time</span>
+          </label>
+          <input type="datetime-local" id="start_time" name="start_time" 
+                 class="input input-bordered w-full" required />
+        </div>
+
+        <div>
+          <label for="end_time" class="label">
+            <span class="label-text font-medium">End Time</span>
+          </label>
+          <input type="datetime-local" id="end_time" name="end_time" 
+                 class="input input-bordered w-full" required />
+        </div>
+
+        <div>
+          <label for="location_name" class="label">
+            <span class="label-text font-medium">Location Name</span>
+          </label>
+          <input type="text" id="location_name" name="location_name" 
+                 class="input input-bordered w-full" 
+                 placeholder="e.g. Gelora Bung Karno Stadium" required />
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label for="location_lat" class="label">
+              <span class="label-text font-medium">Latitude (Optional)</span>
+            </label>
+            <input type="number" step="any" id="location_lat" name="location_lat" 
+                   class="input input-bordered w-full" 
+                   placeholder="e.g. -6.218495" />
+          </div>
+          <div>
+            <label for="location_lng" class="label">
+              <span class="label-text font-medium">Longitude (Optional)</span>
+            </label>
+            <input type="number" step="any" id="location_lng" name="location_lng" 
+                   class="input input-bordered w-full" 
+                   placeholder="e.g. 106.802445" />
+          </div>
+        </div>
+
+        <div>
+          <label for="fee" class="label">
+            <span class="label-text font-medium">Fee (IDR)</span>
+          </label>
+          <input type="number" step="0.01" id="fee" name="fee" 
+                 class="input input-bordered w-full" 
+                 placeholder="0" required />
+        </div>
+
+        <div>
+          <label for="image" class="label">
+            <span class="label-text font-medium">Event Image (Optional)</span>
+          </label>
+          <input type="file" id="image" name="image" 
+                 accept="image/*" class="file-input file-input-bordered w-full" />
+        </div>
+
+        <div>
+          <label for="rsvp_url" class="label">
+            <span class="label-text font-medium">RSVP Form URL</span>
+          </label>
+          <input type="url" id="rsvp_url" name="rsvp_url" 
+                 class="input input-bordered w-full" 
+                 placeholder="https://forms.gle/..." required />
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 mt-6">
+        <button type="button" class="btn" onclick="hideCreateModal()">Cancel</button>
+        <button type="submit" class="btn" 
+                style="background-color: #A3E635; color: black;">Create Broadcast</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+let currentTab = '{{ initial_tab }}';
+let currentPage = 1;
+let loading = false;
+let hasMore = true;
+
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
+function postClick(pk) {
+  fetch(`/broadcast/events/${pk}/click/`, {
+    method: 'POST',
+    headers: { 'X-CSRFToken': getCookie('csrftoken') }
+  }).catch(() => {});
+}
+
+function setIndicatorTo(tabKey) {
+  const indicator = document.getElementById('tab-indicator');
+  const target = document.getElementById(`${tabKey}-tab`);
+  if (!indicator || !target) return;
+  indicator.style.left = target.offsetLeft + 'px';
+  indicator.style.width = target.offsetWidth + 'px';
+}
+
+function switchTab(tab) {
+  if (currentTab === tab) return;
+  const prev = document.getElementById(`${currentTab}-tab`);
+  const next = document.getElementById(`${tab}-tab`);
+  if (prev) {
+    prev.setAttribute('aria-selected', 'false');
+    prev.style.color = '';
+    prev.classList.add('text-base-content/60');
+  }
+  if (next) {
+    next.setAttribute('aria-selected', 'true');
+    next.classList.remove('text-base-content/60');
+    next.style.color = '#A3E635';
+  }
+  setIndicatorTo(tab);
+  currentTab = tab;
+  currentPage = 1;
+  hasMore = true;
+  loadEvents(tab);
+}
+
+function loadEvents(type, append = false) {
+  if (loading) return;
+  if (append && !hasMore) return;
+  loading = true;
+
+  const container = document.getElementById('events-container');
+  if (!append) {
+    container.innerHTML = '<div class="text-center py-8">Loading events...</div>';
+  }
+
+  fetch(`/broadcast/${type}/?page=${currentPage}`, {
+    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+  })
+  .then(response => {
+    if (!response.ok) throw new Error(`Failed to load events: ${response.status}`);
+    return response.json();
+  })
+  .then(data => {
+    const html = (data && typeof data.html === 'string') ? data.html : '';
+    hasMore = !!(data && data.has_next);
+    if (append) {
+      if (html) container.insertAdjacentHTML('beforeend', html);
+    } else {
+      container.innerHTML = html;
+    }
+    if (window.lucide && window.lucide.createIcons) {
+      window.lucide.createIcons();
+    }
+    loading = false;
+  })
+  .catch(error => {
+    console.error('Error loading events:', error);
+    if (!append) {
+      container.innerHTML = `
+        <div class="text-center py-8 text-error">
+          <p>Failed to load events.</p>
+          <button onclick=\"loadEvents('${type}')\" class="btn btn-sm btn-error mt-2">Try Again</button>
+        </div>
+      `;
+    }
+    loading = false;
+  });
+}
+
+function loadNextPage() {
+  if (loading || !hasMore) return;
+  currentPage += 1;
+  loadEvents(currentTab, true);
+}
+
+function pinEvent(eventId) {
+  fetch(`/broadcast/pin/${eventId}/`, {
+    method: 'POST',
+    headers: { 'X-CSRFToken': getCookie('csrftoken') }
+  })
+  .then(response => {
+    if (!response.ok) throw new Error(`Pin failed: ${response.status}`);
+  })
+  .then(() => loadEvents(currentTab))
+  .catch(error => {
+    console.error('Error pinning event:', error);
+    alert('Failed to pin event.');
+  });
+}
+
+function unpinEvent(eventId) {
+  fetch(`/broadcast/unpin/${eventId}/`, {
+    method: 'POST',
+    headers: { 'X-CSRFToken': getCookie('csrftoken') }
+  })
+  .then(response => {
+    if (!response.ok) throw new Error(`Unpin failed: ${response.status}`);
+  })
+  .then(() => loadEvents(currentTab))
+  .catch(error => {
+    console.error('Error unpinning event:', error);
+    alert('Failed to unpin event.');
+  });
+}
+
+function togglePin(eventId, isPinned) {
+  if (isPinned) return unpinEvent(eventId);
+  return pinEvent(eventId);
+}
+
+function showCreateModal() {
+  const modal = document.getElementById('broadcastModal');
+  if (modal) modal.classList.remove('hidden');
+}
+
+function hideCreateModal() {
+  const modal = document.getElementById('broadcastModal');
+  const form = document.getElementById('broadcastForm');
+  if (modal) modal.classList.add('hidden');
+  if (form) form.reset();
+}
+
+window.addEventListener('scroll', () => {
+  const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+  if (scrollTop + clientHeight >= scrollHeight - 5) {
+    loadNextPage();
+  }
+});
+
+window.addEventListener('resize', () => setIndicatorTo(currentTab));
+
+document.addEventListener('DOMContentLoaded', () => {
+  setIndicatorTo(currentTab);
+  if (window.lucide && window.lucide.createIcons) {
+    window.lucide.createIcons();
+  }
+  
+  const form = document.getElementById('broadcastForm');
+  if (form) {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
+      
+      fetch('/broadcast/events/create/', {
+        method: 'POST',
+        headers: { 'X-CSRFToken': getCookie('csrftoken') },
+        body: formData
+      })
+      .then(response => {
+        return response.json().then(data => ({
+          ok: response.ok,
+          status: response.status,
+          data: data
+        }));
+      })
+      .then(({ok, status, data}) => {
+        if (ok && data.status === 'success') {
+          hideCreateModal();
+          currentPage = 1;
+          hasMore = true;
+          loadEvents(currentTab);
+        } else {
+          console.error('Server error:', data);
+          const errorMsg = data.details ? JSON.stringify(data.details) : data.message || data.error || 'Failed to create event';
+          alert('Error: ' + errorMsg);
+        }
+      })
+      .catch(error => {
+        console.error(error);
+        alert('Failed to submit broadcast. Please check your inputs and try again.');
+      });
+    });
+  }
+});
+</script>
+
+{% endblock content %}
