@@ -78,7 +78,7 @@
             class="dropdown-content mt-2 w-50 rounded-xl overflow-hidden border border-base-300 shadow-md"
           >
             <a
-              href="#"
+              href="{% url 'profile_module:profile_detail' username=user.username %}"
               class="block w-full text-center py-3 bg-base-100 text-base-content text-sm hover:bg-base-200 transition-colors"
               >Profile</a
             >
@@ -134,7 +134,7 @@
               >Marketplace</a
             >
             <a
-              href="#"
+              href="{% url 'profile_module:profile_detail' username=user.username%}"
               class="block w-full text-center py-3 bg-base-100 text-base-content text-sm hover:bg-base-200 transition-colors"
               >Profile</a
             >
