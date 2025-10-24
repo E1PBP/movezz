@@ -1,0 +1,151 @@
+{% extends "base_marketplace.html" %}
+
+{% load static currency %}
+
+{% block content %}
+<div class="flex flex-col lg:grid lg:grid-cols-12 gap-8 px-2 sm:px-0">
+  
+  <!-- product image -->
+  <section class="lg:col-span-7 flex justify-center items-center">  
+    <div class="w-full max-w-[848px] overflow-hidden rounded-2xl">
+      {% if images and images.0.image %}
+        <img 
+          src="{{ images.0.image.url }}" 
+          alt="{{ listing.title }}"
+          class="w-full h-[220px] sm:h-[400px] lg:h-[915px] object-cover" 
+        />
+      {% else %}
+        <img 
+          src="{{ listing.image_url }}" 
+          alt="{{ listing.title }}"
+          class="w-full h-[220px] sm:h-[400px] lg:h-[915px] object-cover" 
+        />
+      {% endif %}
+    </div>
+  </section>
+
+  <!-- product info -->
+  <aside class="lg:col-span-5 flex flex-col mt-6 lg:mt-0">
+    
+    <!-- title & price -->
+    <h1 class="font-normal text-xl sm:text-2xl lg:text-[32px] leading-tight tracking-normal">
+      {{ listing.title }}
+    </h1>
+    
+    <p class="mt-2 font-semibold text-lg sm:text-xl lg:text-[24px] leading-tight">
+      {{ listing.price|rupiah }}
+    </p>
+
+    <!-- condition & location -->
+    <div class="mt-3 flex flex-col sm:flex-row gap-2 sm:gap-4">
+      {% if listing.condition %}
+        <span class="w-fit px-3 py-1 rounded-full font-semibold text-xs sm:text-[14px] leading-[20px]
+          {% if listing.condition == 'BRAND_NEW' %}
+            bg-lime-400 text-[#3F6212]
+          {% else %}
+            bg-orange-300 text-[#7C2D12]
+          {% endif %}">
+          {% if listing.condition == 'BRAND_NEW' %}Brand New{% else %}Used{% endif %}
+        </span>
+      {% endif %}
+
+      {% if listing.location %}
+        <div class="flex items-center gap-1 font-semibold text-xs sm:text-[14px] leading-[20px] text-[#404040]">
+          <i data-lucide="map-pin" class="w-4 h-4"></i>
+          <span>{{ listing.location }}</span>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- action buttons -->
+    <div class="mt-4 flex flex-col sm:flex-row items-stretch gap-2">
+      <a 
+        href="{% if listing.owner %}{% url 'message_module:start_chat' listing.owner.username %}{% else %}{% url 'message_module:chat_home' %}{% endif %}" 
+        class="inline-flex items-center justify-center w-full sm:w-[364px] h-[48px] 
+               rounded-lg border font-normal text-[15px] leading-[20px]
+               bg-lime-400 border-lime-400 text-[#3F6212]
+               hover:bg-lime-500 hover:border-lime-500 transition-colors">
+        Message
+      </a>
+      
+    <button id="btn-share"
+            type="button"
+            class="btn btn-ghost btn-square"
+            aria-label="Share listing"
+            title="Share">
+    <i data-lucide="share" class="w-5 h-5"></i>
+    </button>
+    </div>
+
+    <!-- product details -->
+    <h2 class="mt-6 font-bold text-base sm:text-[16px] leading-[24px] text-[#404040]">
+      Details
+    </h2>
+    
+    <div class="mt-2 space-y-4 font-normal text-xs sm:text-[14px] leading-[20px] text-base-content/80">
+      {% if listing.long_description %}
+        {{ listing.long_description|linebreaks }}
+      {% elif listing.description %}
+        <p>{{ listing.description }}</p>
+      {% endif %}
+    </div>
+    
+  </aside>
+</div>
+
+
+<script>
+(function () {
+  // copy to clipboard
+  async function copyToClipboard(text) {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+    } catch (_) {}
+    await navigator.clipboard.writeText(text);
+  }
+
+  const btn = document.getElementById('btn-share');
+  if (!btn) return;
+
+  btn.addEventListener('click', async () => {
+    const title = '{{ listing.title|escapejs }}';
+    const text  = '{{ listing.description|default:"Check this out!"|escapejs }}';
+    const url   = window.location.href;
+
+    try {
+      // web share 
+      if (navigator.share) {
+        await navigator.share({ title, text, url });
+        if (window.showToast) showToast('Shared!', 'Link sent via system share', 'success');
+        return;
+      }
+      // copy link
+      const ok = await copyToClipboard(url);
+      if (window.showToast) {
+        ok ? showToast('Link copied', '', 'success')
+           : showToast('Copy failed', 'Please copy manually', 'error');
+      }
+    } catch (err) {
+      // user cancels share
+      if (err?.name !== 'AbortError') {
+        const ok = await copyToClipboard(url);
+        if (window.showToast) {
+          ok ? showToast('Link copied', '', 'success')
+             : showToast('Share failed', 'Please try again', 'error');
+        }
+      }
+    }
+  });
+
+try {
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
+  } catch (e) {
+    console.warn('Lucide init error:', e);
+  };
+</script>
+{% endblock %}

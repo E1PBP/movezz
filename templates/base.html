@@ -21,7 +21,8 @@
       type="text/css"
     />
     {% comment %} lucide icon {% endcomment %}
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script defer src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+
 
     {% comment %} font {% endcomment %}
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -46,11 +47,25 @@
   <main class="flex-1 w-full px-4 sm:px-6 lg:px-8 py-6">
       <div class="max-w-7xl mx-auto">{% block content %}{% endblock %}</div>
     </main>
+
+    {% include 'components/post_modal.html' %}
     {% comment %} buat footer nanti {% endcomment %} {% comment %} {% include
     "footer.html" %} {% endcomment %}
+    {% block scripts %}{% endblock scripts %}
   </body>
-
+  
+  <script src="{% static 'js/create_post.js' %}" defer></script>
   <script>
-    lucide.createIcons();
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.lucide?.createIcons) {
+        // untuk beberapa rilisan UMD, ini cukup:
+        window.lucide.createIcons();
+  
+        // kalau kamu mau aman di rilisan lain:
+        // window.lucide.createIcons({ icons: window.lucide.icons || undefined });
+      } else {
+        console.error('Lucide UMD tidak ter-load.');
+      }
+    });
   </script>
 </html>

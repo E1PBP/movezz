@@ -122,32 +122,6 @@ Note: Mungkin tidak semuanya digunakan
 - https://huggingface.co/datasets/kkcosmos/instagram-images-with-captions
 - https://huggingface.co/datasets/Waterfront/social-media-captions
 
-## Jenis pengguna website
-
-Feeds -
-User [.....]
-Admin [...]
-
-Profile -
-User [.....]
-Admin [...]
-
-Messaging -
-User [.....]
-Admin [...]
-
-Marketplace -
-User [.....]
-Admin [...]
-
-Broadcast -
-User [.....]
-Admin [...]
-
-Auth -
-User [.....]
-Admin [...]
-
 ## Link PWS
 
 https://muhamad-hakim41-movezz.pbp.cs.ui.ac.id/
@@ -156,9 +130,9 @@ https://muhamad-hakim41-movezz.pbp.cs.ui.ac.id/
 
 https://www.figma.com/design/x4q0GDfJB0dQ2ZXl8uuXDZ/Design-Movezz?node-id=0-1&t=62HMu5tm1V2KTkKk-1
 
-## Link DB Diagram 
-
-https://dbdiagram.io/d/movezz-2-68e696cad2b621e422e8abc6
+## Skema database
+<img width="1441" height="1904" alt="movezz 2" src="https://github.com/user-attachments/assets/1572dc5e-820b-496d-bc3f-fb455b0a0eaa" />
+atau bisa di cek di https://dbdiagram.io/d/movezz-2-68e696cad2b621e422e8abc6
 
 ## Cara Menjalankan
 
@@ -189,6 +163,10 @@ https://dbdiagram.io/d/movezz-2-68e696cad2b621e422e8abc6
    DB_PASSWORD=
    SCHEMA=
    PRODUCTION=False
+
+   CLOUDINARY_CLOUD_NAME=
+   CLOUDINARY_API_KEY=
+   CLOUDINARY_API_SECRET=
    ```
 6. **Jalankan migrasi database:**
    ```bash
@@ -199,7 +177,7 @@ https://dbdiagram.io/d/movezz-2-68e696cad2b621e422e8abc6
    python manage.py runserver
    ```
 
-Akses aplikasi di `http://localhost:8000/`.
+Akses aplikasi di `http://127.0.0.1:8000/`.
 
 ---
 

@@ -2,46 +2,56 @@
 
 <div
   id="chat-root"
-  class="drawer lg:drawer-open h-[calc(100dvh-112px)] overflow-hidden border rounded-2xl" 
+  class="drawer lg:drawer-open h-[calc(100dvh-112px)] overflow-visible lg:overflow-hidden border rounded-2xl"
 >
   {% comment %} mobile drawer area {% endcomment %}
   <input id="chat-drawer" type="checkbox" class="drawer-toggle" />
   {% comment %} main chat aera {% endcomment %}
   <div
-    class="drawer-content flex flex-col h-[calc(100dvh-100px)] overflow-hidden"
+  class="drawer-content flex flex-col h-[calc(100dvh-100px)] overflow-hidden"
   >
-    {% if selected_conversation %} {% comment %} chat header {% endcomment %}
-    <div
-      class="flex items-center justify-between lg:justify-start gap-3 bg-base-600 px-4 py-4 sticky top-0 z-0 shrink-0"
-    >
+  {% comment %} chat header {% endcomment %}
+  {% if selected_conversation %} 
+  <div
+  class="flex items-center justify-between lg:justify-start gap-3 bg-base-600 px-4 py-4 sticky top-0 z-0 shrink-0"
+  >
+  <a href="{% url 'profile_module:profile_detail' selected_conversation.other_user.username %}" 
+      class="flex items-center gap-3 hover:bg-base-300 transition-colors duration-200">
       <label for="chat-drawer" class="btn btn-ghost btn-circle lg:hidden">
         <i data-lucide="menu" class="w-5 h-5"></i>
       </label>
-      {% with prof=selected_conversation.other_user.profile %}
+
+        {% with prof=selected_conversation.other_user.profile %}
         {% if prof.avatar_url %}
         <img
-          src="{{ prof.avatar_url.url }}"
-          class="w-10 h-10 rounded-full object-cover"
-          alt="{{ prof.display_name|default:selected_conversation.other_user.username }}"
+        src="{{ prof.avatar_url.url }}"
+        class="w-10 h-10 rounded-full object-cover"
+        alt="{{ prof.display_name|default:selected_conversation.other_user.username }}"
         />
         {% else %}
         <div
-          class="w-10 h-10 rounded-full bg-primary text-primary-content flex items-center justify-center"
+        class="w-10 h-10 rounded-full bg-primary text-primary-content flex items-center justify-center"
         >
-          <span class="text-sm font-bold">
-            {{ prof.display_name|default:selected_conversation.other_user.username|first|upper }}
-          </span>
-        </div>
-        {% endif %}
+        <span class="text-sm font-bold">
+          {{ prof.display_name|default:selected_conversation.other_user.username|first|upper }}
+        </span>
+      </div>
+      {% endif %}
       {% endwith %}
       <div class="flex-1">
-        <h2 class="font-semibold text-lg">
-          {{ selected_conversation.other_user.profile.display_name }}
-        </h2>
-        <p class="text-xs text-base-content/60">
+        <div class="flex items-center gap-2">
+          <h2 class="font-semibold text-lg lato-bold">
+            {{ selected_conversation.other_user.profile.display_name|default:selected_conversation.other_user.username }}
+          </h2>
+          {% if selected_conversation.other_user.profile.is_verified %}
+          <i data-lucide="badge-check" class="w-5 h-5 text-lime-400 flex-shrink-0"></i>
+          {% endif %}
+        </div>
+        <p class="text-xs text-base-content/60 lato-regular">
           @{{ selected_conversation.other_user.username|lower }}
         </p>
       </div>
+    </a>
     </div>
 
     {% comment %} chat messahe area {% endcomment %}
@@ -188,10 +198,11 @@
   <div class="drawer-side lg:drawer-side z-10">
     <label for="chat-drawer" class="drawer-overlay"></label>
     <aside
-      class="w-full sm:w-80 bg-base-100 h-[calc(100dvh-110px)] flex flex-col overflow-hidden"
-    >
+  class="w-full sm:w-80 bg-base-100 h-dvh lg:h-[calc(100dvh-110px)] flex flex-col overflow-hidden"
+>
+
       {% comment %} sidebar header {% endcomment %}
-      <div class="p-4 sticky top-0 bg-base-100">
+      <div class="p-4 sticky top-0 pt-20 lg:pt-4 bg-base-100">
         <h2 class="text-xl font-bold mb-4">Messages</h2>
         <div class="form-control">
           <input
@@ -204,9 +215,14 @@
       </div>
 
       {% comment %} conversation list {% endcomment %}
-      <ul class="flex-1 min-h-0 overflow-y-auto overscroll-contain p-2">
+      <ul id="convo-list" class="flex-1 min-h-0 overflow-y-auto overscroll-contain p-2">
         {% for convo in conversations %}
-        <li class="mb-2">
+        <li
+          class="mb-2"
+          data-display="{{ convo.other_user.profile.display_name|default:convo.other_user.username }}"
+          data-username="{{ convo.other_user.username }}"
+        >
+
           <a
             href="{% url 'message_module:chat_view' convo.id %}"
             class="flex items-center gap-3 p-3 rounded-xl transition-all {% if selected_conversation and convo.id == selected_conversation.id %}bg-gray-200 text-lime-900{% else %}hover:bg-base-200{% endif %}"
@@ -230,10 +246,15 @@
               {% endwith %}
             </div>
             <div class="flex-1 min-w-0">
-              <p class="font-semibold truncate">
-                {{ convo.other_user.profile.display_name }}
-              </p>
-              <p class="text-sm text-base-content/60 truncate">
+              <div class="flex items-center gap-1">
+                <p class="font-semibold truncate lato-bold">
+                  {{ convo.other_user.profile.display_name|default:convo.other_user.username }}
+                </p>
+                {% if convo.other_user.profile.is_verified %}
+                  <i data-lucide="badge-check" class="w-4 h-4 text-lime-400 flex-shrink-0"></i>
+                {% endif %}
+              </div>
+              <p class="text-sm text-base-content/60 truncate lato-regular">
                 {{ convo.last_message_preview|default:"No messages yet" }}
               </p>
             </div>
@@ -242,9 +263,9 @@
 
         {% empty %}
 
-        <li class="p-4 text-center text-base-content/60">
+        {% comment %} <li class="p-4 text-center text-base-content/60">
           <p>No conversations yet.</p>
-        </li>
+        </li> {% endcomment %}
 
         {% endfor %}
       </ul>
@@ -278,10 +299,14 @@
       />
     </div>
 
-    <div class="max-h-64 overflow-y-auto space-y-2">
+    <div id="user-list" class="max-h-64 overflow-y-auto space-y-2">
       {% for u in users %}
 
-      <form method="POST" class="w-full">
+      <form method="POST" class="w-full"
+        data-display="{{ u.profile.display_name|default:u.username }}"
+        data-username="{{ u.username }}"
+      >
+
         {% csrf_token %}
 
         <button
@@ -303,12 +328,20 @@
         <span class="text-sm font-bold">
           {{ prof.display_name|default:u.username|first|upper }}
         </span>
-          </div>
+      </div>
+
           {% endif %} {% endwith %}
 
-          <div class="flex-1 min-w-0">
-            <p class="font-medium truncate">{{u.profile.display_name}}</p>
-            <p class="truncate">@{{ u.username }}</p>
+          <div class="flex-1 min-w-0 flex items-center gap-2">
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1">
+                <p class="font-medium truncate lato-regular">{{u.profile.display_name|default:u.username}}</p>
+                {% if u.profile.is_verified %}
+                  <i data-lucide="badge-check" class="w-4 h-4 text-lime-400 flex-shrink-0"></i>
+                {% endif %}
+              </div>
+              <p class="truncate text-sm text-base-content/60 lato-regular">@{{ u.username }}</p>
+            </div>
           </div>
         </button>
       </form>
@@ -331,6 +364,99 @@
 </div>
 
 <script>
+  (function () {
+    const input = document.getElementById("user-search");
+    const list  = document.getElementById("user-list");
+    if (!input || !list) return;
+
+    const rows = Array.from(list.querySelectorAll("form[data-username]"));
+
+    let noRes = document.getElementById("user-no-results");
+    if (!noRes) {
+      noRes = document.createElement("div");
+      noRes.id = "user-no-results";
+      noRes.className = "text-center text-sm text-base-content/60 py-3 hidden";
+      noRes.textContent = "No users found.";
+      list.appendChild(noRes);
+    }
+
+    function norm(s) {
+      return (s || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/\p{Diacritic}/gu, "");
+    }
+
+    function applyFilter() {
+      const q = norm(input.value.trim());
+      let visible = 0;
+
+      rows.forEach((el) => {
+        const hay = norm((el.dataset.display || "") + " " + (el.dataset.username || ""));
+        const match = !q || hay.includes(q);
+        el.classList.toggle("hidden", !match);
+        if (match) visible++;
+      });
+
+      noRes.classList.toggle("hidden", visible !== 0);
+    }
+
+    input.addEventListener("input", applyFilter);
+    input.addEventListener("change", applyFilter);
+
+
+    applyFilter();
+  })();
+
+  (function () {
+    const search = document.getElementById("search");
+    const list = document.getElementById("convo-list");
+    if (!search || !list) return;
+
+    const items = Array.from(list.querySelectorAll("li[data-display]"));
+
+    let noRes = document.getElementById("no-convo-results");
+    if (!noRes) {
+      noRes = document.createElement("li");
+      noRes.id = "no-convo-results";
+      noRes.className = "p-4 text-center text-base-content/60 hidden";
+      noRes.textContent = "No matching conversations.";
+      list.appendChild(noRes);
+    }
+
+    function norm(s) {
+      return (s || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/\p{Diacritic}/gu, "");
+    }
+
+    function filterList() {
+      const q = norm(search.value.trim());
+      let visible = 0;
+
+      items.forEach((li) => {
+        const hay = norm((li.dataset.display || "") + " " + (li.dataset.username || ""));
+        const match = !q || hay.includes(q);
+        li.classList.toggle("hidden", !match);
+        if (match) visible++;
+      });
+
+      noRes.classList.toggle("hidden", visible !== 0);
+    }
+
+    search.addEventListener("input", filterList);
+    search.addEventListener("change", filterList);
+
+    search.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        search.value = "";
+        filterList();
+      }
+    });
+
+    filterList();
+  })();
   (function () {
     const root = document.getElementById("chat-root");
     const nav = document.querySelector("nav");
@@ -501,7 +627,7 @@
                 <p class="px-4 py-2 rounded-2xl break-words ${
                   msg.is_self
                     ? "bg-lime-500 text-white rounded-br-none"
-                    : "bg-base-200 text-base-content rounded-bl-none"
+                    : "bg-[#374151] text-white rounded-bl-none"
                 }">${msg.body}</p>
               `);
           }
@@ -516,20 +642,25 @@
           }
 
           wrapper.innerHTML = `
-              <div class="flex gap-2 max-w-xs lg:max-w-md">
-                ${
-                  !msg.is_self
-                    ? `<img src="${msg.sender_avatar}" class="w-8 h-8 rounded-full object-cover flex-shrink-0" alt="${msg.sender}">`
-                    : ""
-                }
-                <div class="flex flex-col ${msg.is_self ? "items-end" : ""}">
-                  ${parts.join("")}
-                  <span class="text-xs text-base-content/50 mt-1 px-2">${
-                    msg.created_at
-                  }</span>
-                </div>
+            <div class="flex gap-2 max-w-xs lg:max-w-md">
+              ${
+                !msg.is_self
+                  ? msg.sender_avatar 
+                    ? `<img src="${msg.sender_avatar}" class="w-8 h-8 rounded-full object-cover flex-shrink-0" alt="${msg.sender}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                       <div class="w-8 h-8 rounded-full bg-primary text-primary-content flex items-center justify-center flex-shrink-0" style="display: none;">
+                         <span class="text-xs font-bold">${msg.sender.charAt(0).toUpperCase()}</span>
+                       </div>`
+                    : `<div class="w-8 h-8 rounded-full bg-primary text-primary-content flex items-center justify-center flex-shrink-0">
+                         <span class="text-xs font-bold">${msg.sender.charAt(0).toUpperCase()}</span>
+                       </div>`
+                  : ""
+              }
+              <div class="flex flex-col ${msg.is_self ? "items-end" : ""}">
+                ${parts.join("")}
+                <span class="text-xs text-base-content/50 mt-1 px-2">${msg.created_at}</span>
               </div>
-            `;
+            </div>
+          `;
           chatMessages.appendChild(wrapper);
         });
 
