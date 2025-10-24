@@ -1,91 +1,170 @@
-{% extends 'base_marketplace.html' %}
-{% load static currency %}
+  {% extends 'base_marketplace.html' %}
+  {% load static currency %}
 
-{% block marketplace_content %}
+  {% block marketplace_content %}
 
-<h1 class="text-2xl sm:text-3xl font-semibold tracking-tight mb-6">Today's Pick</h1>
+  <h1 class="text-2xl sm:text-3xl font-semibold tracking-tight mb-6">Today's Pick</h1>
 
-<script id="mp-config" type="application/json">
-  {{ page_config_json|safe }}
-</script>
+  <script id="mp-config" type="application/json">
+    {{ page_config_json|safe }}
+  </script>
 
-<meta name="csrf-token" content="{{ csrf_token }}">
+  <meta name="csrf-token" content="{{ csrf_token }}">
 
-<!-- FILTER BAR -->
-<div
-  class="flex flex-col sm:flex-row sm:items-center mb-8 bg-white rounded-lg border border-gray-200 p-4 gap-3 sm:gap-4">
+  <!-- FILTER BAR -->
+  <div
+    class="flex flex-col sm:flex-row sm:items-center mb-8 bg-white rounded-lg border border-gray-200 p-4 gap-3 sm:gap-4">
 
-  {% if user.is_authenticated %}
-  <!-- Create Product -->
-  <button id="open-create-modal" type="button"
-    class="order-1 btn btn-primary bg-lime-500 border-lime-500 hover:bg-lime-600 hover:border-lime-600 text-white"
-    onclick="showListingModal()">
-    <i data-lucide="plus" class="w-4 h-4"></i>
-    <span class="hidden xs:inline">Create Product</span>
-  </button>
-  {% endif %}
+    {% if user.is_authenticated %}
+    <!-- Create Product -->
+    <button id="open-create-modal" type="button"
+      class="order-1 btn btn-primary bg-lime-500 border-lime-500 hover:bg-lime-600 hover:border-lime-600 text-white"
+      onclick="showListingModal()">
+      <i data-lucide="plus" class="w-4 h-4"></i>
+      <span class="hidden xs:inline">Create Product</span>
+    </button>
+    {% endif %}
 
 
-  <!-- search -->
-  <label
-    class="order-2 input input-sm sm:input-md input-bordered flex items-center gap-2 w-full sm:w-72 md:w-[28rem] flex-1">
-    <svg class="h-[1em] opacity-50 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-      <g stroke-linejoin="round" stroke-linecap="round" stroke-width="2.5" fill="none" stroke="currentColor">
-        <circle cx="11" cy="11" r="8"></circle>
-        <path d="m21 21-4.3-4.3"></path>
-      </g>
-    </svg>
-    <input id="input-search" type="search" class="grow" required placeholder="Search" />
-  </label>
+    <!-- search -->
+    <label
+      class="order-2 input input-sm sm:input-md input-bordered flex items-center gap-2 w-full sm:w-72 md:w-[28rem] flex-1">
+      <svg class="h-[1em] opacity-50 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+        <g stroke-linejoin="round" stroke-linecap="round" stroke-width="2.5" fill="none" stroke="currentColor">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.3-4.3"></path>
+        </g>
+      </svg>
+      <input id="input-search" type="search" class="grow" required placeholder="Search" />
+    </label>
 
-  <!-- filter button chip -->
-  <div class="order-3 w-full sm:w-auto overflow-x-auto">
-    <div class="join whitespace-nowrap">
-      <button id="chip-all" type="button"
-        class="btn btn-sm join-item text-neutral-900 bg-base-200 border-base-200 hover:bg-base-300 active:bg-base-400">
-        All
-      </button>
-      <button id="chip-new" type="button"
-        class="btn btn-sm join-item text-neutral-900 bg-[#A3E635] border-[#A3E635] hover:bg-[#8FD542] active:bg-[#7BC536]">
-        Brand New
-      </button>
-      <button id="chip-used" type="button"
-        class="btn btn-sm join-item text-neutral-900 bg-[#FB923C] border-[#FB923C] hover:bg-[#FFA24F] active:bg-[#F78E2D]">
-        Used
-      </button>
+    <!-- filter button chip -->
+    <div class="order-3 w-full sm:w-auto overflow-x-auto">
+      <div class="join whitespace-nowrap">
+        <button id="chip-all" type="button"
+          class="btn btn-sm join-item text-neutral-900 bg-base-200 border-base-200 hover:bg-base-300 active:bg-base-400">
+          All
+        </button>
+        <button id="chip-new" type="button"
+          class="btn btn-sm join-item text-neutral-900 bg-[#A3E635] border-[#A3E635] hover:bg-[#8FD542] active:bg-[#7BC536]">
+          Brand New
+        </button>
+        <button id="chip-used" type="button"
+          class="btn btn-sm join-item text-neutral-900 bg-[#FB923C] border-[#FB923C] hover:bg-[#FFA24F] active:bg-[#F78E2D]">
+          Used
+        </button>
+      </div>
     </div>
+
+    {% if user.is_authenticated %}
+    <!-- wishlist -->
+    <a href="{% url 'marketplace_module:wishlist_page' %}"
+      class="order-4 btn bg-[#FFEEF0] border-[#FFEEF0] text-rose-600 hover:bg-[#FFE3E7] hover:border-[#FFE3E7]">
+      <i data-lucide="heart" class="w-4 h-4"></i>
+      <span class="hidden xs:inline">Wishlist</span>
+    </a>
+    {% endif %}
+
+    <!-- refresh -->
+    <button id="btn-refresh" class="order-5 btn btn-xs sm:btn-sm sm:ml-auto">
+      <span class="hidden sm:inline">Refresh</span>
+      <i data-lucide="refresh-ccw" class="w-4 h-4 sm:ml-1"></i>
+    </button>
   </div>
 
-  {% if user.is_authenticated %}
-  <!-- wishlist -->
-  <a href="{% url 'marketplace_module:wishlist_page' %}"
-    class="order-4 btn bg-[#FFEEF0] border-[#FFEEF0] text-rose-600 hover:bg-[#FFE3E7] hover:border-[#FFE3E7]">
-    <i data-lucide="heart" class="w-4 h-4"></i>
-    <span class="hidden xs:inline">Wishlist</span>
-  </a>
-  {% endif %}
+  <!-- states -->
+  <div id="loading" class="bg-base-100 rounded-lg border border-base-200 p-10 text-center hidden">
+    <span class="loading loading-spinner loading-md"></span>
+    <p class="mt-3 text-base-content/70">Loading listings…</p>
+  </div>
+  <div id="error" class="bg-base-100 rounded-lg border border-error p-6 text-center hidden">
+    <p class="text-error font-semibold">Failed to load data. Please try again.</p>
+  </div>
+  <div id="empty" class="bg-base-100 rounded-lg border border-base-200 p-10 text-center hidden">
+    <p class="text-base-content/70">No listings found.</p>
+  </div>
 
-  <!-- refresh -->
-  <button id="btn-refresh" class="order-5 btn btn-xs sm:btn-sm sm:ml-auto">
-    <span class="hidden sm:inline">Refresh</span>
-    <i data-lucide="refresh-ccw" class="w-4 h-4 sm:ml-1"></i>
-  </button>
-</div>
-
-<!-- states -->
-<div id="loading" class="bg-base-100 rounded-lg border border-base-200 p-10 text-center hidden">
-  <span class="loading loading-spinner loading-md"></span>
-  <p class="mt-3 text-base-content/70">Loading listings…</p>
-</div>
-<div id="error" class="bg-base-100 rounded-lg border border-error p-6 text-center hidden">
-  <p class="text-error font-semibold">Failed to load data. Please try again.</p>
-</div>
-<div id="empty" class="bg-base-100 rounded-lg border border-base-200 p-10 text-center hidden">
-  <p class="text-base-content/70">No listings found.</p>
-</div>
-
-<!-- grid -->
-<div id="grid" class="grid grid-cols-1 xs:grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 px-2 sm:px-0 hidden"></div>
+  <!-- grid -->
+  <div id="grid" class="grid grid-cols-1 xs:grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 px-2 sm:px-0 hidden"></div>
 
 
-{% endblock %}
+  <script>
+    (function () {
+      'use strict';
+    
+      const CONFIG = JSON.parse(document.getElementById('mp-config').textContent || '{}');
+      const API_URL = CONFIG.apiListings;
+      const DETAIL_PATTERN = CONFIG.detailUrlPattern;
+    
+      const els = {
+        grid: document.getElementById('grid'),
+        loading: document.getElementById('loading'),
+        error: document.getElementById('error'),
+        empty: document.getElementById('empty'),
+      };
+    
+      function show({loading=false, error=false, empty=false, grid=false}) {
+        els.loading.classList.toggle('hidden', !loading);
+        els.error.classList.toggle('hidden', !error);
+        els.empty.classList.toggle('hidden', !empty);
+        els.grid.classList.toggle('hidden', !grid);
+      }
+    
+      function cardHtml(o) {
+        const id = String(o.id);
+        const f  = o.fields || {};
+        const detailUrl = DETAIL_PATTERN.replace('00000000-0000-0000-0000-000000000000', id);
+        const title = f.title || '';
+        const img   = f.image_url || '';
+        const price = new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(Number(f.price||0));
+        const cond  = f.condition === 'BRAND_NEW' ? 'Brand New' : 'Used';
+        const chipCls = f.condition === 'BRAND_NEW' ? 'bg-lime-400 text-[#3F6212]' : 'bg-orange-300 text-[#7C2D12]';
+    
+        return `
+          <article class="card border rounded-[16px] overflow-hidden">
+            <a href="${detailUrl}" class="block">
+              <img src="${img}" alt="${title}" class="w-full h-[220px] object-cover" loading="lazy">
+            </a>
+            <div class="p-4">
+              <p class="font-semibold">${price}</p>
+              <div class="flex justify-between items-center mt-1">
+                <h2 class="font-semibold line-clamp-1">${title}</h2>
+                <span class="px-2 py-0.5 text-xs rounded-full ${chipCls}">${cond}</span>
+              </div>
+            </div>
+          </article>
+        `;
+      }
+    
+      async function fetchAndRender() {
+        try {
+          show({loading:true});
+          const r = await fetch(API_URL, {headers:{'Accept':'application/json'}, cache:'no-store'});
+          if (!r.ok) throw new Error('Bad response');
+          const raw = await r.json(); // Django serializer returns array
+          const data = Array.isArray(raw) ? raw.map(item => ({ id: item.pk, fields: item.fields })) : [];
+          els.grid.innerHTML = data.map(cardHtml).join('');
+          if (data.length === 0) show({empty:true}); else show({grid:true});
+          try {
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+              window.lucide.createIcons();
+            }
+          } catch (err) {
+            console.warn('Lucide init failed:', err);
+          }
+        } catch (e) {
+          console.error('Failed to load listings:', e);
+          show({error:true});
+        }
+      }
+    
+      // refresh ketika ada event dari modal
+      document.addEventListener('listing:created', fetchAndRender);
+      document.addEventListener('listing:updated', fetchAndRender);
+    
+      // init
+      fetchAndRender();
+    })();
+  </script>
+    
+  {% endblock %}

@@ -42,7 +42,8 @@ def listing_detail(request, listing_id):
     }
     return render(request, "listing_detail.html", context)
 
-# create listing with AJAX
+# marketplace_module/views.py
+
 @csrf_exempt
 @require_POST
 @login_required
@@ -56,20 +57,21 @@ def add_listing_entry_ajax(request):
         price_raw = request.POST.get("price", "").strip()
 
         if not title:
-            return HttpResponseBadRequest("Title is required")
+            return JsonResponse({"error": "title_required"}, status=400)
 
         if condition not in ("BRAND_NEW", "USED"):
-            return HttpResponseBadRequest("Invalid condition")
+            return JsonResponse({"error": "invalid_condition"}, status=400)
 
         try:
+            from decimal import Decimal, InvalidOperation
             price = Decimal(price_raw or "0")
             if price < 0:
-                return HttpResponseBadRequest("Price must be >= 0")
+                return JsonResponse({"error": "invalid_price", "message": "Price must be >= 0"}, status=400)
         except (InvalidOperation, TypeError):
-            return HttpResponseBadRequest("Invalid price")
+            return JsonResponse({"error": "invalid_price"}, status=400)
 
         listing = Listing.objects.create(
-            owner=request.user,        
+            owner=request.user,
             title=title,
             description=description,
             location=location,
@@ -78,10 +80,13 @@ def add_listing_entry_ajax(request):
             price=price,
             is_active=True,
         )
-        return HttpResponse(b"CREATED", status=201)
+
+        # <- penting: balas JSON agar script modal paham
+        return JsonResponse({"status": "created", "id": str(listing.id)}, status=201)
 
     except Exception as e:
         return JsonResponse({"error": "exception", "message": str(e)}, status=500)
+
 
 # get listings
 @require_GET

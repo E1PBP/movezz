@@ -4,71 +4,6 @@
     <!-- header -->
     <div class="flex items-center justify-between p-4 border-b">
       <div>
-        <h3 class="text-lg sm:text-xl font-semibold text-gray-900">Create Product</h3>
-        <p class="text-sm text-gray-600 mt-1">Add a new item to Marketplace</p>
-      </div>
-      <button type="button" class="text-gray-400 hover:text-gray-700 p-1.5" onclick="hideListingModal()">
-        ✕
-      </button>
-    </div>
-
-    <!-- body / form -->
-    <form id="listingForm" class="px-6 py-4 space-y-4">
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Title</label>
-        <input name="title" required class="mt-1 block w-full input input-bordered" placeholder="e.g. Badminton Racket">
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Price (IDR)</label>
-          <input name="price" type="number" min="0" required class="mt-1 block w-full input input-bordered" placeholder="2000000">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Condition</label>
-          <select name="condition" required class="mt-1 block w-full select select-bordered">
-            <option value="">Choose…</option>
-            <option value="BRAND_NEW">Brand New</option>
-            <option value="USED">Used</option>
-          </select>
-        </div>
-      </div>
-
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Location</label>
-        <input name="location" class="mt-1 block w-full input input-bordered" placeholder="East Jakarta">
-      </div>
-
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Image URL</label>
-        <input name="image_url" type="url" class="mt-1 block w-full input input-bordered" placeholder="https://…">
-      </div>
-
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Description</label>
-        <textarea name="description" rows="3" class="mt-1 block w-full textarea textarea-bordered" placeholder="Tell buyers about the item…"></textarea>
-      </div>
-    </form>
-
-    <!-- footer -->
-    <div class="flex flex-col sm:flex-row gap-3 p-6 border-t">
-      <button type="button"
-              class="order-2 sm:order-1 btn"
-              onclick="hideListingModal()">Cancel</button>
-      <button type="submit"
-              form="listingForm"
-              class="btn text-neutral-900 bg-[#A3E635] border-[#A3E635]
-             hover:bg-[#8FD542] active:bg-[#7BC536]">Publish</button>
-    </div>
-  </div>
-</div>
-
-<div id="listingModal" class="hidden fixed inset-0 z-[60] w-full flex items-center justify-center bg-black/40">
-  <div id="listingModalCard"
-       class="bg-white rounded-lg shadow-lg w-5/6 sm:w-3/5 md:w-1/2 lg:w-2/5 max-h-screen overflow-y-auto opacity-0 scale-95 transition-all">
-    <!-- header -->
-    <div class="flex items-center justify-between p-4 border-b">
-      <div>
         <h3 id="listingModalTitle" class="text-lg sm:text-xl font-semibold text-gray-900">Create Product</h3>
         <p class="text-sm text-gray-600 mt-1">Add a new item to Marketplace</p>
       </div>
@@ -222,8 +157,12 @@
           return;
         }
 
-        if (window.showToast) showToast('Unexpected response', '', 'error');
+        if (window.showToast) {
+          showToast('Unexpected response', '', 'error');
+          console.error('Unexpected response data:', data);
+        }
       } catch (err) {
+        console.error('Listing submit error:', err);
         if (window.showToast) showToast('Network error', 'Please try again', 'error');
       }
     });
