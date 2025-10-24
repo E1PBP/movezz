@@ -36,11 +36,19 @@ def broadcast_list(request) -> Any:
     else:
         suggested_followers = User.objects.order_by('?')[:2]
 
+    from django.db.models import Q
+    upcoming_event = Event.objects.filter(
+        Q(end_time__isnull=True) | Q(end_time__gte=now)
+    ).select_related(
+        'user', 'user__profile'
+    ).order_by('-is_pinned', 'start_time').first()
+
     return render(request, 'broadcasts/event_list.html', {
         'events': events_page.object_list,
         'initial_tab': 'trending',
         'has_next': events_page.has_next(),
-        'suggested_followers': suggested_followers
+        'suggested_followers': suggested_followers,
+        'upcoming_event': upcoming_event
     })
 
 
