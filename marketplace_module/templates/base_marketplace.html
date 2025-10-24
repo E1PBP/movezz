@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+  {# konten setiap halaman marketplace akan masuk ke sini #}
+  {% block marketplace_content %}{% endblock %}
+
+  {# komponen global marketplace #}
+  {% include "toast.html" %}
+  {% include "listing_modal.html" %}
+
+  {# tempat script khusus halaman marketplace #}
+  {% block marketplace_scripts %}{% endblock %}
+
+ <script>
+    try {
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons();
+      }
+    } catch (e) {
+      console.warn('Lucide init error:', e);
+    }
+  </script>
+{% endblock %}

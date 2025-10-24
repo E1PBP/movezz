@@ -9,7 +9,7 @@ beri ❌ jika belum dan ✅ jika sudah
 | 4   | Views untuk modul (`views.py`)                | ✅     | done                                     |
 | 5   | Terintegrasi sebagai satu kesatuan aplikasi   | ✅     | done                                     |
 | 6   | Fungsionalitas sesuai dengan rancangan desain | ✅     | done                                     |
-| 7   | Unit Test untuk semua aspek (`tests.py`)      | ❌     | belum                                    |
-| 8   | Code coverage minimal 80%                     | ❌     | belum                                    |
+| 7   | Unit Test untuk semua aspek (`tests.py`)      | ✅     | done                                     |
+| 8   | Code coverage minimal 80%                     | ✅     | done                                     |
 
 ---

@@ -1,0 +1,170 @@
+<div id="listingModal" class="hidden fixed inset-0 z-[60] w-full flex items-center justify-center bg-black/40">
+  <div id="listingModalCard"
+       class="bg-white rounded-lg shadow-lg w-5/6 sm:w-3/5 md:w-1/2 lg:w-2/5 max-h-screen overflow-y-auto opacity-0 scale-95 transition-all">
+    <!-- header -->
+    <div class="flex items-center justify-between p-4 border-b">
+      <div>
+        <h3 id="listingModalTitle" class="text-lg sm:text-xl font-semibold text-gray-900">Create Product</h3>
+        <p class="text-sm text-gray-600 mt-1">Add a new item to Marketplace</p>
+      </div>
+      <button type="button" class="text-gray-400 hover:text-gray-700 p-1.5" onclick="hideListingModal()">
+        ✕
+      </button>
+    </div>
+
+    <!-- body / form -->
+    <form id="listingForm" class="px-6 py-4 space-y-4" data-mode="create">
+      <div>
+        <label class="block text-sm font-medium text-gray-700" for="title">Title</label>
+        <input id="title" name="title" required class="mt-1 block w-full input input-bordered" placeholder="e.g. Badminton Racket">
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700" for="price">Price (IDR)</label>
+          <input id="price" name="price" type="number" min="0" required class="mt-1 block w-full input input-bordered" placeholder="2000000">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700" for="condition">Condition</label>
+          <select id="condition" name="condition" required class="mt-1 block w-full select select-bordered">
+            <option value="">Choose…</option>
+            <option value="BRAND_NEW">Brand New</option>
+            <option value="USED">Used</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700" for="location">Location</label>
+        <input id="location" name="location" class="mt-1 block w-full input input-bordered" placeholder="East Jakarta">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700" for="image_url">Image URL</label>
+        <input id="image_url" name="image_url" type="url" class="mt-1 block w-full input input-bordered" placeholder="https://…">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700" for="description">Description</label>
+        <textarea id="description" name="description" rows="3" class="mt-1 block w-full textarea textarea-bordered" placeholder="Tell buyers about the item…"></textarea>
+      </div>
+    </form>
+
+    <!-- footer -->
+    <div class="flex flex-col sm:flex-row gap-3 p-6 border-t">
+      <button type="button"
+              class="order-2 sm:order-1 btn"
+              onclick="hideListingModal()">Cancel</button>
+      <button id="modalSaveBtn" type="submit"
+              form="listingForm"
+              class="btn text-neutral-900 bg-[#A3E635] border-[#A3E635]
+             hover:bg-[#8FD542] active:bg-[#7BC536]">Publish</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // local csrf helper (fallback ke cookie jika meta tidak ada)
+  function __getCSRFToken() {
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    if (meta && meta.content && meta.content !== 'NOTPROVIDED') return meta.content;
+    const m = document.cookie.match(/(?:^|;)\s*csrftoken=([^;]+)/);
+    return m ? decodeURIComponent(m[1]) : '';
+  }
+
+  // show modal (CREATE mode)
+  function showListingModal() {
+    const modal = document.getElementById('listingModal');
+    const card  = document.getElementById('listingModalCard');
+    const form  = document.getElementById('listingForm');
+    const titleEl = document.getElementById('listingModalTitle');
+    const saveBtn = document.getElementById('modalSaveBtn');
+
+    if (form) {
+      form.reset();
+      form.dataset.mode = 'create';
+      delete form.dataset.id;
+    }
+    if (titleEl) titleEl.textContent = 'Create Product';
+    if (saveBtn) saveBtn.textContent = 'Publish';
+
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+      card.classList.remove('opacity-0','scale-95');
+      card.classList.add('opacity-100','scale-100');
+    }, 50);
+  }
+
+  // hide modal
+  function hideListingModal() {
+    const modal = document.getElementById('listingModal');
+    const card  = document.getElementById('listingModalCard');
+    card.classList.remove('opacity-100','scale-100');
+    card.classList.add('opacity-0','scale-95');
+    setTimeout(() => modal.classList.add('hidden'), 150);
+  }
+
+  // create/update with AJAX
+  (function(){
+    const form = document.getElementById('listingForm');
+    if (!form) return;
+
+    form.addEventListener('submit', async function(e){
+      e.preventDefault();
+
+      // validasi sederhana harga
+      const price = Number((new FormData(form)).get('price') || 0);
+      if (Number.isNaN(price) || price < 0) {
+        if (window.showToast) showToast('Price must be a non-negative number', '', 'error');
+        return;
+      }
+
+      const mode = form.dataset.mode === 'edit' ? 'edit' : 'create';
+      const id   = form.dataset.id;
+      const csrf = __getCSRFToken();
+
+      const url = mode === 'edit'
+        ? `/marketplace/listing/${id}/edit-ajax/`
+        : `{% url 'marketplace_module:add_listing_entry_ajax' %}`;
+
+      try {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "X-CSRFToken": csrf, "Accept": "application/json" },
+          body: new FormData(form),
+        });
+
+        const data = await res.json().catch(()=> ({}));
+
+        if (!res.ok) {
+          const msg = data && (data.error || data.message) ? (data.error || data.message) : 'Failed to submit';
+          if (window.showToast) showToast('Error', msg, 'error', 3000);
+          return;
+        }
+
+        if (mode === 'create' && (data.status === 'created' || data.status === 'ok')) {
+          form.reset();
+          hideListingModal();
+          if (window.showToast) showToast('Product created!', '', 'success', 2500);
+          document.dispatchEvent(new CustomEvent('listing:created', { detail: data }));
+          return;
+        }
+
+        if (mode === 'edit' && data.status === 'updated') {
+          hideListingModal();
+          if (window.showToast) showToast('Listing updated', '', 'success', 2500);
+          document.dispatchEvent(new CustomEvent('listing:updated', { detail: data }));
+          return;
+        }
+
+        if (window.showToast) {
+          showToast('Unexpected response', '', 'error');
+          console.error('Unexpected response data:', data);
+        }
+      } catch (err) {
+        console.error('Listing submit error:', err);
+        if (window.showToast) showToast('Network error', 'Please try again', 'error');
+      }
+    });
+  })();
+</script>

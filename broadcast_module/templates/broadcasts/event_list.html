@@ -3,9 +3,7 @@
 
 {% block content %}
 <div class="flex gap-8">
-  <!-- Left: Main content (2/3) -->
-  <div class="w-2/3 flex flex-col">
-    <!-- Tabs Container -->
+  <div class="w-full lg:basis-2/3 flex flex-col">
     <div class="flex justify-between items-center mb-6">
       <div id="tab-wrapper" class="flex-1 relative select-none">
         <div class="flex gap-8 text-sm font-semibold">
@@ -30,33 +28,29 @@
         <div id="tab-indicator" class="absolute bottom-0 rounded-full transition-all duration-300 ease-out" 
              style="height:4px; left:0; width:0; background-color: #A3E635;"></div>
       </div>
-      <button class="btn btn-warning ml-4" onclick="showCreateModal()">+ Create New Broadcast</button>
+      <button class="btn btn-warning ml-4 max-sm:text-xs" onclick="showCreateModal()">+ Create New Broadcast</button>
     </div>
 
-    <!-- Events List -->
     <div class="flex flex-col gap-6" id="events-container">
       {% include 'broadcasts/event_card.html' %}
     </div>
   </div>
 
-  <!-- Right: Sidebar (1/3) -->
-  <div class="w-1/3">
-    <div class="text-base-content/50 text-sm">Sidebar content here</div>
+  <div class="hidden lg:block w-full lg:basis-1/3 space-y-4">
+    {% include 'components/upcoming_events_card.html' %} 
+    {% include 'components/suggested_followers_card.html' %}
   </div>
 </div>
 
-<!-- Create Broadcast Modal -->
 <div id="broadcastModal" class="hidden fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
-  <div class="bg-base-100 rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-    <!-- Header -->
-    <div class="sticky top-0 bg-base-100 border-b border-base-200 px-6 py-4 flex items-center justify-between">
+  <div class="bg-base-100 rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto relative z-50">
+    <div class="sticky top-0 bg-base-100 border-b border-base-200 px-6 py-4 flex items-center justify-between z-10">
       <h2 class="text-xl font-semibold ">Create New Broadcast</h2>
       <button type="button" class="btn btn-sm btn-ghost" onclick="hideCreateModal()">
         <i data-lucide="x" class="w-5 h-5"></i>
       </button>
     </div>
     
-    <!-- Body -->
     <form id="broadcastForm" enctype="multipart/form-data" class="p-6">
       {% csrf_token %}
       <div class="space-y-4">
@@ -99,17 +93,19 @@
             <label for="location_lat" class="label">
               <span class="label-text font-medium">Latitude (Optional)</span>
             </label>
-            <input type="number" step="any" id="location_lat" name="location_lat" 
+            <input type="number" step="0.000001" id="location_lat" name="location_lat" 
                    class="input input-bordered w-full" 
-                   placeholder="e.g. -6.218495" />
+                   placeholder="e.g. -6.218495" 
+                   min="-90" max="90" />
           </div>
           <div>
             <label for="location_lng" class="label">
               <span class="label-text font-medium">Longitude (Optional)</span>
             </label>
-            <input type="number" step="any" id="location_lng" name="location_lng" 
+            <input type="number" step="0.000001" id="location_lng" name="location_lng" 
                    class="input input-bordered w-full" 
-                   placeholder="e.g. 106.802445" />
+                   placeholder="e.g. 106.802445" 
+                   min="-180" max="180" />
           </div>
         </div>
 

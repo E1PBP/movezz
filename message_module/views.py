@@ -182,3 +182,28 @@ def poll_messages(request, conversation_id):
             "created_at": local_created.strftime("%Y-%m-%d %H:%M"),
         })
     return JsonResponse({"messages": data})
+
+
+
+@login_required
+def start_chat(request, username: str):
+    """Create/find a private conversation with target user, then redirect."""
+    target_user = get_object_or_404(User, username=username)
+
+    if target_user == request.user:
+        return redirect("message_module:chat_home")
+
+    existing_convo = (
+        Conversation.objects
+        .filter(members__user=request.user)
+        .filter(members__user=target_user)
+        .distinct()
+        .first()
+    )
+    if existing_convo:
+        return redirect("message_module:chat_view", existing_convo.id)
+
+    convo = Conversation.objects.create(created_by=request.user)
+    ConversationMember.objects.create(conversation=convo, user=request.user)
+    ConversationMember.objects.create(conversation=convo, user=target_user)
+    return redirect("message_module:chat_view", convo.id)

@@ -2,16 +2,21 @@ from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.core.paginator import Paginator
-from django.db.models import F
+from django.db.models import F, Count
 from django.utils import timezone
 from .models import Event
 from .forms import EventForm
 from typing import Any
+from django.contrib.auth.models import User
+from profile_module.models import Follow
+from feeds_module.models import Hashtag
 
 @require_http_methods(["GET"])
 def broadcast_list(request) -> Any:
+    now = timezone.now()
     events = (
         Event.objects
+        .filter(end_time__gte=now)
         .select_related('user', 'user__profile')
         .annotate(user_is_verified=F('user__profile__is_verified'))
         .order_by('-total_click')
@@ -24,10 +29,18 @@ def broadcast_list(request) -> Any:
     except Exception:
         events_page = paginator.page(1)
 
+    # Suggested followers
+    if request.user.is_authenticated:
+        following_users_ids = Follow.objects.filter(follower=request.user).values_list('followee_id', flat=True)
+        suggested_followers = User.objects.exclude(id__in=list(following_users_ids) + [request.user.id]).order_by('?')[:2]
+    else:
+        suggested_followers = User.objects.order_by('?')[:2]
+
     return render(request, 'broadcasts/event_list.html', {
         'events': events_page.object_list,
         'initial_tab': 'trending',
         'has_next': events_page.has_next(),
+        'suggested_followers': suggested_followers
     })
 
 
@@ -35,8 +48,10 @@ def broadcast_list(request) -> Any:
 @require_http_methods(["GET"])
 def get_trending_events(request):
     page = request.GET.get('page', 1)
+    now = timezone.now()
     events = (
         Event.objects
+        .filter(end_time__gte=now)
         .select_related('user', 'user__profile')
         .annotate(user_is_verified=F('user__profile__is_verified'))
         .order_by('-total_click')
@@ -67,8 +82,10 @@ def get_trending_events(request):
 @require_http_methods(["GET"])
 def get_latest_events(request):
     page = request.GET.get('page', 1)
+    now = timezone.now()
     events = (
         Event.objects
+        .filter(end_time__gte=now) 
         .select_related('user', 'user__profile')
         .annotate(user_is_verified=F('user__profile__is_verified'))
         .order_by('start_time')
@@ -141,7 +158,6 @@ def create_event(request):
 
         cleaned = form.cleaned_data
 
-        # Ensure timezone-aware datetimes
         for key in ("start_time", "end_time"):
             dt = cleaned.get(key)
             if dt and timezone.is_naive(dt):
@@ -149,7 +165,6 @@ def create_event(request):
 
         author_display = request.user.get_full_name() or request.user.username
 
-        # Create new event
         event = Event.objects.create(
             user=request.user,
             author_display_name=author_display,
