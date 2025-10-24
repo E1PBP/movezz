@@ -1,11 +1,11 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .forms import PostForm, PostImageForm
-from .models import Post, PostHashtag, Hashtag
+from .models import Post, PostHashtag, Hashtag, PostLike, Comment
 from profile_module.models import Follow
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
-from django.db.models import Count
+from django.db.models import Count, Exists, OuterRef, F
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator
 from django.template.loader import render_to_string
@@ -14,11 +14,14 @@ from django.template.loader import render_to_string
 def main_view(request):
     active_tab = request.GET.get('tab', 'foryou') 
 
+    # Annotate posts with whether the current user has liked them
+    user_likes = PostLike.objects.filter(post=OuterRef('pk'), user=request.user)
+    
     if active_tab == 'following':
         following_users = Follow.objects.filter(follower=request.user).values_list('followee', flat=True)
-        post_list = Post.objects.filter(user__in=following_users).order_by('-created_at')
+        post_list = Post.objects.filter(user__in=following_users).annotate(has_liked=Exists(user_likes)).order_by('-created_at')
     else:
-        post_list = Post.objects.all().order_by('-created_at')
+        post_list = Post.objects.all().annotate(has_liked=Exists(user_likes)).order_by('-created_at')
 
     paginator = Paginator(post_list, 5)  # Show 5 posts per page
     page_number = request.GET.get('page')
@@ -92,13 +95,35 @@ def create_post_ajax(request):
     return JsonResponse({'status': 'success', 'message': 'Post created successfully!'})
 
 @login_required
+@require_POST
+def like_post_ajax(request):
+    post_id = request.POST.get('post_id')
+    post = get_object_or_404(Post, id=post_id)
+    
+    like, created = PostLike.objects.get_or_create(post=post, user=request.user)
+
+    if not created:
+        like.delete()
+        post.likes_count = F('likes_count') - 1
+        liked = False
+    else:
+        post.likes_count = F('likes_count') + 1
+        liked = True
+    
+    post.save(update_fields=['likes_count'])
+    post.refresh_from_db()
+
+    return JsonResponse({'status': 'success', 'likes_count': post.likes_count, 'liked': liked})
+
+@login_required
 def load_more_posts(request):
     active_tab = request.GET.get('tab', 'foryou')
+    user_likes = PostLike.objects.filter(post=OuterRef('pk'), user=request.user)
     if active_tab == 'following':
         following_users = Follow.objects.filter(follower=request.user).values_list('followee', flat=True)
-        post_list = Post.objects.filter(user__in=following_users).order_by('-created_at')
+        post_list = Post.objects.filter(user__in=following_users).annotate(has_liked=Exists(user_likes)).order_by('-created_at')
     else:
-        post_list = Post.objects.all().order_by('-created_at')
+        post_list = Post.objects.all().annotate(has_liked=Exists(user_likes)).order_by('-created_at')
 
     paginator = Paginator(post_list, 5)
     page_number = request.GET.get('page')
@@ -106,3 +131,54 @@ def load_more_posts(request):
 
     html = render_to_string('components/post_list.html', {'posts': posts})
     return JsonResponse({'html': html, 'has_next': posts.has_next()})
+
+@login_required
+@require_POST
+def add_comment_ajax(request):
+    post_id = request.POST.get('post_id')
+    comment_text = request.POST.get('comment_text', '').strip()
+
+    if not comment_text:
+        return JsonResponse({'status': 'error', 'message': 'Comment cannot be empty.'}, status=400)
+
+    post = get_object_or_404(Post, id=post_id)
+
+    comment = Comment.objects.create(
+        post=post,
+        user=request.user,
+        text=comment_text,
+        author_display_name=request.user.profile.display_name or request.user.username,
+        author_avatar_url=request.user.profile.avatar_url.url if hasattr(request.user, 'profile') and request.user.profile.avatar_url else ''
+    )
+
+    post.comments_count = F('comments_count') + 1
+    post.save(update_fields=['comments_count'])
+    post.refresh_from_db()
+
+    return JsonResponse({
+        'status': 'success',
+        'comment': {
+            'text': comment.text,
+            'author': comment.author_display_name,
+            'username': comment.user.username,
+            'avatar_url': comment.author_avatar_url,
+            'created_at': comment.created_at.strftime('%d %b, %Y'),
+        },
+        'comments_count': post.comments_count
+    })
+
+@login_required
+def get_comments_ajax(request):
+    post_id = request.GET.get('post_id')
+    post = get_object_or_404(Post, id=post_id)
+    comments = post.comment_set.all().order_by('created_at')
+    
+    comments_data = [{
+        'text': c.text,
+        'author': c.author_display_name,
+        'username': c.user.username,
+        'avatar_url': c.author_avatar_url,
+        'created_at': c.created_at.strftime('%d %b, %Y'),
+    } for c in comments]
+
+    return JsonResponse({'status': 'success', 'comments': comments_data})
