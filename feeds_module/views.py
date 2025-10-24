@@ -1,11 +1,11 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .forms import PostForm, PostImageForm
-from .models import Post, PostHashtag, Hashtag
+from .models import Post, PostHashtag, Hashtag, PostLike
 from profile_module.models import Follow
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
-from django.db.models import Count
+from django.db.models import Count, Exists, OuterRef, F
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator
 from django.template.loader import render_to_string
@@ -14,11 +14,14 @@ from django.template.loader import render_to_string
 def main_view(request):
     active_tab = request.GET.get('tab', 'foryou') 
 
+    # Annotate posts with whether the current user has liked them
+    user_likes = PostLike.objects.filter(post=OuterRef('pk'), user=request.user)
+    
     if active_tab == 'following':
         following_users = Follow.objects.filter(follower=request.user).values_list('followee', flat=True)
-        post_list = Post.objects.filter(user__in=following_users).order_by('-created_at')
+        post_list = Post.objects.filter(user__in=following_users).annotate(has_liked=Exists(user_likes)).order_by('-created_at')
     else:
-        post_list = Post.objects.all().order_by('-created_at')
+        post_list = Post.objects.all().annotate(has_liked=Exists(user_likes)).order_by('-created_at')
 
     paginator = Paginator(post_list, 5)  # Show 5 posts per page
     page_number = request.GET.get('page')
@@ -92,13 +95,35 @@ def create_post_ajax(request):
     return JsonResponse({'status': 'success', 'message': 'Post created successfully!'})
 
 @login_required
+@require_POST
+def like_post_ajax(request):
+    post_id = request.POST.get('post_id')
+    post = get_object_or_404(Post, id=post_id)
+    
+    like, created = PostLike.objects.get_or_create(post=post, user=request.user)
+
+    if not created:
+        like.delete()
+        post.likes_count = F('likes_count') - 1
+        liked = False
+    else:
+        post.likes_count = F('likes_count') + 1
+        liked = True
+    
+    post.save(update_fields=['likes_count'])
+    post.refresh_from_db()
+
+    return JsonResponse({'status': 'success', 'likes_count': post.likes_count, 'liked': liked})
+
+@login_required
 def load_more_posts(request):
     active_tab = request.GET.get('tab', 'foryou')
+    user_likes = PostLike.objects.filter(post=OuterRef('pk'), user=request.user)
     if active_tab == 'following':
         following_users = Follow.objects.filter(follower=request.user).values_list('followee', flat=True)
-        post_list = Post.objects.filter(user__in=following_users).order_by('-created_at')
+        post_list = Post.objects.filter(user__in=following_users).annotate(has_liked=Exists(user_likes)).order_by('-created_at')
     else:
-        post_list = Post.objects.all().order_by('-created_at')
+        post_list = Post.objects.all().annotate(has_liked=Exists(user_likes)).order_by('-created_at')
 
     paginator = Paginator(post_list, 5)
     page_number = request.GET.get('page')
