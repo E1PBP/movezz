@@ -142,7 +142,8 @@ def follow_user(request, username: str):
 def unfollow_user(request, username: str):
     target = get_object_or_404(User, username=username)
     if request.user != target:
-        Follow.objects.filter(follower=request.user, followee=target).delete()
+        for rel in Follow.objects.filter(follower=request.user, followee=target):
+            rel.delete()
     return redirect("profile_module:profile_detail", username=target.username)
 
 def post_detail(request, username: str, pk):
