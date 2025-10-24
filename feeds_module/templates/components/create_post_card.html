@@ -1,0 +1,41 @@
+{% load static %}
+<div
+    class="relative basis-2/3 card bg-base-100 shadow-sm overflow-hidden flex-row"
+    >
+    <div class="card-body gap-3 z-10 flex flex-row">
+        <div
+        class="w-10 h-10 border border-white rounded-full bg-primary text-primary-content flex items-center justify-center overflow-hidden"
+        >
+        {% if user.is_authenticated and user_avatar_url %}
+        <img
+            src="{{ user_avatar_url }}"
+            alt="{{ user.get_full_name|default:user.username }}"
+            class="object-cover w-full h-full"
+        />
+        {% else %}
+        <span class="text-sm font-bold"
+            >{{ user.username|slice:":1"|upper }}</span
+        >
+        {% endif %}
+        </div>
+        <form id="post-form-pre" class="relative w-full">
+        {% csrf_token %} {{ form.text }}
+        <div
+            class="card-actions items-center justify-end absolute right-3 bottom-3 gap-6"
+        >
+            <button
+            type="button"
+            class="btn btn-primary bg-lime-500 border-lime-500 hover:bg-lime-600 hover:border-lime-600 text-white"
+            onclick="openPostModal()"
+            >
+            Post
+            </button>
+        </div>
+        </form>
+    </div>
+    <img
+        src="{% static 'images/postcard-bg.webp' %}"
+        alt="bg"
+        class="absolute w-full h-full object-cover scale-105"
+    />
+</div>
