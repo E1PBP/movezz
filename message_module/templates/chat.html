@@ -8,40 +8,50 @@
   <input id="chat-drawer" type="checkbox" class="drawer-toggle" />
   {% comment %} main chat aera {% endcomment %}
   <div
-    class="drawer-content flex flex-col h-[calc(100dvh-100px)] overflow-hidden"
+  class="drawer-content flex flex-col h-[calc(100dvh-100px)] overflow-hidden"
   >
-    {% if selected_conversation %} {% comment %} chat header {% endcomment %}
-    <div
-      class="flex items-center justify-between lg:justify-start gap-3 bg-base-600 px-4 py-4 sticky top-0 z-0 shrink-0"
-    >
+  {% comment %} chat header {% endcomment %}
+  {% if selected_conversation %} 
+  <div
+  class="flex items-center justify-between lg:justify-start gap-3 bg-base-600 px-4 py-4 sticky top-0 z-0 shrink-0"
+  >
+  <a href="{% url 'profile_module:profile_detail' selected_conversation.other_user.username %}" 
+      class="flex items-center gap-3 hover:bg-base-300 transition-colors duration-200">
       <label for="chat-drawer" class="btn btn-ghost btn-circle lg:hidden">
         <i data-lucide="menu" class="w-5 h-5"></i>
       </label>
-      {% with prof=selected_conversation.other_user.profile %}
+
+        {% with prof=selected_conversation.other_user.profile %}
         {% if prof.avatar_url %}
         <img
-          src="{{ prof.avatar_url.url }}"
-          class="w-10 h-10 rounded-full object-cover"
-          alt="{{ prof.display_name|default:selected_conversation.other_user.username }}"
+        src="{{ prof.avatar_url.url }}"
+        class="w-10 h-10 rounded-full object-cover"
+        alt="{{ prof.display_name|default:selected_conversation.other_user.username }}"
         />
         {% else %}
         <div
-          class="w-10 h-10 rounded-full bg-primary text-primary-content flex items-center justify-center"
+        class="w-10 h-10 rounded-full bg-primary text-primary-content flex items-center justify-center"
         >
-          <span class="text-sm font-bold">
-            {{ prof.display_name|default:selected_conversation.other_user.username|first|upper }}
-          </span>
-        </div>
-        {% endif %}
+        <span class="text-sm font-bold">
+          {{ prof.display_name|default:selected_conversation.other_user.username|first|upper }}
+        </span>
+      </div>
+      {% endif %}
       {% endwith %}
       <div class="flex-1">
-        <h2 class="font-semibold text-lg">
-          {{ selected_conversation.other_user.profile.display_name|default:selected_conversation.other_user.username }}
-        </h2>
-        <p class="text-xs text-base-content/60">
+        <div class="flex items-center gap-2">
+          <h2 class="font-semibold text-lg lato-bold">
+            {{ selected_conversation.other_user.profile.display_name|default:selected_conversation.other_user.username }}
+          </h2>
+          {% if selected_conversation.other_user.profile.is_verified %}
+          <i data-lucide="badge-check" class="w-5 h-5 text-lime-400 flex-shrink-0"></i>
+          {% endif %}
+        </div>
+        <p class="text-xs text-base-content/60 lato-regular">
           @{{ selected_conversation.other_user.username|lower }}
         </p>
       </div>
+    </a>
     </div>
 
     {% comment %} chat messahe area {% endcomment %}
@@ -236,10 +246,15 @@
               {% endwith %}
             </div>
             <div class="flex-1 min-w-0">
-              <p class="font-semibold truncate">
-                {{ convo.other_user.profile.display_name|default:convo.other_user.username }}
-              </p>
-              <p class="text-sm text-base-content/60 truncate">
+              <div class="flex items-center gap-1">
+                <p class="font-semibold truncate lato-bold">
+                  {{ convo.other_user.profile.display_name|default:convo.other_user.username }}
+                </p>
+                {% if convo.other_user.profile.is_verified %}
+                  <i data-lucide="badge-check" class="w-4 h-4 text-lime-400 flex-shrink-0"></i>
+                {% endif %}
+              </div>
+              <p class="text-sm text-base-content/60 truncate lato-regular">
                 {{ convo.last_message_preview|default:"No messages yet" }}
               </p>
             </div>
@@ -248,9 +263,9 @@
 
         {% empty %}
 
-        <li class="p-4 text-center text-base-content/60">
+        {% comment %} <li class="p-4 text-center text-base-content/60">
           <p>No conversations yet.</p>
-        </li>
+        </li> {% endcomment %}
 
         {% endfor %}
       </ul>
@@ -313,12 +328,20 @@
         <span class="text-sm font-bold">
           {{ prof.display_name|default:u.username|first|upper }}
         </span>
-          </div>
+      </div>
+
           {% endif %} {% endwith %}
 
-          <div class="flex-1 min-w-0">
-            <p class="font-medium truncate">{{u.profile.display_name|default:u.username}}</p>
-            <p class="truncate">@{{ u.username }}</p>
+          <div class="flex-1 min-w-0 flex items-center gap-2">
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1">
+                <p class="font-medium truncate lato-regular">{{u.profile.display_name|default:u.username}}</p>
+                {% if u.profile.is_verified %}
+                  <i data-lucide="badge-check" class="w-4 h-4 text-lime-400 flex-shrink-0"></i>
+                {% endif %}
+              </div>
+              <p class="truncate text-sm text-base-content/60 lato-regular">@{{ u.username }}</p>
+            </div>
           </div>
         </button>
       </form>

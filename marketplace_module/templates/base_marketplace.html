@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+  {% block marketplace_content %}{% endblock %}
+
+  {% include "toast.html" %}
+  {% include "listing_modal.html" %}
+
+  {% block marketplace_scripts %}{% endblock %}
+
+  <script>
+    if (window.lucide) { window.lucide.createIcons(); }
+  </script>
+{% endblock %}
