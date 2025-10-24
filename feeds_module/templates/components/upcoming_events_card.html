@@ -1,7 +1,52 @@
 {% load static %}
 <div class="card w-full bg-base-100 shadow-sm overflow-hidden relative">
-    <div class="card-body z-10 text-white">
-      <h1 class="italic font-semibold text-xl mb-2">Upcoming Events</h1>
+  <div class="card-body z-10 text-white relative">
+    <h1 class="italic font-semibold text-xl mb-1">Upcoming Events</h1>
+    {% if upcoming_event %}
+      <p class="text-sm mb-2 line-clamp-2">
+        {{ upcoming_event.description|truncatechars:100 }}
+      </p>
+      <div class="flex">
+        <div class="w-full space-y-2">
+          <div class="flex gap-2">
+            <i data-lucide="calendar-days" class="w-6 h-6"></i>
+            {% if upcoming_event.start_time %}
+              {{ upcoming_event.start_time|date:"D, H:i" }} WIB
+            {% else %}
+              Today, 19:00 WIB
+            {% endif %}
+          </div>
+          <div class="flex gap-2">
+            <i data-lucide="map-pin" class="w-6 h-6"></i>
+            {{ upcoming_event.location_name|default:"TBA" }}
+          </div>
+        </div>
+        <div class="w-full space-y-2">
+          <div class="flex gap-2">
+            <i data-lucide="user" class="w-6 h-6"></i>
+            {{ upcoming_event.user.username }}
+          </div>
+          <div class="flex gap-2">
+            <i data-lucide="dollar-sign" class="w-6 h-6"></i>
+            {% if upcoming_event.fee %}
+              Rp{{ upcoming_event.fee|floatformat:0 }}
+            {% else %}
+              Free
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="flex justify-end">
+        <a
+          href="{{ upcoming_event.rsvp_url }}"
+          target="_blank"
+          class="btn btn-primary bg-lime-500 border-lime-500 hover:bg-lime-600 hover:border-lime-600 text-white"
+          onclick="{% if upcoming_event.pk %}postClick('{{ upcoming_event.pk }}'){% endif %}"
+        >
+          Join Event
+        </a>
+      </div>
+    {% else %}
       <div class="flex">
         <div class="w-full space-y-2">
           <div class="flex gap-2">
@@ -26,16 +71,19 @@
       </div>
       <div class="flex justify-end">
         <button
-          type="submit"
+          type="button"
           class="btn btn-primary bg-lime-500 border-lime-500 hover:bg-lime-600 hover:border-lime-600 text-white"
         >
           Join Event
         </button>
       </div>
-    </div>
-    <img
-      src="{% static 'images/latest-bg.webp' %}"
-      alt="bg"
-      class="absolute w-full h-full object-cover scale-105"
-    />
+    {% endif %}
   </div>
+
+  <div class="absolute inset-0 bg-black/25 z-[5]"></div>
+  <img
+    src="{% static 'images/latest-bg.webp' %}"
+    alt="bg"
+    class="absolute w-full h-full object-cover scale-105"
+  />
+</div>
