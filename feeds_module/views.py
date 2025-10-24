@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .forms import PostForm, PostImageForm
-from .models import Post, PostHashtag, Hashtag, PostLike
+from .models import Post, PostHashtag, Hashtag, PostLike, Comment
 from profile_module.models import Follow
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
@@ -131,3 +131,54 @@ def load_more_posts(request):
 
     html = render_to_string('components/post_list.html', {'posts': posts})
     return JsonResponse({'html': html, 'has_next': posts.has_next()})
+
+@login_required
+@require_POST
+def add_comment_ajax(request):
+    post_id = request.POST.get('post_id')
+    comment_text = request.POST.get('comment_text', '').strip()
+
+    if not comment_text:
+        return JsonResponse({'status': 'error', 'message': 'Comment cannot be empty.'}, status=400)
+
+    post = get_object_or_404(Post, id=post_id)
+
+    comment = Comment.objects.create(
+        post=post,
+        user=request.user,
+        text=comment_text,
+        author_display_name=request.user.profile.display_name or request.user.username,
+        author_avatar_url=request.user.profile.avatar_url.url if hasattr(request.user, 'profile') and request.user.profile.avatar_url else ''
+    )
+
+    post.comments_count = F('comments_count') + 1
+    post.save(update_fields=['comments_count'])
+    post.refresh_from_db()
+
+    return JsonResponse({
+        'status': 'success',
+        'comment': {
+            'text': comment.text,
+            'author': comment.author_display_name,
+            'username': comment.user.username,
+            'avatar_url': comment.author_avatar_url,
+            'created_at': comment.created_at.strftime('%d %b, %Y'),
+        },
+        'comments_count': post.comments_count
+    })
+
+@login_required
+def get_comments_ajax(request):
+    post_id = request.GET.get('post_id')
+    post = get_object_or_404(Post, id=post_id)
+    comments = post.comment_set.all().order_by('created_at')
+    
+    comments_data = [{
+        'text': c.text,
+        'author': c.author_display_name,
+        'username': c.user.username,
+        'avatar_url': c.author_avatar_url,
+        'created_at': c.created_at.strftime('%d %b, %Y'),
+    } for c in comments]
+
+    return JsonResponse({'status': 'success', 'comments': comments_data})

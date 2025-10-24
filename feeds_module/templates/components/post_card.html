@@ -67,13 +67,26 @@
                             <span class="likes-count">{{ post.likes_count }}</span>
                             <i data-lucide="heart" class="w-5 h-5 shrink-0 {% if post.has_liked %}text-red-500 fill-current{% endif %}"></i>
                         </button>
-                        <div class="flex gap-1 items-center">
-                            {{ post.comments_count }}
+                        <button class="comment-btn flex gap-1 items-center" data-post-id="{{ post.id }}">
+                            <span class="comments-count">{{ post.comments_count }}</span>
                             <i data-lucide="message-circle" class="w-5 h-5 shrink-0"></i>
-                        </div>
+                        </button>
                         <i data-lucide="share" class="w-5 h-5 shrink-0"></i>
                     </div>
                 </div>
+            </div>
+        </div>
+        <div id="comment-section-{{ post.id }}" class="hidden mt-4">
+            <div class="space-y-2" id="comment-list-{{ post.id }}">
+                <!-- Comments will be loaded here -->
+            </div>
+            <div class="mt-4">
+                <form class="add-comment-form" data-post-id="{{ post.id }}">
+                    <div class="flex gap-2">
+                        <input type="text" name="comment_text" class="input input-bordered w-full" placeholder="Add a comment...">
+                        <button type="submit" class="btn btn-primary">Post</button>
+                    </div>
+                </form>
             </div>
         </div>
         {% else %}
@@ -126,8 +139,25 @@
                         <span class="likes-count">{{ post.likes_count }}</span>
                         <i data-lucide="heart" class="w-5 h-5 shrink-0 {% if post.has_liked %}text-red-500 fill-current{% endif %}"></i>
                     </button>
+                    <button class="comment-btn flex gap-1 items-center" data-post-id="{{ post.id }}">
+                        <span class="comments-count">{{ post.comments_count }}</span>
+                        <i data-lucide="message-circle" class="w-5 h-5 shrink-0"></i>
+                    </button>
                     <i data-lucide="share" class="w-5 h-5 shrink-0"></i>
                 </div>
+            </div>
+        </div>
+        <div id="comment-section-{{ post.id }}" class="hidden mt-4">
+            <div class="space-y-2" id="comment-list-{{ post.id }}">
+                <!-- Comments will be loaded here -->
+            </div>
+            <div class="mt-4">
+                <form class="add-comment-form" data-post-id="{{ post.id }}">
+                    <div class="flex gap-2">
+                        <input type="text" name="comment_text" class="input input-bordered w-full" placeholder="Add a comment...">
+                        <button type="submit" class="btn btn-primary">Post</button>
+                    </div>
+                </form>
             </div>
         </div>
         {% endif %}
