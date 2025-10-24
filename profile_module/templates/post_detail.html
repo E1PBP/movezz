@@ -8,6 +8,7 @@
 
   <div class="card w-full bg-base-100 shadow-sm relative overflow-visible">
     {% if is_owner %}
+    {% include "components/delete_card.html" %}
     <div class="dropdown dropdown-end absolute top-3 right-3 z-[9999]">
       <button id="kebabBtn" type="button" tabindex="0" class="btn btn-ghost btn-circle">
       <i data-lucide="more-vertical"></i>
@@ -15,16 +16,10 @@
 
     <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-40">
       <li>
-        <button id="menuEditBtn" type="button" class="flex items-center gap-2">
-          <i data-lucide="pencil" class="w-4 h-4"></i>
-          <span>Edit Post</span>
-        </button>
-      </li>
-      <li>
-        <button id="menuDeleteBtn" type="button" class="flex items-center gap-2 text-red-600">
+        <label for="delete-modal-toggle" class="flex items-center gap-2 text-red-600 cursor-pointer">
           <i data-lucide="trash-2" class="w-4 h-4"></i>
           <span>Delete Post</span>
-        </button>
+        </label>
       </li>
     </ul>
     </div>
@@ -254,27 +249,28 @@
   const deleteUrl = "{% url 'profile_module:post_delete' pk=post.id %}";
   const redirectAfterDelete = "{% url 'profile_module:profile_detail' username=post.user.username %}";
 
-  document.getElementById('editForm')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const res = await fetch(updateUrl, {
-      method: "POST",
-      headers: { "X-CSRFToken": csrftoken },
-      body: new FormData(e.currentTarget)
-    });
-    const data = await res.json().catch(() => ({}));
-    if (res.ok && (data.ok || data.success)) {
-      const cb = document.getElementById('edit-modal-toggle');
-      if (cb) cb.checked = false;
-      location.reload();
-    } else {
-      alert("Failed to update");
-    }
-  });
-
   document.getElementById('confirmDelete')?.addEventListener('click', async () => {
-    const res = await fetch(deleteUrl, { method: "POST", headers: { "X-CSRFToken": csrftoken } });
-    if (res.ok) window.location.href = redirectAfterDelete;
-    else alert("Failed to delete");
+    try {
+      const res = await fetch(deleteUrl, {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": csrftoken,
+          "X-Requested-With": "XMLHttpRequest",
+          "Accept": "application/json"
+        },
+        credentials: "same-origin"
+      });
+      if (res.ok) {
+        window.location.href = redirectAfterDelete;
+      } else {
+        const t = await res.text();
+        console.error('Delete failed', res.status, t);
+        alert("Failed to delete");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Network error");
+    }
   });
 </script>
 {% endblock %}
