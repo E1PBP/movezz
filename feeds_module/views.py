@@ -5,6 +5,8 @@ from .models import Post, PostHashtag, Hashtag
 from profile_module.models import Follow
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
+from django.db.models import Count
+from django.contrib.auth.models import User
 
 @login_required
 def main_view(request):
@@ -18,11 +20,22 @@ def main_view(request):
 
     form = PostForm()
     image_form = PostImageForm()
+
+    # Popular tags
+    popular_tags = Hashtag.objects.annotate(post_count=Count('posthashtag')).order_by('-post_count')[:3]
+
+    # Suggested followers
+    following_users_ids = Follow.objects.filter(follower=request.user).values_list('followee_id', flat=True)
+    suggested_followers = User.objects.exclude(id__in=list(following_users_ids) + [request.user.id]).order_by('?')[:2]
+
+
     context = {
         'form': form,
         'image_form': image_form,
         'posts': posts,
-        'active_tab': active_tab
+        'active_tab': active_tab,
+        'popular_tags': popular_tags,
+        'suggested_followers': suggested_followers,
     }
     return render(request, 'main.html', context)
 

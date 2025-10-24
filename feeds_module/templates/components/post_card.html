@@ -8,13 +8,19 @@
             <div>
                 <div class="flex items-center gap-3">
                     <div class="avatar">
-                        <div class="w-12 rounded-full">
-                            {% if post.author_avatar_url %}
-                            <img src="{{ post.author_avatar_url }}" alt="{{ post.author_display_name }}" />
+                        <div
+                            class="w-10 h-10 rounded-full bg-primary text-primary-content flex items-center justify-center overflow-hidden"
+                            >
+                            {% if user.is_authenticated and user_avatar_url %}
+                            <img
+                                src="{{ user_avatar_url }}"
+                                alt="{{ user.get_full_name|default:user.username }}"
+                                class="object-cover w-full h-full"
+                            />
                             {% else %}
-                            <div class="w-12 h-12 bg-primary text-primary-content flex items-center justify-center">
-                                <span class="text-xl font-bold">{{ post.user.username|slice:":1"|upper }}</span>
-                            </div>
+                            <span class="text-sm font-bold"
+                            >{{ user.username|slice:":1"|upper }}</span
+                            >
                             {% endif %}
                         </div>
                     </div>
@@ -28,6 +34,17 @@
                                     <img src="{{ badge_url }}" alt="Badge" class="w-4 h-4">
                                     {% endif %}
                                 {% endfor %}
+                            {% endif %}
+                            {% if post.author.avatar_url %}
+                            <img
+                                src="{{ post.author.avatar_url }}"
+                                alt="{{ post.author.get_full_name|default:post.author.username }}"
+                                class="object-cover w-full h-full"
+                            />
+                            {% else %}
+                            <span class="text-sm font-bold"
+                            >{{ post.author.username|slice:":1"|upper }}</span
+                            >
                             {% endif %}
                         </div>
                         <div class="text-sm text-neutral-500">{{ post.location_name }}</div>
