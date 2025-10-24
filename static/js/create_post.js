@@ -89,7 +89,7 @@
   
         let formData = new FormData(this);
         
-        fetch("{% url 'feeds_module:create_post_ajax' %}", {
+        fetch(this.action, {
           method: "POST",
           body: formData,
           headers: {

@@ -13,6 +13,7 @@ from django.utils import timezone
 from django.http import JsonResponse, Http404
 from django.conf import settings 
 from feeds_module.models import Post
+from feeds_module.forms import PostForm, PostImageForm
 from broadcast_module.models import Event
 
 def format_short_number(number: int) -> str:
@@ -52,6 +53,9 @@ def profile_detail(request, username: str):
     profile = _get_or_create_profile(page_user)
 
     badges = UserBadge.objects.select_related("badge").filter(user=page_user)
+
+    form = PostForm()
+    image_form = PostImageForm()
 
     current_sport_duration = timedelta(0)
     if profile.current_sport:
@@ -110,6 +114,8 @@ def profile_detail(request, username: str):
         "active_tab": active_tab,
         "posts": posts,
         "broadcasts": broadcasts,
+        "form": form,
+        "image_form": image_form,
     }
 
     return render(request, "profile.html", context)
