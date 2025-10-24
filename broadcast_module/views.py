@@ -40,8 +40,7 @@ def broadcast_list(request) -> Any:
         'events': events_page.object_list,
         'initial_tab': 'trending',
         'has_next': events_page.has_next(),
-        'suggested_followers': suggested_followers,
-        'popular_tags': popular_tags,
+        'suggested_followers': suggested_followers
     })
 
 
