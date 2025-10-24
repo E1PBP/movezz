@@ -11,9 +11,9 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.utils import timezone
 from django.http import JsonResponse, Http404
-from django.urls import reverse
-from django.views.decorators.http import require_http_methods
-from .forms import CreatePostForm, PostUpdateForm
+from django.conf import settings 
+from feeds_module.models import Post
+from broadcast_module.models import Event
 
 def format_short_number(number: int) -> str:
     integer_number = int(number or 0)
@@ -42,14 +42,10 @@ def _get_or_create_profile(u: User) -> Profile:
     profile, _ = Profile.objects.get_or_create(user=u)
     return profile
 
-def _get_post_model():
-    candidates = [("feeds_module", "Post"), ("posts", "Post"), ("feed", "Post")]
-    for app_label, model_name in candidates:
-        try:
-            return apps.get_model(app_label, model_name)
-        except LookupError:
-            continue
-    return None
+def profile_home(request):
+    if request.user.is_authenticated:
+        return redirect("profile_module:profile_detail", username=request.user.username)
+    return redirect(getattr(settings, "LOGIN_URL", "/accounts/login/"))
 
 def profile_detail(request, username: str):
     page_user = get_object_or_404(User, username=username)
@@ -72,6 +68,32 @@ def profile_detail(request, username: str):
     if active_tab not in ("posts", "broadcasts"):
         active_tab = "posts"
 
+    posts = []
+    qs = Post.objects.filter(user=page_user).order_by("-created_at")[:12]
+    for p in qs:
+        src = (
+            getattr(getattr(p, "image", None), "url", None)
+            or getattr(p, "image_url", None)
+            or getattr(p, "photo_url", None)
+        )
+        if src:
+            posts.append({
+                "id": getattr(p, "pk", None),
+                "image_url": src,
+                "alt_text": getattr(p, "caption", "") or "post",
+            })
+
+    broadcasts = []
+    if Event:
+        bqs = Event.objects.filter(user=page_user).order_by("-created_at")[:10]
+        for b in bqs:
+            broadcasts.append({
+                "title": getattr(b, "title", "Broadcast"),
+                "subtitle": getattr(b, "location", "") or getattr(b, "subtitle", ""),
+                "summary": getattr(b, "summary", "") or (getattr(b, "body", "")[:120] + "..."),
+                "image_url": getattr(getattr(b, "cover", None), "url", None) or getattr(b, "image_url", None),
+            })
+
     context = {
         "page_user": page_user,
         "profile": profile,
@@ -85,38 +107,10 @@ def profile_detail(request, username: str):
         "following_count": profile.following_count,
         "format_short_number": format_short_number,
         "format_hours_minutes": format_hours_minutes,
+        "active_tab": active_tab,
+        "posts": posts,
+        "broadcasts": broadcasts,
     }
-
-    posts = []
-    Post = _get_post_model()
-    if Post:
-        qs = Post.objects.filter(user=page_user).order_by("-created_at")[:12]
-        for p in qs:
-            src = (
-                getattr(getattr(p, "image", None), "url", None)
-                or getattr(p, "image_url", None)
-                or getattr(p, "photo_url", None)
-            )
-            if src:
-                posts.append({"id": getattr(p, "pk", None), "image_url": src, "alt_text": getattr(p, "caption", "") or "post"})
-
-    broadcasts = []
-    try:
-        Broadcast = apps.get_model("broadcast_module", "Broadcast")
-        bqs = Broadcast.objects.filter(user=page_user).order_by("-created_at")[:10]
-        for b in bqs:
-            broadcasts.append({
-                "title": getattr(b, "title", "Broadcast"),
-                "subtitle": getattr(b, "location", "") or getattr(b, "subtitle", ""),
-                "summary": getattr(b, "summary", "") or (getattr(b, "body", "")[:120] + "..."),
-                "image_url": getattr(getattr(b, "cover", None), "url", None) or getattr(b, "image_url", None),
-            })
-    except LookupError:
-        broadcasts = []
-
-    context["active_tab"] = active_tab
-    context["posts"] = posts
-    context["broadcasts"] = broadcasts
 
     return render(request, "profile.html", context)
 
@@ -159,9 +153,6 @@ def unfollow_user(request, username: str):
     return redirect("profile_detail", username=username)
 
 def post_detail(request, username: str, pk):
-    Post = _get_post_model()
-    if not Post:
-        raise Http404("Post model not found.")
     post = get_object_or_404(Post, pk=pk, user__username=username)
     is_owner = request.user.is_authenticated and request.user == post.user
 
@@ -180,27 +171,18 @@ def post_detail(request, username: str, pk):
 @require_POST
 @login_required
 def post_update_ajax(request, pk):
-    Post = _get_post_model()
-    if not Post:
-        return JsonResponse({"detail": "Post model not found."}, status=404)
-    
     postingan = get_object_or_404(Post, pk=pk)
     if request.user != postingan.user:
         return JsonResponse({"detail": "Forbidden"}, status=403)
-    
-    form = PostUpdateForm(request.POST)
-    if not form.is_valid():
-        return JsonResponse({"error": "invalid", "details": form.errors}, status=400)
 
+    caption = request.POST.get("caption", "").strip()
     update_fields = []
-    caption = (form.cleaned_data.get("caption") or "").strip()
     if hasattr(postingan, "caption"):
         postingan.caption = caption
         update_fields.append("caption")
     if hasattr(postingan, "updated_at"):
         postingan.updated_at = timezone.now()
         update_fields.append("updated_at")
-
     postingan.save(update_fields=update_fields or None)
     return JsonResponse({"ok": True, "caption": caption})
 
@@ -208,11 +190,28 @@ def post_update_ajax(request, pk):
 @require_POST
 @login_required
 def post_delete_ajax(request, pk):
-    Post = _get_post_model()
-    if not Post:
-        return JsonResponse({"detail": "Post model not found."}, status=404)
     postingan = get_object_or_404(Post, pk=pk)
     if request.user != postingan.user:
         return JsonResponse({"detail": "Forbidden"}, status=403)
     postingan.delete()
     return JsonResponse({"ok": True})
+
+@require_POST
+@login_required
+def create_broadcast_ajax(request):
+    title = (request.POST.get("title") or "").strip()
+    if not title:
+        return JsonResponse({"error": "title_required"}, status=400)
+
+    event = Event.objects.create(
+        user=request.user,
+        author_display_name=request.user.get_full_name() or request.user.username,
+        image=request.FILES.get("image"),
+        description=request.POST.get("description") or "",
+        location_name=request.POST.get("location_name") or "",
+        start_time=request.POST.get("start_time") or timezone.now(),
+        end_time=request.POST.get("end_time") or None,
+        fee=request.POST.get("fee") or None,
+        rsvp_url=request.POST.get("rsvp_url") or None,
+    )
+    return JsonResponse({"ok": True, "id": str(event.id)})

@@ -6,9 +6,9 @@
 
       if (postFormPreTextarea && finalFormTextarea) {
         finalFormTextarea.value = postFormPreTextarea.value;
-        postFormPreTextarea.value = ''; // Clear the pre-form textarea
+        postFormPreTextarea.value = ''; 
       } else if (finalFormTextarea) {
-        finalFormTextarea.value = ''; // Ensure modal is empty if no pre-form
+        finalFormTextarea.value = ''; 
       }
 
       const modal = document.getElementById("post-modal");
@@ -28,7 +28,6 @@
     const removeImageBtn = document.getElementById('remove-image-btn');
   
     function renderHashtags() {
-      // Remove only the existing hashtag chips, not the input field
       const chips = hashtagContainer.querySelectorAll('div.badge');
       chips.forEach(chip => chip.remove());
   
