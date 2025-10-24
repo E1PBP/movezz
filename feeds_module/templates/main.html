@@ -1,16 +1,38 @@
-{% extends "base.html" %}
-{% load static %}
-
-{% block meta %}
-<meta name="description" content="Movezz - your social platform for sharing, broadcasting, and marketplace interactions." />
-{% endblock meta %}
-
-{% block content %}
-<div class="space-y-10">
-    <h1>test</h1>
+{% extends "base.html" %} {% load static %} {% load feeds_extras %} {% block content %}
+<div class="flex flex-col lg:flex-row gap-3">
+  <div class="w-full lg:basis-2/3">
+    {% include 'components/create_post_card.html' %}
+    <div class="mt-4">
+      <div role="tablist" class="tabs tabs-border w-full text-lime-500 mb-2">
+        <a
+          href="?tab=foryou"
+          role="tab"
+          class="tab hover:text-lime-600 w-1/2 {% if active_tab == 'foryou' %}tab-active{% endif %}"
+          >For You</a
+        >
+        <a
+          href="?tab=following"
+          role="tab"
+          class="tab hover:text-lime-600 w-1/2 {% if active_tab == 'following' %}tab-active{% endif %}"
+          >Following</a
+        >
+      </div>
+      <div class="space-y-4" id="post-list">
+        {% include 'components/post_list.html' with posts=posts %}
+      </div>
+      {% if posts.has_next %}
+      <div class="flex justify-center mt-4">
+        <button id="load-more-btn" class="btn btn-primary" data-url="{% url 'feeds_module:load_more_posts' %}">Load More</button>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  <div class="hidden lg:block w-full lg:basis-1/3 space-y-4">
+    {% include 'components/upcoming_events_card.html' %} {% include 'components/popular_tags_card.html' %} {% include 'components/suggested_followers_card.html' %}
+  </div>
 </div>
-
-<script>
-  lucide.createIcons();
-</script>
 {% endblock content %}
+
+{% block scripts %}
+<script src="{% static 'js/load-more-posts.js' %}"></script>
+{% endblock scripts %}
