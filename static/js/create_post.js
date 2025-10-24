@@ -1,13 +1,20 @@
-<script>
-    lucide.createIcons();
-  
     function openPostModal() {
-      const text = document.querySelector(
+      const postFormPreTextarea = document.querySelector(
         '#post-form-pre textarea[name="text"]'
-      ).value;
-      document.querySelector('#post-form-final textarea[name="text"]').value =
-        text;
-      document.getElementById("post-modal").showModal();
+      );
+      const finalFormTextarea = document.querySelector('#post-form-final textarea[name="text"]');
+
+      if (postFormPreTextarea && finalFormTextarea) {
+        finalFormTextarea.value = postFormPreTextarea.value;
+        postFormPreTextarea.value = ''; 
+      } else if (finalFormTextarea) {
+        finalFormTextarea.value = ''; 
+      }
+
+      const modal = document.getElementById("post-modal");
+      if (modal) {
+        modal.showModal();
+      }
     }
   
     const hashtagContainer = document.getElementById('hashtag-container');
@@ -21,7 +28,6 @@
     const removeImageBtn = document.getElementById('remove-image-btn');
   
     function renderHashtags() {
-      // Remove only the existing hashtag chips, not the input field
       const chips = hashtagContainer.querySelectorAll('div.badge');
       chips.forEach(chip => chip.remove());
   
@@ -83,7 +89,7 @@
   
         let formData = new FormData(this);
         
-        fetch("{% url 'feeds_module:create_post_ajax' %}", {
+        fetch(this.action, {
           method: "POST",
           body: formData,
           headers: {
@@ -102,4 +108,3 @@
             console.error("Error:", error);
           });
       });
-  </script>

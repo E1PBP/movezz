@@ -1,6 +1,7 @@
 <dialog id="post-modal" class="modal">
     <div class="modal-box">
-      <form id="post-form-final" method="post" enctype="multipart/form-data">
+      <form id="post-form-final" method="post" enctype="multipart/form-data" action="{% url 'feeds_module:create_post_ajax' %}">
+        {% csrf_token %}
         <h3 class="font-bold text-lg">Create a new post</h3>
         <p class="text-sm text-neutral-500">@{{ user.username }}</p>
         
@@ -80,3 +81,4 @@
       </form>
     </div>
   </dialog>
+
