@@ -1,11 +1,12 @@
-{% extends "base.html" %}
+{% extends "base_marketplace.html" %}
+
 {% load static currency %}
 
 {% block content %}
 <div class="flex flex-col lg:grid lg:grid-cols-12 gap-8 px-2 sm:px-0">
   
   <!-- product image -->
-  <section class="lg:col-span-7 flex justify-center items-center">
+  <section class="lg:col-span-7 flex justify-center items-center">  
     <div class="w-full max-w-[848px] overflow-hidden rounded-2xl">
       {% if images and images.0.image %}
         <img 
@@ -59,7 +60,7 @@
     <!-- action buttons -->
     <div class="mt-4 flex flex-col sm:flex-row items-stretch gap-2">
       <a 
-        href="{% url 'message_module:chat_home' %}" 
+        href="{% if listing.owner %}{% url 'message_module:start_chat' listing.owner.username %}{% else %}{% url 'message_module:chat_home' %}{% endif %}" 
         class="inline-flex items-center justify-center w-full sm:w-[364px] h-[48px] 
                rounded-lg border font-normal text-[15px] leading-[20px]
                bg-lime-400 border-lime-400 text-[#3F6212]
@@ -67,12 +68,13 @@
         Message
       </a>
       
-      <button 
-        type="button" 
-        class="btn btn-ghost btn-square" 
-        aria-label="Share">
-        <i data-lucide="share" class="w-5 h-5"></i>
-      </button>
+    <button id="btn-share"
+            type="button"
+            class="btn btn-ghost btn-square"
+            aria-label="Share listing"
+            title="Share">
+    <i data-lucide="share" class="w-5 h-5"></i>
+    </button>
     </div>
 
     <!-- product details -->
@@ -91,9 +93,59 @@
   </aside>
 </div>
 
+
 <script>
-  if (window.lucide) { 
-    window.lucide.createIcons(); 
+(function () {
+  // copy to clipboard
+  async function copyToClipboard(text) {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+    } catch (_) {}
+    await navigator.clipboard.writeText(text);
   }
+
+  const btn = document.getElementById('btn-share');
+  if (!btn) return;
+
+  btn.addEventListener('click', async () => {
+    const title = '{{ listing.title|escapejs }}';
+    const text  = '{{ listing.description|default:"Check this out!"|escapejs }}';
+    const url   = window.location.href;
+
+    try {
+      // web share 
+      if (navigator.share) {
+        await navigator.share({ title, text, url });
+        if (window.showToast) showToast('Shared!', 'Link sent via system share', 'success');
+        return;
+      }
+      // copy link
+      const ok = await copyToClipboard(url);
+      if (window.showToast) {
+        ok ? showToast('Link copied', '', 'success')
+           : showToast('Copy failed', 'Please copy manually', 'error');
+      }
+    } catch (err) {
+      // user cancels share
+      if (err?.name !== 'AbortError') {
+        const ok = await copyToClipboard(url);
+        if (window.showToast) {
+          ok ? showToast('Link copied', '', 'success')
+             : showToast('Share failed', 'Please try again', 'error');
+        }
+      }
+    }
+  });
+
+try {
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
+  } catch (e) {
+    console.warn('Lucide init error:', e);
+  };
 </script>
 {% endblock %}

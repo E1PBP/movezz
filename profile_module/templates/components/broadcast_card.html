@@ -1,0 +1,114 @@
+{% load static %}
+<div id="create-broadcast-modal" class="fixed inset-0 z-50 hidden" aria-hidden="true" data-modal>
+  <div class="absolute inset-0 bg-black/40"></div>
+
+  <div class="absolute inset-0 overflow-y-auto">
+    <div class="min-h-full flex items-start sm:items-center justify-center p-4">
+      <div class="w-full max-w-2xl bg-white rounded-2xl shadow-xl">
+        <form id="create-broadcast-form" class="px-5 py-4 space-y-4" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-semibold">Create Broadcast</h3>
+            <button type="button" id="close-create-broadcast" class="text-base text-gray-500">✕</button>
+          </div>
+
+          <textarea name="description" id="id_description" rows="3"
+                    class="w-full rounded-lg border px-3 py-2"
+                    placeholder="Describe the activity..."></textarea>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <label class="block">
+              <span class="text-sm text-base-content/70">Start time</span>
+              <input type="datetime-local" name="start_time" id="id_start_time" class="w-full rounded-lg border px-3 py-2" required />
+            </label>
+            <label class="block">
+              <span class="text-sm text-base-content/70">End time</span>
+              <input type="datetime-local" name="end_time" id="id_end_time" class="w-full rounded-lg border px-3 py-2" required />
+            </label>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <input name="location_name" id="id_location_name" class="rounded-lg border px-3 py-2" placeholder="Location name" required />
+            <input name="rsvp_url" id="id_rsvp_url" type="url" class="rounded-lg border px-3 py-2" placeholder="RSVP URL" required />
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <input name="fee" id="id_fee" type="number" min="0" class="rounded-lg border px-3 py-2" placeholder="Fee (0 for free)" required />
+            <label class="inline-flex items-center gap-2 cursor-pointer">
+              <input type="file" name="image" id="id_event_image" class="hidden" accept="image/*">
+              <span class="px-2 py-1 rounded-lg border">Upload image</span>
+            </label>
+          </div>
+
+          <div class="flex items-center justify-end gap-3">
+            <button type="button" id="cancel-create-broadcast" class="px-4 py-2 rounded-lg bg-transparent text-gray-700">Cancel</button>
+            <button type="submit" class="px-4 py-2 rounded-lg bg-lime-500 text-black font-semibold">Create</button>
+          </div>
+
+          <div id="create-broadcast-error" class="text-sm text-red-600 hidden"></div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const openName = 'openCreateBroadcastModal';
+  window[openName] = function(){ document.getElementById('create-broadcast-modal')?.classList.remove('hidden'); };
+  document.getElementById('close-create-broadcast')?.addEventListener('click', ()=>document.getElementById('create-broadcast-modal')?.classList.add('hidden'));
+  document.getElementById('cancel-create-broadcast')?.addEventListener('click', ()=>document.getElementById('create-broadcast-modal')?.classList.add('hidden'));
+
+  function getCsrf(){
+    const m = document.querySelector('meta[name="csrf-token"]');
+    if (m && m.content) return m.content;
+    const name = 'csrftoken=';
+    const c = document.cookie.split(';').map(s=>s.trim()).find(s=>s.startsWith(name));
+    return c ? c.substring(name.length) : '';
+  }
+
+  const form = document.getElementById('create-broadcast-form');
+  const errBox = document.getElementById('create-broadcast-error');
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errBox.classList.add('hidden');
+    errBox.textContent = '';
+
+    const fd = new FormData(form);
+    const submitBtn = form.querySelector('button[type="submit"]');
+    if (submitBtn) submitBtn.disabled = true;
+
+    try {
+      const res = await fetch("{% url 'profile_module:create_broadcast_ajax' %}", {
+        method: "POST",
+        headers: { "X-CSRFToken": getCsrf() },
+        body: fd,
+        credentials: "same-origin"
+      });
+      const data = await res.json();
+      if (res.ok && data.status === "success") {
+        if (data.html) {
+          const list = document.getElementById('broadcasts-list');
+          if (list) {
+            const wrapper = document.createElement('div');
+            wrapper.innerHTML = data.html;
+            list.insertBefore(wrapper.firstElementChild, list.firstChild);
+          }
+        }
+        form.reset();
+        document.getElementById('create-broadcast-modal')?.classList.add('hidden');
+      } else {
+        errBox.textContent = data.message || (data.details ? JSON.stringify(data.details) : 'Failed to create broadcast.');
+        errBox.classList.remove('hidden');
+      }
+    } catch (err) {
+      console.error(err);
+      errBox.textContent = 'Network error';
+      errBox.classList.remove('hidden');
+    } finally {
+      if (submitBtn) submitBtn.disabled = false;
+    }
+  });
+})();
+</script>
