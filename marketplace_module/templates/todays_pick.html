@@ -12,12 +12,10 @@
 <!-- FILTER BAR -->
 <div
   class="flex flex-col sm:flex-row sm:items-center mb-8 bg-white rounded-lg border border-gray-200 p-4 gap-3 sm:gap-4">
-  
+
   {% if user.is_authenticated %}
   <!-- Create Product -->
-  <button
-    id="open-create-modal"
-    type="button"
+  <button id="open-create-modal" type="button"
     class="order-1 btn btn-primary bg-lime-500 border-lime-500 hover:bg-lime-600 hover:border-lime-600 text-white"
     onclick="showListingModal()">
     <i data-lucide="plus" class="w-4 h-4"></i>
@@ -41,16 +39,16 @@
   <!-- filter button chip -->
   <div class="order-3 w-full sm:w-auto overflow-x-auto">
     <div class="join whitespace-nowrap">
-      <button id="chip-all"  type="button"
-              class="btn btn-sm join-item text-neutral-900 bg-base-200 border-base-200 hover:bg-base-300 active:bg-base-400">
+      <button id="chip-all" type="button"
+        class="btn btn-sm join-item text-neutral-900 bg-base-200 border-base-200 hover:bg-base-300 active:bg-base-400">
         All
       </button>
-      <button id="chip-new"  type="button"
-              class="btn btn-sm join-item text-neutral-900 bg-[#A3E635] border-[#A3E635] hover:bg-[#8FD542] active:bg-[#7BC536]">
+      <button id="chip-new" type="button"
+        class="btn btn-sm join-item text-neutral-900 bg-[#A3E635] border-[#A3E635] hover:bg-[#8FD542] active:bg-[#7BC536]">
         Brand New
       </button>
       <button id="chip-used" type="button"
-              class="btn btn-sm join-item text-neutral-900 bg-[#FB923C] border-[#FB923C] hover:bg-[#FFA24F] active:bg-[#F78E2D]">
+        class="btn btn-sm join-item text-neutral-900 bg-[#FB923C] border-[#FB923C] hover:bg-[#FFA24F] active:bg-[#F78E2D]">
         Used
       </button>
     </div>
@@ -59,7 +57,7 @@
   {% if user.is_authenticated %}
   <!-- wishlist -->
   <a href="{% url 'marketplace_module:wishlist_page' %}"
-     class="order-4 btn bg-[#FFEEF0] border-[#FFEEF0] text-rose-600 hover:bg-[#FFE3E7] hover:border-[#FFE3E7]">
+    class="order-4 btn bg-[#FFEEF0] border-[#FFEEF0] text-rose-600 hover:bg-[#FFE3E7] hover:border-[#FFE3E7]">
     <i data-lucide="heart" class="w-4 h-4"></i>
     <span class="hidden xs:inline">Wishlist</span>
   </a>
@@ -157,10 +155,10 @@
     function createCardHTML(item) {
       const idStr = String(item.id);
       const isSaved = wishlistSet.has(idStr);
-      const safeTitle = DOMPurify.sanitize(item.title);
-      const img = DOMPurify.sanitize(item.image_url || '');
-      const location = IS_AUTHENTICATED ? DOMPurify.sanitize(item.location || '') : 'Login to view';
-      const detailUrl = DETAIL_PATTERN.replace('00000000-0000-0000-0000-000000000000', idStr);
+      const safeTitle = item.title || '';
+      const img = item.image_url || '';
+      const location = IS_AUTHENTICATED ? (item.location || '') : 'Login to view';
+      const detailUrl = DETAIL_PATTERN.replace('00000000-0000-0000-0000-000000000000', String(idStr));
 
       return `
       <article class="relative card bg-base-100 border border-base-300/60 shadow-sm hover:shadow-md hover:ring-1 hover:ring-base-300 transition-all duration-300 overflow-hidden rounded-[16px] w-full max-w-[422px] mx-auto" style="height:447px;">
@@ -240,10 +238,15 @@
       }, { passive: true });
     }
 
+    let currentFetchController = null;
     // fetch and render
     async function fetchAndRender(showToastOnDone = false) {
       try {
         showSection({ loading: true });
+
+        if (currentFetchController) currentFetchController.abort();
+        currentFetchController = new AbortController();
+
         await ensureWishlistLoaded();
 
         const params = new URLSearchParams();
@@ -251,23 +254,33 @@
         const q = elements.searchInput.value.trim();
         if (q) params.set('q', q);
 
-        const r = await fetch(`${API_URL}?${params.toString()}`, { headers: { 'Accept': 'application/json' } });
+        const r = await fetch(`${API_URL}?${params.toString()}`, {
+          headers: { 'Accept': 'application/json' },
+          signal: currentFetchController.signal,
+          cache: 'no-store',
+        });
+
         if (!r.ok) throw new Error('Bad response');
         const raw = await r.json();
-        const data = Array.isArray(raw) ? raw.map(x => ({ id: x.pk, ...x.fields })) : [];
+
+        const data = Array.isArray(raw)
+          ? raw.map(x => ({ id: (x?.fields?.id ?? x.pk), ...x.fields }))
+          : [];
 
         elements.grid.innerHTML = data.length ? data.map(createCardHTML).join('') : '';
         if (!data.length) {
           showSection({ empty: true });
         } else {
-          if (window.lucide) window.lucide.createIcons();
           paintWishlistHearts();
           showSection({ grid: true });
         }
         if (showToastOnDone && window.showToast) showToast('Refreshed');
       } catch (err) {
+        if (err.name === 'AbortError') return;
         console.error('Failed to fetch listings:', err);
         showSection({ error: true });
+      } finally {
+        currentFetchController = null;
       }
     }
 
@@ -276,9 +289,24 @@
 
     // events
     function setupEventListeners() {
-      elements.chipAll.addEventListener('click', () => { setActiveChip(''); fetchAndRender(true); });
-      elements.chipNew.addEventListener('click', () => { setActiveChip('BRAND_NEW'); fetchAndRender(true); });
-      elements.chipUsed.addEventListener('click', () => { setActiveChip('USED'); fetchAndRender(true); });
+      const runWithDisable = (btn, fn) => {
+        btn.disabled = true;
+        requestAnimationFrame(() => { fn().finally(() => { btn.disabled = false; }); });
+      };
+
+      elements.chipAll.addEventListener('click', () => {
+        setActiveChip('');
+        runWithDisable(elements.chipAll, () => fetchAndRender(true));
+      });
+      elements.chipNew.addEventListener('click', () => {
+        setActiveChip('BRAND_NEW');
+        runWithDisable(elements.chipNew, () => fetchAndRender(true));
+      });
+      elements.chipUsed.addEventListener('click', () => {
+        setActiveChip('USED');
+        runWithDisable(elements.chipUsed, () => fetchAndRender(true));
+      });
+
       elements.searchInput.addEventListener('input', debounce(() => fetchAndRender(), 250));
       elements.refreshBtn.addEventListener('click', () => fetchAndRender(true));
     }

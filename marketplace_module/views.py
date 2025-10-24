@@ -110,7 +110,7 @@ def get_listings(request):
 
 # get listing detail
 @require_GET
-def listing_detail(request, listing_id):
+def get_listing_detail(request, listing_id):
     listing_queryset = Listing.objects.filter(pk=listing_id, is_active=True)
     
     if not listing_queryset.exists():
