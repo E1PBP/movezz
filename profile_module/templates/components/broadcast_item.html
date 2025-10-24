@@ -9,11 +9,20 @@
         <div class="avatar">
           <div class="w-10 h-10 rounded-full overflow-hidden">
             {% if event.user.profile and event.user.profile.avatar_url %}
-              <img src="{{ event.user.profile.avatar_url.url }}" alt="{{ event.user.profile.display_name|default:event.user.username }}">
+            <img src="{{ event.user.profile.avatar_url.url }}"
+                        class="w-10 h-10 rounded-full object-cover"
+                        alt="{{ event.user.username }}">
             {% elif event.author_avatar_url %}
-              <img src="{{ event.author_avatar_url }}" alt="{{ event.author_display_name|default:event.user.username }}">
+            <img src="{{ event.author_avatar_url }}"
+                         class="w-10 h-10 rounded-full object-cover"
+                         alt="{{ event.author_display_name|default:event.user.username }}">
+             
             {% else %}
-              <img src="{% static 'images/default-avatar.png' %}" alt="{{ event.user.username }}">
+            <div class="w-10 h-10 rounded-full bg-primary text-primary-content flex items-center justify-center">
+                              <span class="text-sm font-bold">
+                                {% firstof event.user.profile.display_name event.author_display_name event.user.username as dn %}{{ dn|slice:":1"|upper }}
+                              </span>
+                            </div>
             {% endif %}
           </div>
         </div>
@@ -122,3 +131,26 @@
   </div>
 </div>
 {% endfor %}
+
+<script>
+function togglePin(button) {
+  const eventId = button.dataset.eventId;
+  const toggleUrl = button.dataset.toggleUrl;
+  
+  fetch(toggleUrl, {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': getCookie('csrftoken'),
+      'Content-Type': 'application/json'
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.status === 'pinned' || data.status === 'unpinned') {
+      location.reload(); // Refresh to show updated pin status
+    }
+  })
+  .catch(error => {
+    console.error('Error toggling pin:', error);
+  });
+}
