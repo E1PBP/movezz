@@ -1,4 +1,6 @@
 {% load static %}
+{% load humanize %}
+
 {% for event in events %}
 <div class="card bg-base-100 shadow-lg border border-base-200" data-event-pk="{{ event.pk }}" style="font-family: Lato;">
   <div class="p-4 sm:p-6">
@@ -7,19 +9,11 @@
         <div class="avatar">
           <div class="w-10 h-10 rounded-full overflow-hidden">
             {% if event.user.profile and event.user.profile.avatar_url %}
-              <img src="{{ event.user.profile.avatar_url.url }}"
-                   class="w-10 h-10 rounded-full object-cover"
-                   alt="{{ event.user.username }}">
+              <img src="{{ event.user.profile.avatar_url.url }}" alt="{{ event.user.profile.display_name|default:event.user.username }}">
             {% elif event.author_avatar_url %}
-              <img src="{{ event.author_avatar_url }}"
-                   class="w-10 h-10 rounded-full object-cover"
-                   alt="{{ event.author_display_name|default:event.user.username }}">
+              <img src="{{ event.author_avatar_url }}" alt="{{ event.author_display_name|default:event.user.username }}">
             {% else %}
-              <div class="w-10 h-10 rounded-full bg-primary text-primary-content flex items-center justify-center">
-                <span class="text-sm font-bold">
-                  {% firstof event.user.profile.display_name event.author_display_name event.user.username as dn %}{{ dn|slice:":1"|upper }}
-                </span>
-              </div>
+              <img src="{% static 'images/default-avatar.png' %}" alt="{{ event.user.username }}">
             {% endif %}
           </div>
         </div>
@@ -38,7 +32,7 @@
           <span class="text-xs text-base-content/60" style="font-weight: 400;">@{{ event.user.username }}</span>
 
           {% if event.user_is_verified %}
-            <i data-lucide="badge-check" style="color:#A3E635"></i>
+            <i data-lucide="badge-check" class="w-4 h-4" style="color:#A3E635"></i>
           {% endif %}
         </div>
       </div>
@@ -47,8 +41,9 @@
       <button class="btn btn-ghost btn-xs"
               data-event-id="{{ event.pk }}"
               data-pinned="{{ event.is_pinned|yesno:'true,false' }}"
-              onclick="togglePin(this.dataset.eventId, this.dataset.pinned === 'true')">
-        <i data-lucide="pin" style="color: #A3E635;"></i>
+              data-toggle-url="{% url 'profile_module:toggle_broadcast_pin' pk=event.pk %}"
+              onclick="togglePin(this)">
+        <i data-lucide="pin" class="w-4 h-4" style="color: #A3E635;"></i>
         <span class="ml-1" style="font-weight: 600;">{% if event.is_pinned %}Unpin{% else %}Pin{% endif %}</span>
       </button>
       {% endif %}
@@ -60,7 +55,7 @@
       <div>
         <div class="aspect-square bg-base-200 overflow-hidden rounded-lg">
           {% if event.image %}
-          <img src="{{ event.image.url }}" alt="{{ event.description }}" class="w-full h-full object-cover">
+            <img src="{{ event.image.url }}" alt="{{ event.description }}" class="w-full h-full object-cover">
           {% endif %}
         </div>
       </div>
@@ -69,13 +64,17 @@
       <div class="flex flex-col justify-between h-full">
         <div>
           <div class="prose prose-sm max-w-none text-base-content/80">
-            <p class="mb-3" style="font-weight: 600; font-size: 14px; line-height: 20px; letter-spacing: 0; white-space: pre-wrap;">{{ event.description|default:"No description available" }}</p>
+            <p class="mb-3" style="font-weight: 600; font-size: 14px; line-height: 20px; letter-spacing: 0; white-space: pre-wrap;">
+              {{ event.description|default:"No description available" }}
+            </p>
           </div>
 
           <div class="mt-1 text-sm space-y-1">
             <div>
               <span style="font-weight: 600;">🗓️</span>
-              <span class="text-base-content/70" style="font-weight: 400;">{{ event.start_time|date:"l, j F Y H:i" }}</span>
+              <span class="text-base-content/70" style="font-weight: 400;">
+                {{ event.start_time|date:"l, j F Y H:i" }}
+              </span>
             </div>
             <div>
               <span style="font-weight: 600;">📍</span>
@@ -97,14 +96,18 @@
         <div class="mt-4 flex items-center justify-between">
           <div class="text-sm">
             <span style="font-weight: 600; color: black;">Fee:</span>
-            <span style="font-weight: 700; color: black;">{% if event.fee %}Rp{{ event.fee }}{% else %}FREE{% endif %}</span>
+            <span style="font-weight: 700; color: black;">
+              {% if event.fee %}Rp{{ event.fee|floatformat:0|intcomma }}{% else %}FREE{% endif %}
+            </span>
           </div>
+          {% if event.rsvp_url %}
           <a href="{{ event.rsvp_url }}" target="_blank" 
              class="btn rounded-xl px-4 py-0.5" 
              style="background-color: #A3E635; color: black; border: none; font-weight: 600; font-size: 14px; line-height: 20px;" 
-             onclick="postClick('{{ event.pk }}')">
+             onclick="return postClick('{{ event.pk }}')">
             RSVP Now!
           </a>
+          {% endif %}
         </div>
       </div>
     </div>

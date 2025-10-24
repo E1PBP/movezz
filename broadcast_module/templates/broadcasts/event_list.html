@@ -3,7 +3,7 @@
 
 {% block content %}
 <div class="flex gap-8">
-  <div class="w-2/3 flex flex-col">
+  <div class="w-full lg:basis-2/3 flex flex-col">
     <div class="flex justify-between items-center mb-6">
       <div id="tab-wrapper" class="flex-1 relative select-none">
         <div class="flex gap-8 text-sm font-semibold">
@@ -28,7 +28,10 @@
         <div id="tab-indicator" class="absolute bottom-0 rounded-full transition-all duration-300 ease-out" 
              style="height:4px; left:0; width:0; background-color: #A3E635;"></div>
       </div>
-      <button class="btn btn-warning ml-4" onclick="showCreateModal()">+ Create New Broadcast</button>
+      <button class="btn btn-warning ml-4 btn-sm sm:btn-md" onclick="showCreateModal()">
+        <span class="hidden sm:inline">+ Create New Broadcast</span>
+        <span class="sm:hidden">+ New</span>
+      </button>
     </div>
 
     <div class="flex flex-col gap-6" id="events-container">
@@ -36,8 +39,9 @@
     </div>
   </div>
 
-  <div class="w-1/3">
-    <div class="text-base-content/50 text-sm">Sidebar content here</div>
+  <div class="hidden lg:block w-full lg:basis-1/3 space-y-4">
+    {% include 'components/upcoming_events_card.html' %} 
+    {% include 'components/suggested_followers_card.html' %}
   </div>
 </div>
 
@@ -249,8 +253,11 @@ function pinEvent(eventId) {
   })
   .then(response => {
     if (!response.ok) throw new Error(`Pin failed: ${response.status}`);
+    return response;
   })
-  .then(() => loadEvents(currentTab))
+  .then(() => {
+    window.location.reload();
+  })
   .catch(error => {
     console.error('Error pinning event:', error);
     alert('Failed to pin event.');
@@ -264,8 +271,11 @@ function unpinEvent(eventId) {
   })
   .then(response => {
     if (!response.ok) throw new Error(`Unpin failed: ${response.status}`);
+    return response;
   })
-  .then(() => loadEvents(currentTab))
+  .then(() => {
+    window.location.reload();
+  })
   .catch(error => {
     console.error('Error unpinning event:', error);
     alert('Failed to unpin event.');
