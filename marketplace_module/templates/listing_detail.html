@@ -59,7 +59,7 @@
     <!-- action buttons -->
     <div class="mt-4 flex flex-col sm:flex-row items-stretch gap-2">
       <a 
-        href="{% url 'message_module:chat_home' %}" 
+        href="{% if listing.owner %}{% url 'message_module:start_chat' listing.owner.username %}{% else %}{% url 'message_module:chat_home' %}{% endif %}" 
         class="inline-flex items-center justify-center w-full sm:w-[364px] h-[48px] 
                rounded-lg border font-normal text-[15px] leading-[20px]
                bg-lime-400 border-lime-400 text-[#3F6212]
