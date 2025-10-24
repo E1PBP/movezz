@@ -116,6 +116,8 @@ def profile_detail(request, username: str):
                 "image_url": getattr(getattr(b, "cover", None), "url", None) or getattr(b, "image_url", None),
             })
 
+    events = Event.objects.filter(user=page_user).order_by("-created_at")
+
     context = {
         "page_user": page_user,
         "profile": profile,
