@@ -14,13 +14,12 @@ class Listing(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
-    # Tetap pakai trik db_column agar cocok dengan kolom lama di DB:
     owner = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name="listings",
         null=True, blank=True,
-        db_column="seller_id",  # mapping ke kolom lama
+        db_column="seller_id", 
     )
 
     title = models.CharField(max_length=120)
@@ -31,8 +30,6 @@ class Listing(models.Model):
     image_url = models.URLField(blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
-
-    # ⬇️ Kunci perbaikan: arahkan M2M ke model perantara yang SUDAH ada
     wishlisted_by = models.ManyToManyField(
         User,
         related_name="wishlisted_listings",
@@ -47,7 +44,6 @@ class Listing(models.Model):
     def __str__(self):
         return self.title
 
-    # (opsional) alias agar kode lama yg pakai 'seller' tetap aman
     @property
     def seller(self): return self.owner
     @seller.setter
@@ -57,14 +53,10 @@ class Listing(models.Model):
     @seller_id.setter
     def seller_id(self, v): self.owner_id = v
 
-    
-
 class ListingImage(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     listing = models.ForeignKey(Listing, related_name="images", on_delete=models.CASCADE)
     image = CloudinaryField("image", validators=[validate_image_size], null=True, blank=True)
-
-
 
 class Wishlist(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="wishlist_items")
