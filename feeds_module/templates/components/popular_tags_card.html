@@ -1,0 +1,16 @@
+<div class="card bg-base-100 shadow-sm">
+  <div class="card-body">
+    <h2 class="card-title text-lg font-bold">Most Trending Sports</h2>
+    <div class="space-y-3 mt-2">
+      {% for tag in popular_tags %}
+      <div class="flex justify-between items-center">
+        <div>
+          <p class="font-bold text-base-content">#{{ tag.tag }}</p>
+          <p class="text-sm text-base-content/70">{{ tag.post_count }} posts</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    
+  </div>
+</div>
