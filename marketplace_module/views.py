@@ -1,5 +1,5 @@
-from django.shortcuts import render, get_object_or_404
-from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest
+from django.shortcuts import redirect, render, get_object_or_404
+from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_GET, require_POST
 from django.core import serializers
@@ -9,10 +9,12 @@ from marketplace_module.models import Listing, Wishlist
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.html import strip_tags
 from decimal import Decimal, InvalidOperation
+from django.middleware.csrf import get_token
 
 # show todays pick page
 def todays_pick(request):
     placeholder_uuid = uuid.UUID("00000000-0000-0000-0000-000000000000")
+    get_token(request)
     
     page_configuration = {
         "isAuthenticated": request.user.is_authenticated,
@@ -40,7 +42,8 @@ def listing_detail(request, listing_id):
     }
     return render(request, "listing_detail.html", context)
 
-# create listing with AJAX
+# marketplace_module/views.py
+
 @csrf_exempt
 @require_POST
 @login_required
@@ -54,20 +57,21 @@ def add_listing_entry_ajax(request):
         price_raw = request.POST.get("price", "").strip()
 
         if not title:
-            return HttpResponseBadRequest("Title is required")
+            return JsonResponse({"error": "title_required"}, status=400)
 
         if condition not in ("BRAND_NEW", "USED"):
-            return HttpResponseBadRequest("Invalid condition")
+            return JsonResponse({"error": "invalid_condition"}, status=400)
 
         try:
+            from decimal import Decimal, InvalidOperation
             price = Decimal(price_raw or "0")
             if price < 0:
-                return HttpResponseBadRequest("Price must be >= 0")
+                return JsonResponse({"error": "invalid_price", "message": "Price must be >= 0"}, status=400)
         except (InvalidOperation, TypeError):
-            return HttpResponseBadRequest("Invalid price")
+            return JsonResponse({"error": "invalid_price"}, status=400)
 
         listing = Listing.objects.create(
-            owner=request.user,        
+            owner=request.user,
             title=title,
             description=description,
             location=location,
@@ -76,10 +80,13 @@ def add_listing_entry_ajax(request):
             price=price,
             is_active=True,
         )
-        return HttpResponse(b"CREATED", status=201)
+
+        # <- penting: balas JSON agar script modal paham
+        return JsonResponse({"status": "created", "id": str(listing.id)}, status=201)
 
     except Exception as e:
         return JsonResponse({"error": "exception", "message": str(e)}, status=500)
+
 
 # get listings
 @require_GET
@@ -102,7 +109,7 @@ def get_listings(request):
     serialized_listings = serializers.serialize(
         "json",
         listings_queryset,
-        fields=("title", "price", "condition", "location", "image_url"),
+        fields=("title", "price", "condition", "location", "image_url", "owner"),
     )
     
     return HttpResponse(serialized_listings, content_type="application/json")
@@ -184,3 +191,58 @@ def wishlist_toggle(request):
         return JsonResponse({"status": "added", "id": str(listing.pk)})
     obj.delete()
     return JsonResponse({"status": "removed", "id": str(listing.pk)})
+
+# edit listing with AJAX
+@csrf_exempt
+@require_POST
+@login_required
+def edit_listing_entry_ajax(request, listing_id):
+    try:
+        listing = get_object_or_404(Listing, pk=listing_id, owner=request.user)
+
+        title = strip_tags(request.POST.get("title", "")).strip()
+        description = strip_tags(request.POST.get("description", "")).strip()
+        location = request.POST.get("location", "").strip()
+        image_url = request.POST.get("image_url", "").strip()
+        condition = request.POST.get("condition", "").strip()
+        price_raw = request.POST.get("price", "").strip()
+
+        if not title:
+            return HttpResponseBadRequest("Title is required")
+
+        if condition not in ("BRAND_NEW", "USED"):
+            return HttpResponseBadRequest("Invalid condition")
+
+        try:
+            price = Decimal(price_raw or "0")
+            if price < 0:
+                return HttpResponseBadRequest("Price must be >= 0")
+        except (InvalidOperation, TypeError):
+            return HttpResponseBadRequest("Invalid price")
+
+        # update fields
+        listing.title = title
+        listing.description = description
+        listing.location = location
+        listing.image_url = image_url
+        listing.condition = condition
+        listing.price = price
+        listing.save(update_fields=["title", "description", "location", "image_url", "condition", "price", "updated_at"])
+
+        return JsonResponse({"status": "updated", "id": str(listing.id)}, status=200)
+
+    except Exception as e:
+        return JsonResponse({"error": "exception", "message": str(e)}, status=500)
+
+
+# delete listing with AJAX
+@csrf_exempt
+@require_POST
+@login_required
+def delete_listing_entry_ajax(request, listing_id):
+    try:
+        listing = get_object_or_404(Listing, pk=listing_id, owner=request.user)
+        listing.delete()
+        return JsonResponse({"status": "deleted", "id": str(listing_id)}, status=200)
+    except Exception as e:
+        return JsonResponse({"error": "exception", "message": str(e)}, status=500)

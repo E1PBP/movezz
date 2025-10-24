@@ -21,7 +21,8 @@
       type="text/css"
     />
     {% comment %} lucide icon {% endcomment %}
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script defer src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+
 
     {% comment %} font {% endcomment %}
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -55,6 +56,16 @@
   
   <script src="{% static 'js/create_post.js' %}" defer></script>
   <script>
-    lucide.createIcons();
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.lucide?.createIcons) {
+        // untuk beberapa rilisan UMD, ini cukup:
+        window.lucide.createIcons();
+  
+        // kalau kamu mau aman di rilisan lain:
+        // window.lucide.createIcons({ icons: window.lucide.icons || undefined });
+      } else {
+        console.error('Lucide UMD tidak ter-load.');
+      }
+    });
   </script>
 </html>
