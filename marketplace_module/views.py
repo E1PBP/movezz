@@ -4,23 +4,25 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_GET, require_POST
 from django.core import serializers
 from django.urls import reverse
-import json
-import uuid
-
+import json, uuid  
 from marketplace_module.models import Listing, Wishlist
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.html import strip_tags
+from decimal import Decimal, InvalidOperation
 
+# show todays pick page
 def todays_pick(request):
     placeholder_uuid = uuid.UUID("00000000-0000-0000-0000-000000000000")
     
     page_configuration = {
         "isAuthenticated": request.user.is_authenticated,
-        "apiListings": reverse("marketplace_module:api_listings"),
-        "detailUrlPattern": reverse(
-            "marketplace_module:listing_detail",
-            kwargs={"listing_id": placeholder_uuid}
-        ),
-        "wishlistIdsUrl": reverse("marketplace_module:api_wishlist_ids"),
-        "wishlistToggleUrl": reverse("marketplace_module:api_wishlist_toggle"),
+        "apiListings": reverse("marketplace_module:get_listings"),
+        "detailUrlPattern": reverse("marketplace_module:listing_detail",kwargs={"listing_id": placeholder_uuid}),
+        "currentUserId": request.user.id if request.user.is_authenticated else None,
+        "wishlistIdsUrl": reverse("marketplace_module:wishlist_ids"),
+        "wishlistToggleUrl": reverse("marketplace_module:wishlist_toggle"),
+        "apiWishlistListings": reverse("marketplace_module:wishlist_listings"),
+        "apiToggleWishlist": reverse("marketplace_module:wishlist_toggle"),
     }
     
     context = {
@@ -29,7 +31,7 @@ def todays_pick(request):
     
     return render(request, "todays_pick.html", context)
 
-
+# Listing Detail view
 def listing_detail(request, listing_id):
     listing = get_object_or_404(Listing, pk=listing_id, is_active=True)
 
@@ -38,68 +40,65 @@ def listing_detail(request, listing_id):
     }
     return render(request, "listing_detail.html", context)
 
-
+# create listing with AJAX
+@csrf_exempt
+@require_POST
 @login_required
-def wishlist(request):
-    user_wishlist_items = Listing.objects.filter(
-        wishlisted_by=request.user
-    ).prefetch_related("wishlisted_by")
+def add_listing_entry_ajax(request):
+    try:
+        title = strip_tags(request.POST.get("title", "")).strip()
+        description = strip_tags(request.POST.get("description", "")).strip()
+        location = request.POST.get("location", "").strip()
+        image_url = request.POST.get("image_url", "").strip()
+        condition = request.POST.get("condition", "").strip()
+        price_raw = request.POST.get("price", "").strip()
 
-    context = {
-        'wishlist_items': user_wishlist_items,
-    }
-    return render(request, 'wishlist.html', context)
+        if not title:
+            return HttpResponseBadRequest("Title is required")
 
+        if condition not in ("BRAND_NEW", "USED"):
+            return HttpResponseBadRequest("Invalid condition")
 
-def show_json(request):
-    all_listings = Listing.objects.all()
-    listings_data = [
-        {
-            'id': str(listing.id),
-            'title': listing.title,
-            'price': str(listing.price),
-            'condition': listing.condition,
-            'location': listing.location,
-            'description': listing.description,
-            'image_url': listing.image_url,
-        }
-        for listing in all_listings
-    ]
-    return JsonResponse(listings_data, safe=False)
+        try:
+            price = Decimal(price_raw or "0")
+            if price < 0:
+                return HttpResponseBadRequest("Price must be >= 0")
+        except (InvalidOperation, TypeError):
+            return HttpResponseBadRequest("Invalid price")
 
+        listing = Listing.objects.create(
+            owner=request.user,        
+            title=title,
+            description=description,
+            location=location,
+            image_url=image_url,
+            condition=condition,
+            price=price,
+            is_active=True,
+        )
+        return HttpResponse(b"CREATED", status=201)
 
-def show_json_by_id(request, pk):
-    listing = get_object_or_404(Listing, pk=pk)
-    
-    listing_data = {
-        'id': str(listing.id),
-        'title': listing.title,
-        'price': str(listing.price),
-        'condition': listing.condition,
-        'location': listing.location,
-        'description': listing.description,
-        'image_url': listing.image_url,
-    }
-    return JsonResponse(listing_data)
+    except Exception as e:
+        return JsonResponse({"error": "exception", "message": str(e)}, status=500)
 
-
+# get listings
 @require_GET
-def api_listings(request):
+def get_listings(request):
     VALID_CONDITIONS = ("BRAND_NEW", "USED")
     
     listings_queryset = Listing.objects.filter(is_active=True)
 
-    # Apply search filter
+    # search filter
     search_query = request.GET.get("q", "").strip()
     if search_query:
         listings_queryset = listings_queryset.filter(title__icontains=search_query)
 
-    # Apply condition filter
+    # condition filter
     condition_filter = request.GET.get("condition")
     if condition_filter in VALID_CONDITIONS:
         listings_queryset = listings_queryset.filter(condition=condition_filter)
 
-    # Serialize and return limited results
+    # serialize
     serialized_listings = serializers.serialize(
         "json",
         listings_queryset,
@@ -109,8 +108,9 @@ def api_listings(request):
     return HttpResponse(serialized_listings, content_type="application/json")
 
 
+# get listing detail
 @require_GET
-def api_listing_detail(request, listing_id):
+def get_listing_detail(request, listing_id):
     listing_queryset = Listing.objects.filter(pk=listing_id, is_active=True)
     
     if not listing_queryset.exists():
@@ -124,35 +124,63 @@ def api_listing_detail(request, listing_id):
     
     return HttpResponse(serialized_listing, content_type="application/json")
 
-
-@require_GET
+# show wishlist page
 @login_required
-def api_wishlist_ids(request):
-    wishlist_listing_ids = list(
-        Wishlist.objects.filter(user=request.user)
-        .values_list("listing_id", flat=True)
+def wishlist_page(request):
+    config = {
+        "isAuthenticated": True,
+        "detailUrlPattern": reverse(
+            "marketplace_module:listing_detail",
+            args=["00000000-0000-0000-0000-000000000000"],
+        ),
+        "apiWishlistListings": reverse("marketplace_module:wishlist_listings"),
+        "apiToggleWishlist": reverse("marketplace_module:wishlist_toggle"),
+    }
+    return render(
+        request,
+        "wishlist.html",
+        {"page_config_json": json.dumps(config)},
     )
-    
-    return JsonResponse(wishlist_listing_ids, safe=False)
 
+# array wishlist ids
+@login_required
+@require_GET
+def wishlist_ids(request):
+    from marketplace_module.models import Wishlist 
+    ids = list(
+        Wishlist.objects.filter(user=request.user)
+        .values_list("listing__id", flat=True)
+    )
+    return JsonResponse(ids, safe=False)
 
+# list wishlist listings
+@login_required
+@require_GET
+def wishlist_listings(request):
+    from marketplace_module.models import Wishlist, Listing
+    listing_ids = Wishlist.objects.filter(user=request.user)\
+                                  .values_list("listing_id", flat=True)
+    qs = Listing.objects.filter(pk__in=listing_ids, is_active=True)
+    data = serializers.serialize(
+        "json",
+        qs,
+        fields=("title", "price", "condition", "location", "image_url"),
+    )
+    return HttpResponse(data, content_type="application/json")
+
+# toggle wishlist
+@csrf_exempt
 @require_POST
 @login_required
-def api_wishlist_toggle(request):
+def wishlist_toggle(request):
+    from marketplace_module.models import Wishlist, Listing
     listing_id = request.POST.get("listing_id")
-    
     if not listing_id:
-        return HttpResponseBadRequest("Missing listing_id parameter")
-    
-    listing = get_object_or_404(Listing, pk=listing_id, is_active=True)
-    
-    wishlist_item, was_created = Wishlist.objects.get_or_create(
-        user=request.user, 
-        listing=listing
-    )
-    
-    if was_created:
-        return JsonResponse({"saved": True})
-    else:
-        wishlist_item.delete()
-        return JsonResponse({"saved": False})
+        return JsonResponse({"error": "missing_listing_id"}, status=400)
+
+    listing = get_object_or_404(Listing, pk=listing_id)
+    obj, created = Wishlist.objects.get_or_create(user=request.user, listing=listing)
+    if created:
+        return JsonResponse({"status": "added", "id": str(listing.pk)})
+    obj.delete()
+    return JsonResponse({"status": "removed", "id": str(listing.pk)})

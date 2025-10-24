@@ -2,11 +2,15 @@
 {% load static %}
 
 {% block content %}
-<script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.5/dist/purify.min.js"></script>
-{% block marketplace_content %}{% endblock %}
-{% include "toast.html" %}
 
-<script>
+  {% block marketplace_content %}{% endblock %}
+
+  {% include "toast.html" %}
+  {% include "listing_modal.html" %}
+
+  {% block marketplace_scripts %}{% endblock %}
+
+  <script>
     if (window.lucide) { window.lucide.createIcons(); }
-</script>
+  </script>
 {% endblock %}
