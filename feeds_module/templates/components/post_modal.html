@@ -1,83 +1,127 @@
 <dialog id="post-modal" class="modal">
-    <div class="modal-box">
-      <form id="post-form-final" method="post" enctype="multipart/form-data">
-        <h3 class="font-bold text-lg">Create a new post</h3>
-        <p class="text-sm text-neutral-500">@{{ user.username }}</p>
-        
-        <div class="py-4">
-          {{ form.text }}
-        </div>
-  
-        <div class="space-y-3">
-          <div class="flex items-center gap-4">
-            <div class="flex items-center gap-2 text-lime-500 w-28">
-              <i data-lucide="flame" class="w-6 h-6"></i>
-              <span>Sport</span>
-            </div>
-            {{ form.sport }}
-          </div>
-    
-          <div class="flex items-center gap-4">
-            <div class="flex items-center gap-2 text-red-500 w-28">
-              <i data-lucide="map-pin" class="w-6 h-6"></i>
-              <span>Location</span>
-            </div>
-            {{ form.location_name }}
-          </div>
-    
-          <div class="flex items-center gap-4">
-            <div class="flex items-center gap-2 text-orange-500 w-28">
-                <i data-lucide="clock" class="w-6 h-6"></i>
-                <span>Time</span>
-            </div>
-            <div class="flex items-center gap-2">
-                <input name="time_h" type="number" min="0" max="23" class="input input-bordered w-16 text-center" placeholder="00" />
-                <span>:</span>
-                <input name="time_m" type="number" min="0" max="59" class="input input-bordered w-16 text-center" placeholder="00" />
-                Hour
-            </div>
-        </div>
-        </div>
-  
-        <div class="mt-4">
-          <label class="block text-sm font-medium text-neutral-600 mb-1">Hashtags (max 5)</label>
-          <div id="hashtag-container" class="flex flex-wrap gap-2 p-2 border rounded-lg bg-base-200">
-            <input type="text" id="hashtag-input" class="bg-transparent focus:outline-none flex-grow" placeholder="Type a tag and press Enter">
-          </div>
-          <input type="hidden" name="hashtags" id="hashtags-hidden-input">
-        </div>
-  
-        <div id="image-preview-container" class="mt-4 hidden relative w-full max-w-36 max-h-36">
-          <img id="image-preview" src="#" alt="Image preview" class="rounded-lg object-cover" />
-          <button type="button" id="remove-image-btn" class="btn btn-sm btn-circle absolute top-1 right-1 bg-red-500 text-white border-none">
-              <i data-lucide="x" class="w-4 h-4"></i>
-          </button>
-        </div>
-  
-  
-        <div class="modal-action">
-          <div class="flex items-center gap-2">
-            <label for="image-upload" class="btn btn-ghost btn-circle">
-              <i data-lucide="image-up" class="w-6 h-6 text-neutral-600"></i>
-            </label>
-            <input type="file" id="image-upload" name="image" class="hidden" accept="image/*" />
-          </div>
-          <div class="flex-grow"></div>
-          <button
-            type="button"
-            class="btn btn-ghost"
-            onclick="document.getElementById('post-modal').close()"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            class="btn btn-primary bg-lime-500 border-lime-500 hover:bg-lime-600 hover:border-lime-600 text-white"
-          >
-            Post
-          </button>
-        </div>
-      </form>
-    </div>
-  </dialog>
+  <div class="modal-box">
+    <form
+      id="post-form-final"
+      method="post"
+      enctype="multipart/form-data"
+      action="{% url 'feeds_module:create_post_ajax' %}"
+    >
+      {% csrf_token %}
+      <h3 class="font-bold text-lg">Create a new post</h3>
+      <p class="text-sm text-neutral-500">@{{ user.username }}</p>
 
+      <div class="py-4">{{ form.text }}</div>
+
+      <div class="space-y-3">
+        <div class="flex items-center gap-4">
+          <div class="flex items-center gap-2 text-lime-500 w-28">
+            <i data-lucide="flame" class="w-6 h-6"></i>
+            <span>Sport</span>
+          </div>
+          {{ form.sport }}
+        </div>
+
+        <div class="flex items-center gap-4">
+          <div class="flex items-center gap-2 text-red-500 w-28">
+            <i data-lucide="map-pin" class="w-6 h-6"></i>
+            <span>Location</span>
+          </div>
+          {{ form.location_name }}
+        </div>
+
+        <div class="flex items-center gap-4">
+          <div class="flex items-center gap-2 text-orange-500 w-28">
+            <i data-lucide="clock" class="w-6 h-6"></i>
+            <span>Time</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <input
+              name="time_h"
+              type="number"
+              min="0"
+              max="23"
+              class="input input-bordered w-16 text-center"
+              placeholder="00"
+            />
+            <span>:</span>
+            <input
+              name="time_m"
+              type="number"
+              min="0"
+              max="59"
+              class="input input-bordered w-16 text-center"
+              placeholder="00"
+            />
+            Hour
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-4">
+        <label class="block text-sm font-medium text-neutral-600 mb-1"
+          >Hashtags (max 5)</label
+        >
+        <div
+          id="hashtag-container"
+          class="flex flex-wrap gap-2 p-2 border rounded-lg bg-base-200"
+        >
+          <input
+            type="text"
+            id="hashtag-input"
+            class="bg-transparent focus:outline-none flex-grow"
+            placeholder="Type a tag and press Enter"
+          />
+        </div>
+        <input type="hidden" name="hashtags" id="hashtags-hidden-input" />
+      </div>
+
+      <div
+        id="image-preview-container"
+        class="mt-4 hidden relative w-full max-w-36 max-h-36"
+      >
+        <img
+          id="image-preview"
+          src="#"
+          alt="Image preview"
+          class="rounded-lg object-cover"
+        />
+        <button
+          type="button"
+          id="remove-image-btn"
+          class="btn btn-sm btn-circle absolute top-1 right-1 bg-red-500 text-white border-none"
+        >
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="modal-action">
+        <div class="flex items-center gap-2">
+          <label for="image-upload" class="btn btn-ghost btn-circle">
+            <i data-lucide="image-up" class="w-6 h-6 text-neutral-600"></i>
+          </label>
+          <input
+            type="file"
+            id="image-upload"
+            name="image"
+            class="hidden"
+            accept="image/*"
+          />
+        </div>
+        <div class="flex-grow"></div>
+        <button
+          type="button"
+          class="btn btn-ghost"
+          onclick="document.getElementById('post-modal').close()"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="btn btn-primary bg-lime-500 border-lime-500 hover:bg-lime-600 hover:border-lime-600 text-white"
+        >
+          Post
+        </button>
+      </div>
+    </form>
+  </div>
+</dialog>

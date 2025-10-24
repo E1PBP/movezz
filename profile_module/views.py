@@ -13,7 +13,8 @@ from django.utils import timezone
 from django.http import JsonResponse, Http404
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
-from .forms import CreatePostForm, PostUpdateForm
+from .forms import PostUpdateForm
+from feeds_module.forms import PostForm, PostImageForm
 
 def format_short_number(number: int) -> str:
     integer_number = int(number or 0)
@@ -57,6 +58,9 @@ def profile_detail(request, username: str):
 
     badges = UserBadge.objects.select_related("badge").filter(user=page_user)
 
+    form = PostForm()
+    image_form = PostImageForm()
+
     current_sport_duration = timedelta(0)
     if profile.current_sport:
         user = UserSport.objects.filter(user=page_user, sport=profile.current_sport).first()
@@ -85,6 +89,8 @@ def profile_detail(request, username: str):
         "following_count": profile.following_count,
         "format_short_number": format_short_number,
         "format_hours_minutes": format_hours_minutes,
+        "form": form,
+        "image_form": image_form,
     }
 
     posts = []
