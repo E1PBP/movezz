@@ -10,8 +10,10 @@ from typing import Any
 
 @require_http_methods(["GET"])
 def broadcast_list(request) -> Any:
+    now = timezone.now()
     events = (
         Event.objects
+        .filter(end_time__gte=now)
         .select_related('user', 'user__profile')
         .annotate(user_is_verified=F('user__profile__is_verified'))
         .order_by('-total_click')
@@ -35,8 +37,10 @@ def broadcast_list(request) -> Any:
 @require_http_methods(["GET"])
 def get_trending_events(request):
     page = request.GET.get('page', 1)
+    now = timezone.now()
     events = (
         Event.objects
+        .filter(end_time__gte=now)
         .select_related('user', 'user__profile')
         .annotate(user_is_verified=F('user__profile__is_verified'))
         .order_by('-total_click')
@@ -67,8 +71,10 @@ def get_trending_events(request):
 @require_http_methods(["GET"])
 def get_latest_events(request):
     page = request.GET.get('page', 1)
+    now = timezone.now()
     events = (
         Event.objects
+        .filter(end_time__gte=now) 
         .select_related('user', 'user__profile')
         .annotate(user_is_verified=F('user__profile__is_verified'))
         .order_by('start_time')
@@ -141,7 +147,6 @@ def create_event(request):
 
         cleaned = form.cleaned_data
 
-        # Ensure timezone-aware datetimes
         for key in ("start_time", "end_time"):
             dt = cleaned.get(key)
             if dt and timezone.is_naive(dt):
@@ -149,7 +154,6 @@ def create_event(request):
 
         author_display = request.user.get_full_name() or request.user.username
 
-        # Create new event
         event = Event.objects.create(
             user=request.user,
             author_display_name=author_display,
