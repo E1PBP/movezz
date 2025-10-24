@@ -1,5 +1,5 @@
-from django.shortcuts import redirect, render, get_object_or_404
-from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
+from django.shortcuts import render, get_object_or_404
+from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_GET, require_POST
 from django.core import serializers
@@ -33,7 +33,7 @@ def todays_pick(request):
     
     return render(request, "todays_pick.html", context)
 
-# Listing Detail view
+# show listing detail page
 def listing_detail(request, listing_id):
     listing = get_object_or_404(Listing, pk=listing_id, is_active=True)
 
@@ -41,8 +41,6 @@ def listing_detail(request, listing_id):
         "listing": listing
     }
     return render(request, "listing_detail.html", context)
-
-# marketplace_module/views.py
 
 @csrf_exempt
 @require_POST
@@ -220,21 +218,26 @@ def edit_listing_entry_ajax(request, listing_id):
         except (InvalidOperation, TypeError):
             return HttpResponseBadRequest("Invalid price")
 
-        # update fields
         listing.title = title
         listing.description = description
         listing.location = location
-        listing.image_url = image_url
+        if hasattr(listing, "image_url"):
+            listing.image_url = image_url
         listing.condition = condition
         listing.price = price
-        listing.save(update_fields=["title", "description", "location", "image_url", "condition", "price", "updated_at"])
+
+        update_fields = ["title", "description", "location", "condition", "price"]
+        if hasattr(listing, "image_url"):
+            update_fields.append("image_url")
+        if hasattr(listing, "updated_at"):
+            update_fields.append("updated_at")
+
+        listing.save(update_fields=update_fields)
 
         return JsonResponse({"status": "updated", "id": str(listing.id)}, status=200)
 
-    except Exception as e:
+    except Exception as e: 
         return JsonResponse({"error": "exception", "message": str(e)}, status=500)
-
-
 # delete listing with AJAX
 @csrf_exempt
 @require_POST
