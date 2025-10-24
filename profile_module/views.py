@@ -10,6 +10,7 @@ from .models import Profile, Follow, UserBadge, UserSport
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST, require_GET
 from django.utils import timezone
+from django.utils.timesince import timesince
 from django.http import JsonResponse, Http404
 from django.conf import settings 
 from feeds_module.models import Post
@@ -43,6 +44,14 @@ def _get_or_create_profile(u: User) -> Profile:
     profile, _ = Profile.objects.get_or_create(user=u)
     return profile
 
+def _snippet(text: str, max_len: int = 160) -> str:
+    """Bikin ringkasan pendek dari teks tanpa motong kata di tengah."""
+    raw = (text or "").strip()
+    if len(raw) <= max_len:
+        return raw or "Shared an update."
+    cut = raw[:max_len].rsplit(" ", 1)[0]
+    return cut + "…"
+
 def profile_home(request):
     if request.user.is_authenticated:
         return redirect("profile_module:profile_detail", username=request.user.username)
@@ -74,17 +83,39 @@ def profile_detail(request, username: str):
 
     posts = Post.objects.filter(user=page_user).order_by("-created_at")[:12]
 
-    # broadcasts = []
-    # if Event:
-    #     bqs = Event.objects.filter(user=page_user).order_by("-created_at")[:10]
-    #     for b in bqs:
-    #         broadcasts.append({
-    #             "title": getattr(b, "title", "Broadcast"),
-    #             "subtitle": getattr(b, "location", "") or getattr(b, "subtitle", ""),
-    #             "summary": getattr(b, "summary", "") or (getattr(b, "body", "")[:120] + "..."),
-    #             "image_url": getattr(getattr(b, "cover", None), "url", None) or getattr(b, "image_url", None),
-    #         })
-    events = Event.objects.filter(user=page_user).order_by("-created_at")
+    latest_post = Post.objects.filter(user=page_user).order_by("-created_at").first()
+    latest_post_summary = None
+    latest_post_meta = None
+    if latest_post:
+        # summary dari teks post
+        latest_post_summary = _snippet(getattr(latest_post, "text", ""))
+
+        # meta: Sport • Location • X ago
+        parts = []
+        if getattr(latest_post, "sport", None):
+            parts.append(latest_post.sport.name)
+        if getattr(latest_post, "location_name", None):
+            parts.append(latest_post.location_name)
+
+        dt = latest_post.created_at
+        if timezone.is_naive(dt):
+            dt = timezone.make_aware(dt, timezone.get_current_timezone())
+        ago = timesince(dt, timezone.now())
+        parts.append(f"{ago} ago")
+
+        latest_post_meta = " • ".join(parts)
+    
+    broadcasts = []
+    if Event:
+        bqs = Event.objects.filter(user=page_user).order_by("-created_at")[:10]
+        for b in bqs:
+            broadcasts.append({
+                "title": getattr(b, "title", "Broadcast"),
+                "subtitle": getattr(b, "location", "") or getattr(b, "subtitle", ""),
+                "summary": getattr(b, "summary", "") or (getattr(b, "body", "")[:120] + "..."),
+                "image_url": getattr(getattr(b, "cover", None), "url", None) or getattr(b, "image_url", None),
+            })
+
     context = {
         "page_user": page_user,
         "profile": profile,
@@ -103,6 +134,9 @@ def profile_detail(request, username: str):
         "events": events,
         "form": form,
         "image_form": image_form,
+        "latest_post": latest_post,
+        "latest_post_summary": latest_post_summary,
+        "latest_post_meta": latest_post_meta,
     }
 
     return render(request, "profile.html", context)
