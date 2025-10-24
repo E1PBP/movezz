@@ -47,10 +47,14 @@
   <main class="flex-1 w-full px-4 sm:px-6 lg:px-8 py-6">
       <div class="max-w-7xl mx-auto">{% block content %}{% endblock %}</div>
     </main>
+
+    {% include 'components/post_modal.html' %}
     {% comment %} buat footer nanti {% endcomment %} {% comment %} {% include
     "footer.html" %} {% endcomment %}
+    {% block scripts %}{% endblock scripts %}
   </body>
-
+  
+  <script src="{% static 'js/create_post.js' %}" defer></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       if (window.lucide?.createIcons) {
