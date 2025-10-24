@@ -72,20 +72,7 @@ def profile_detail(request, username: str):
     if active_tab not in ("posts", "broadcasts"):
         active_tab = "posts"
 
-    posts = []
-    qs = Post.objects.filter(user=page_user).order_by("-created_at")[:12]
-    for p in qs:
-        src = (
-            getattr(getattr(p, "image", None), "url", None)
-            or getattr(p, "image_url", None)
-            or getattr(p, "photo_url", None)
-        )
-        if src:
-            posts.append({
-                "id": getattr(p, "pk", None),
-                "image_url": src,
-                "alt_text": getattr(p, "caption", "") or "post",
-            })
+    posts = Post.objects.filter(user=page_user).order_by("-created_at")[:12]
 
     broadcasts = []
     if Event:
@@ -148,7 +135,7 @@ def follow_user(request, username: str):
     target = get_object_or_404(User, username=username)
     if request.user != target:
         Follow.objects.get_or_create(follower=request.user, followee=target)
-    return redirect("profile_detail", username=username)
+    return redirect("profile_module:profile_detail", username=target.username)
 
 @require_POST
 @login_required
@@ -156,7 +143,7 @@ def unfollow_user(request, username: str):
     target = get_object_or_404(User, username=username)
     if request.user != target:
         Follow.objects.filter(follower=request.user, followee=target).delete()
-    return redirect("profile_detail", username=username)
+    return redirect("profile_module:profile_detail", username=target.username)
 
 def post_detail(request, username: str, pk):
     post = get_object_or_404(Post, pk=pk, user__username=username)
@@ -167,10 +154,14 @@ def post_detail(request, username: str, pk):
     def image(p):
         return getattr(getattr(p, "image", None), "url", None) or getattr(p, "image_url", None) or getattr(p, "photo_url", None)
 
+    badges_raw = getattr(post, "author_badges_url", "") or ""
+    author_badges_list = [u.strip() for u in badges_raw.split(",") if u.strip()]
+    
     context = {
         "post": post,
         "is_owner": is_owner,
-        "more_posts": [{"id": p.pk, "image_url": image(p)} for p in more_posts if image(p)],
+        "more_posts": more_posts,
+        "author_badges_list": author_badges_list,
     }
     return render(request, "post_detail.html", context)
 

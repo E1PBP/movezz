@@ -1,144 +1,302 @@
 {% extends "base.html" %}
-{% block title %}Post by @{{ post.author.username }}{% endblock %}
+{% load static %}
+{% load static feeds_extras %}
+{% block title %}Post by @{{ post.user.username }}{% endblock %}
 
 {% block content %}
 <div class="max-w-4xl mx-auto px-4 py-8">
-  <article id="postCard" class="bg-white rounded-2xl shadow p-4">
-    <header class="flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <img src="{{ post.author.profile.avatar.url if post.author.profile.avatar }}" class="w-10 h-10 rounded-full object-cover" alt="">
-        <div>
-          <div class="font-semibold">{{ post.author.profile.display_name|default:post.author.username }}</div>
-          <div class="text-sm text-gray-500">@{{ post.author.username }}</div>
-        </div>
-      </div>
-      {% if is_owner %}
-      <div class="relative">
-        <button id="menuBtn" class="p-2 rounded-full hover:bg-gray-100" aria-haspopup="menu" aria-expanded="false">
-          ⋮
+
+  <div class="card w-full bg-base-100 shadow-sm relative overflow-visible">
+    {% if is_owner %}
+    <div class="dropdown dropdown-end absolute top-3 right-3 z-[9999]">
+      <button id="kebabBtn" type="button" tabindex="0" class="btn btn-ghost btn-circle">
+      <i data-lucide="more-vertical"></i>
+    </button>
+
+    <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-40">
+      <li>
+        <button id="menuEditBtn" type="button" class="flex items-center gap-2">
+          <i data-lucide="pencil" class="w-4 h-4"></i>
+          <span>Edit Post</span>
         </button>
-        <div id="menuPopup" class="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow hidden">
-          <button id="openEdit" class="w-full text-left px-4 py-2 hover:bg-gray-50">Edit Post</button>
-          <button id="openDelete" class="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50">Delete Post</button>
+      </li>
+      <li>
+        <button id="menuDeleteBtn" type="button" class="flex items-center gap-2 text-red-600">
+          <i data-lucide="trash-2" class="w-4 h-4"></i>
+          <span>Delete Post</span>
+        </button>
+      </li>
+    </ul>
+    </div>
+    {% endif %}
+
+    <div class="card-body z-10">
+
+      {% with first_img=post.images.first %}
+      {% if first_img or post.image or post.image_url %}
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Header dan Image-->
+        <div>
+          <div class="flex items-center gap-3">
+            <div class="avatar">
+              <div class="w-12 h-12 rounded-full overflow-visible">
+                {% if post.author_avatar_url %}
+                  <img src="{{ post.author_avatar_url }}" alt="{{ post.user.username }}">
+                {% elif post.user.profile and post.user.profile.avatar_url %}
+                  <img src="{{ post.user.profile.avatar_url.url }}" alt="{{ post.user.username }}">
+                {% elif post.user.profile and post.user.profile.avatar %}
+                  <img src="{{ post.user.profile.avatar.url }}" alt="{{ post.user.username }}">
+                {% else %}
+                  <div class="w-12 h-12 rounded-full bg-indigo-600 text-white flex items-center justify-center">
+                    <span class="text-lg font-bold">{{ post.user.username|slice:":1"|upper }}</span>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div>
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="font-bold text-lg">
+                  {{ post.author_display_name|default:post.user.username }}
+                </span>
+                <span class="text-neutral-500">@{{ post.user.username }}</span>
+
+                {% if post.author_badges_url %}
+                  {% for badge_url in post.author_badges_url|split:"," %}
+                    {% if badge_url %}
+                      <img src="{{ badge_url }}" alt="Badge" class="w-4 h-4">
+                    {% endif %}
+                  {% endfor %}
+                {% endif %}
+              </div>
+              {% if post.location_name %}
+                <div class="text-sm text-neutral-500">{{ post.location_name }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="mt-4 relative w-full aspect-4/3 rounded-lg overflow-hidden">
+            {% if first_img and first_img.image %}
+              <img src="{{ first_img.image.url }}" alt="Post image" class="absolute w-full h-full object-cover" />
+            {% elif post.image %}
+              <img src="{{ post.image.url }}" alt="Post image" class="absolute w-full h-full object-cover" />
+            {% elif post.image_url %}
+              <img src="{{ post.image_url }}" alt="Post image" class="absolute w-full h-full object-cover" />
+            {% else %}
+              <img src="{% static 'images/logo.svg' %}" alt="Post image" class="absolute w-full h-full object-cover" />
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="flex flex-col justify-between">
+          <div>
+            <p class="text-neutral-700">
+              {% firstof post.text post.caption "" %}
+            </p>
+            {% if post.created_at %}
+              <p class="text-sm text-neutral-400 mt-2">
+                Created at : {{ post.created_at|date:"d M, Y" }}
+              </p>
+            {% endif %}
+          </div>
+
+          <div>
+            <div class="flex mb-4 flex-wrap gap-2">
+              {% for post_hashtag in post.posthashtag_set.all %}
+                <span class="badge badge-lg p-3 font-semibold rounded-full text-lime-800 bg-lime-200">
+                  #{{ post_hashtag.hashtag.tag }}
+                </span>
+              {% endfor %}
+              {% if post.sport %}
+                <span class="badge badge-lg p-3 font-semibold rounded-full text-orange-900 bg-orange-200">
+                  #{{ post.sport.name }}
+                </span>
+              {% endif %}
+            </div>
+
+            <div class="flex text-neutral-600 items-center gap-4">
+              <div class="flex gap-1 items-center">
+                {{ post.likes_count|default:0 }}
+                <i data-lucide="heart" class="w-5 h-5 shrink-0"></i>
+              </div>
+              <div class="flex gap-1 items-center">
+                {{ post.comments_count|default:0 }}
+                <i data-lucide="message-circle" class="w-5 h-5 shrink-0"></i>
+              </div>
+              <i data-lucide="share" class="w-5 h-5 shrink-0"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {% else %}
+      <div class="flex flex-col gap-5">
+          <div class="flex items-center gap-3">
+          <div class="avatar">
+            <div class="w-12 h-12 rounded-full overflow-hidden">
+              {% if post.author_avatar_url %}
+                <img src="{{ post.author_avatar_url }}" alt="{{ post.user.username }}">
+              {% elif post.user.profile and post.user.profile.avatar_url %}
+                <img src="{{ post.user.profile.avatar_url.url }}" alt="{{ post.user.username }}">
+              {% elif post.user.profile and post.user.profile.avatar %}
+                <img src="{{ post.user.profile.avatar.url }}" alt="{{ post.user.username }}">
+              {% else %}
+                <div class="w-12 h-12 rounded-full bg-indigo-600 text-white flex items-center justify-center">
+                  <span class="text-lg font-bold">{{ post.user.username|slice:":1"|upper }}</span>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="font-bold text-lg">{{ post.author_display_name|default:post.user.username }}</span>
+              <span class="text-neutral-500">@{{ post.user.username }}</span>
+              {% if author_badges_list %}
+                {% for badge_url in author_badges_list %}
+                  <img src="{{ badge_url }}" alt="Badge" class="w-4 h-4">
+                {% endfor %}
+              {% endif %}
+            </div>
+            {% if post.location_name or post.created_at %}
+              <div class="text-sm text-neutral-500 flex items-center gap-2">
+                {% if post.location_name %}<span>{{ post.location_name }}</span>{% endif %}
+                {% if post.location_name and post.created_at %}<span>•</span>{% endif %}
+                {% if post.created_at %}<span>{{ post.created_at|date:"d M, Y" }}</span>{% endif %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+        
+        <div class="mt-4">
+          <p class="text-neutral-700">
+            {% firstof post.text post.caption "" %}
+          </p>
+          {% if post.created_at %}
+            <p class="text-sm text-neutral-400 mt-2">
+              Created at : {{ post.created_at|date:"d M, Y" }}
+            </p>
+          {% endif %}
+
+          <div class="flex mt-4 mb-4 flex-wrap gap-2">
+            {% for post_hashtag in post.posthashtag_set.all %}
+              <span class="badge badge-lg p-3 font-semibold rounded-full text-lime-800 bg-lime-200">
+                #{{ post_hashtag.hashtag.tag }}
+              </span>
+            {% endfor %}
+            {% if post.sport %}
+              <span class="badge badge-lg p-3 font-semibold rounded-full text-orange-900 bg-orange-200">
+                #{{ post.sport.name }}
+              </span>
+            {% endif %}
+          </div>
+
+          <div class="flex text-neutral-600 items-center gap-4">
+            <div class="flex gap-1 items-center">
+              {{ post.likes_count|default:0 }}
+              <i data-lucide="heart" class="w-5 h-5 shrink-0"></i>
+            </div>
+            <div class="flex gap-1 items-center">
+              {{ post.comments_count|default:0 }}
+              <i data-lucide="message-circle" class="w-5 h-5 shrink-0"></i>
+            </div>
+            <i data-lucide="share" class="w-5 h-5 shrink-0"></i>
+          </div>
         </div>
       </div>
       {% endif %}
-    </header>
-
-    <div class="mt-4">
-      <img src="{{ post.image.url }}" class="w-full rounded-xl" alt="">
+      {% endwith %}
     </div>
+  </div>
 
-    <div class="mt-4">
-      <p id="captionText" class="leading-relaxed">{{ post.caption|linebreaksbr }}</p>
-      <div class="text-xs text-gray-500 mt-2">Created at: {{ post.created_at|date:"j M Y" }}</div>
-    </div>
-  </article>
-
-  <h3 class="mt-10 mb-4 font-semibold text-gray-800">More posts from {{ post.author.username }}</h3>
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-    {% for p in post.author.posts.all|slice:":6" %}
-      {% if p.id != post.id %}
-        <a href="{% url 'profilemod:post_detail' post.author.username p.id %}"
-           class="block rounded-xl overflow-hidden bg-white shadow">
-          <img src="{{ p.image.url }}" class="w-full h-56 object-cover" alt="">
+  <div class="mt-10">
+    <h3 class="mt-10 mb-4 font-semibold text-gray-800">More posts from {{ post.user.username }}</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {% for p in more_posts %}
+        <a href="{% url 'profile_module:post_detail' username=post.user.username pk=p.id %}"
+          class="block rounded-xl overflow-hidden bg-white shadow">
+          <div class="aspect-square w-full">
+            {% with fi=p.images.first %}
+              {% if fi and fi.image %}
+                <img src="{{ fi.image.url }}" class="w-full h-full object-cover" alt="">
+              {% elif p.image %}
+                <img src="{{ p.image.url }}" class="w-full h-full object-cover" alt="">
+              {% elif p.image_url %}
+                <img src="{{ p.image_url }}" class="w-full h-full object-cover" alt="">
+              {% elif p.photo_url %}
+                <img src="{{ p.photo_url }}" class="w-full h-full object-cover" alt="">
+              {% else %}
+                <img src="{% static 'images/logo.svg' %}" class="w-full h-full object-cover" alt="">
+              {% endif %}
+            {% endwith %}
+          </div>
         </a>
-      {% endif %}
-    {% endfor %}
-  </div>
+      {% empty %}
+        <p class="text-gray-500">Belum ada post lainnya.</p>
+      {% endfor %}
+    </div>
 </div>
 
-{% if is_owner %}
-<div id="editModal" class="fixed inset-0 bg-black/40 hidden z-50">
-  <div class="absolute inset-0 grid place-items-center px-4">
-    <div class="bg-white rounded-2xl p-5 w-full max-w-2xl">
-      <h3 class="font-semibold text-lg mb-3">Edit Post</h3>
-      <form id="editForm">
-        {{ form.as_p }}
-        <div class="mt-4 flex justify-end gap-3">
-          <button type="button" id="cancelEdit" class="px-4 py-2 rounded-lg border">Cancel</button>
-          <button type="submit" class="px-4 py-2 rounded-lg bg-green-600 text-white font-semibold">Update</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
+  {% if is_owner %}
+  <div class="dropdown dropdown-end absolute top-3 right-3 z-[9999]">
+    <button id="kebabBtn" type="button" tabindex="0" class="btn btn-ghost btn-circle">
+      <i data-lucide="more-vertical"></i>
+    </button>
 
-<div id="deleteModal" class="fixed inset-0 bg-black/40 hidden z-50">
-  <div class="absolute inset-0 grid place-items-center px-4">
-    <div class="bg-white rounded-2xl p-5 w-full max-w-md">
-      <h3 class="font-semibold text-lg">Delete Post</h3>
-      <p class="text-gray-600 mt-2">Are you sure you want to delete this post?</p>
-      <div class="mt-4 flex justify-end gap-3">
-        <button id="cancelDelete" class="px-4 py-2 rounded-lg border">Cancel</button>
-        <button id="confirmDelete" class="px-4 py-2 rounded-lg bg-red-600 text-white font-semibold">Delete</button>
-      </div>
-    </div>
+    <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-40">
+      <li>
+        <label for="edit-modal-toggle" id="menuEditBtn" class="flex items-center gap-2 cursor-pointer">
+          <i data-lucide="pencil" class="w-4 h-4"></i>
+          <span>Edit Post</span>
+        </label>
+      </li>
+      <li>
+        <label for="delete-modal-toggle" id="menuDeleteBtn" class="flex items-center gap-2 text-red-600 cursor-pointer">
+          <i data-lucide="trash-2" class="w-4 h-4"></i>
+          <span>Delete Post</span>
+        </label>
+      </li>
+    </ul>
   </div>
-</div>
-{% endif %}
-{% endblock %}
+  {% endif %}
+  {% endblock %}
 
 {% block scripts %}
 <script>
-  const csrftoken = document.querySelector('meta[name="csrf-token"]')?.content;
+  if (window.lucide) { lucide.createIcons(); }
 
-  const menuBtn = document.getElementById('menuBtn');
-  const menuPopup = document.getElementById('menuPopup');
-  if (menuBtn && menuPopup) {
-    menuBtn.addEventListener('click', () => menuPopup.classList.toggle('hidden'));
-    document.addEventListener('click', (e)=> {
-      if (!menuPopup.contains(e.target) && e.target !== menuBtn) menuPopup.classList.add('hidden');
-    });
+  function getCookie(name) {
+    const m = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+    return m ? decodeURIComponent(m[2]) : null;
   }
 
-  const editModal = document.getElementById('editModal');
-  const deleteModal = document.getElementById('deleteModal');
-  const openEdit = document.getElementById('openEdit');
-  const openDelete = document.getElementById('openDelete');
-  const cancelEdit = document.getElementById('cancelEdit');
-  const cancelDelete = document.getElementById('cancelDelete');
+  const csrftoken = document.querySelector('meta[name="csrf-token"]')?.content || getCookie('csrftoken');
+  const updateUrl = "{% url 'profile_module:post_update' pk=post.id %}";
+  const deleteUrl = "{% url 'profile_module:post_delete' pk=post.id %}";
+  const redirectAfterDelete = "{% url 'profile_module:profile_detail' username=post.user.username %}";
 
-  if (openEdit) openEdit.onclick = () => { editModal.classList.remove('hidden'); menuPopup.classList.add('hidden'); };
-  if (openDelete) openDelete.onclick = () => { deleteModal.classList.remove('hidden'); menuPopup.classList.add('hidden'); };
-  if (cancelEdit) cancelEdit.onclick = () => editModal.classList.add('hidden');
-  if (cancelDelete) cancelDelete.onclick = () => deleteModal.classList.add('hidden');
-
-  // Update Caption
-  const editForm = document.getElementById('editForm');
-  if (editForm) {
-    editForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const formData = new FormData(editForm);
-      const res = await fetch("{% url 'profilemod:post_update' post.id %}", {
-        method: "POST",
-        headers: { "X-CSRFToken": csrftoken },
-        body: formData
-      });
-      const data = await res.json();
-      if (res.ok && data.ok) {
-        document.getElementById('captionText').innerHTML = data.caption.replaceAll("\n","<br>");
-        editModal.classList.add('hidden');
-      } else {
-        alert("Failed to update");
-      }
+  document.getElementById('editForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const res = await fetch(updateUrl, {
+      method: "POST",
+      headers: { "X-CSRFToken": csrftoken },
+      body: new FormData(e.currentTarget)
     });
-  }
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && (data.ok || data.success)) {
+      const cb = document.getElementById('edit-modal-toggle');
+      if (cb) cb.checked = false;
+      location.reload();
+    } else {
+      alert("Failed to update");
+    }
+  });
 
-  // Delete (AJAX)
-  const confirmDelete = document.getElementById('confirmDelete');
-  if (confirmDelete) {
-    confirmDelete.addEventListener('click', async () => {
-      const res = await fetch("{% url 'profilemod:post_delete' post.id %}", {
-        method: "POST",
-        headers: { "X-CSRFToken": csrftoken }
-      });
-      if (res.ok) {
-        window.location.href = "{% url 'profilemod:profile' post.author.username %}";
-      } else {
-        alert("Failed to delete");
-      }
-    });
-  }
+  document.getElementById('confirmDelete')?.addEventListener('click', async () => {
+    const res = await fetch(deleteUrl, { method: "POST", headers: { "X-CSRFToken": csrftoken } });
+    if (res.ok) window.location.href = redirectAfterDelete;
+    else alert("Failed to delete");
+  });
 </script>
 {% endblock %}
