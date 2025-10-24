@@ -140,13 +140,10 @@
 
   {% if active_tab == "broadcasts" %}
     <!-- BROADCASTS LIST -->
-    <section class="mt-6 space-y-4" id="broadcasts-list">
-      {% for bc in broadcasts %}
-        {% include 'components/broadcast_card.html' with event=bc %}
-      {% empty %}
-        <p class="text-base-content/60">Belum ada broadcast.</p>
-      {% endfor %}
+    <section class="mt-4 space-y-4" id="broadcasts-list">
+      {% include 'components/broadcast_item.html' with event=bc %}
     </section>
+    
   {% else %}
     <!-- POSTS GRID -->
     <section id="posts-grid" class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

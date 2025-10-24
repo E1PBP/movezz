@@ -238,29 +238,7 @@
     </div>
 </div>
 
-  {% comment %} {% if is_owner %}
-  <div class="dropdown dropdown-end absolute top-3 right-3 z-[9999]">
-    <button id="kebabBtn" type="button" tabindex="0" class="btn btn-ghost btn-circle">
-      <i data-lucide="more-vertical"></i>
-    </button>
-
-    <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-40">
-      <li>
-        <label for="edit-modal-toggle" id="menuEditBtn" class="flex items-center gap-2 cursor-pointer">
-          <i data-lucide="pencil" class="w-4 h-4"></i>
-          <span>Edit Post</span>
-        </label>
-      </li>
-      <li>
-        <label for="delete-modal-toggle" id="menuDeleteBtn" class="flex items-center gap-2 text-red-600 cursor-pointer">
-          <i data-lucide="trash-2" class="w-4 h-4"></i>
-          <span>Delete Post</span>
-        </label>
-      </li>
-    </ul>
-  </div>
-  {% endif %} {% endcomment %}
-  {% endblock %}
+{% endblock %}
 
 {% block scripts %}
 <script>

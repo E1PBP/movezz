@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 from django.db.models import Prefetch
 from .models import Profile, Follow, UserBadge, UserSport
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_GET
 from django.utils import timezone
 from django.http import JsonResponse, Http404
 from django.conf import settings 
@@ -213,3 +213,4 @@ def create_broadcast_ajax(request):
         rsvp_url=request.POST.get("rsvp_url") or None,
     )
     return JsonResponse({"ok": True, "id": str(event.id)})
+
