@@ -7,6 +7,8 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.db.models import Count
 from django.contrib.auth.models import User
+from django.core.paginator import Paginator
+from django.template.loader import render_to_string
 
 @login_required
 def main_view(request):
@@ -14,9 +16,13 @@ def main_view(request):
 
     if active_tab == 'following':
         following_users = Follow.objects.filter(follower=request.user).values_list('followee', flat=True)
-        posts = Post.objects.filter(user__in=following_users).order_by('-created_at')
+        post_list = Post.objects.filter(user__in=following_users).order_by('-created_at')
     else:
-        posts = Post.objects.all().order_by('-created_at')
+        post_list = Post.objects.all().order_by('-created_at')
+
+    paginator = Paginator(post_list, 5)  # Show 5 posts per page
+    page_number = request.GET.get('page')
+    posts = paginator.get_page(page_number)
 
     form = PostForm()
     image_form = PostImageForm()
@@ -84,3 +90,19 @@ def create_post_ajax(request):
         post_image.save()
 
     return JsonResponse({'status': 'success', 'message': 'Post created successfully!'})
+
+@login_required
+def load_more_posts(request):
+    active_tab = request.GET.get('tab', 'foryou')
+    if active_tab == 'following':
+        following_users = Follow.objects.filter(follower=request.user).values_list('followee', flat=True)
+        post_list = Post.objects.filter(user__in=following_users).order_by('-created_at')
+    else:
+        post_list = Post.objects.all().order_by('-created_at')
+
+    paginator = Paginator(post_list, 5)
+    page_number = request.GET.get('page')
+    posts = paginator.get_page(page_number)
+
+    html = render_to_string('components/post_list.html', {'posts': posts})
+    return JsonResponse({'html': html, 'has_next': posts.has_next()})
