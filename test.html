@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lucide Icons Example</title>
+  <!-- Import Lucide via CDN -->
+  <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      gap: 16px;
+    }
+    .icon {
+      width: 48px;
+      height: 48px;
+      stroke: #333;
+    }
+  </style>
+</head>
+<body>
+  <h1>Lucide Icons via CDN</h1>
+
+  <!-- Tambahkan ikon dengan atribut data-lucide -->
+  <i data-lucide="home" class="icon"></i>
+  <i data-lucide="user" class="icon"></i>
+  <i data-lucide="settings" class="icon"></i>
+  <i data-lucide="heart" class="icon"></i>
+
+  <!-- Inisialisasi ikon -->
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+</html>
