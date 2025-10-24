@@ -35,10 +35,15 @@
         {% endif %}
       {% endwith %}
       <div class="flex-1">
-        <h2 class="font-semibold text-lg">
-          {{ selected_conversation.other_user.profile.display_name|default:selected_conversation.other_user.username }}
-        </h2>
-        <p class="text-xs text-base-content/60">
+        <div class="flex items-center gap-2">
+          <h2 class="font-semibold text-lg lato-bold">
+            {{ selected_conversation.other_user.profile.display_name|default:selected_conversation.other_user.username }}
+          </h2>
+          {% if selected_conversation.other_user.profile.is_verified %}
+            <i data-lucide="badge-check" class="w-5 h-5 text-lime-400 flex-shrink-0"></i>
+          {% endif %}
+        </div>
+        <p class="text-xs text-base-content/60 lato-regular">
           @{{ selected_conversation.other_user.username|lower }}
         </p>
       </div>
@@ -236,10 +241,15 @@
               {% endwith %}
             </div>
             <div class="flex-1 min-w-0">
-              <p class="font-semibold truncate">
-                {{ convo.other_user.profile.display_name|default:convo.other_user.username }}
-              </p>
-              <p class="text-sm text-base-content/60 truncate">
+              <div class="flex items-center gap-1">
+                <p class="font-semibold truncate lato-bold">
+                  {{ convo.other_user.profile.display_name|default:convo.other_user.username }}
+                </p>
+                {% if convo.other_user.profile.is_verified %}
+                  <i data-lucide="badge-check" class="w-4 h-4 text-lime-400 flex-shrink-0"></i>
+                {% endif %}
+              </div>
+              <p class="text-sm text-base-content/60 truncate lato-regular">
                 {{ convo.last_message_preview|default:"No messages yet" }}
               </p>
             </div>
@@ -313,12 +323,20 @@
         <span class="text-sm font-bold">
           {{ prof.display_name|default:u.username|first|upper }}
         </span>
-          </div>
+      </div>
+
           {% endif %} {% endwith %}
 
-          <div class="flex-1 min-w-0">
-            <p class="font-medium truncate">{{u.profile.display_name|default:u.username}}</p>
-            <p class="truncate">@{{ u.username }}</p>
+          <div class="flex-1 min-w-0 flex items-center gap-2">
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1">
+                <p class="font-medium truncate lato-regular">{{u.profile.display_name|default:u.username}}</p>
+                {% if u.profile.is_verified %}
+                  <i data-lucide="badge-check" class="w-4 h-4 text-lime-400 flex-shrink-0"></i>
+                {% endif %}
+              </div>
+              <p class="truncate text-sm text-base-content/60 lato-regular">@{{ u.username }}</p>
+            </div>
           </div>
         </button>
       </form>
