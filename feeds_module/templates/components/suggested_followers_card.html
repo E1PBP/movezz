@@ -29,7 +29,7 @@
             <p class="text-sm text-base-content/70">@{{ follower.username }}</p>
           </div>
         </div>
-        <a href="#" class="btn btn-sm btn-primary">Follow</a>
+        <a href="{% url 'profile_module:profile_detail' username=follower.username %}" class="btn btn-sm btn-primary">Follow</a>
       </div>
       {% endfor %}
     </div>
