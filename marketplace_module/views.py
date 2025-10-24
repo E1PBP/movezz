@@ -10,7 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.html import strip_tags
 from decimal import Decimal, InvalidOperation
 
-# show today's pick page
+# show todays pick page
 def todays_pick(request):
     placeholder_uuid = uuid.UUID("00000000-0000-0000-0000-000000000000")
     
@@ -31,7 +31,7 @@ def todays_pick(request):
     
     return render(request, "todays_pick.html", context)
 
-# show detail page
+# Listing Detail view
 def listing_detail(request, listing_id):
     listing = get_object_or_404(Listing, pk=listing_id, is_active=True)
 
@@ -45,10 +45,6 @@ def listing_detail(request, listing_id):
 @require_POST
 @login_required
 def add_listing_entry_ajax(request):
-    """
-    Create a Listing via AJAX (Tutorial-5 style).
-    Returns 201 on success and dispatch 'listing:created' on client.
-    """
     try:
         title = strip_tags(request.POST.get("title", "")).strip()
         description = strip_tags(request.POST.get("description", "")).strip()
@@ -85,7 +81,7 @@ def add_listing_entry_ajax(request):
     except Exception as e:
         return JsonResponse({"error": "exception", "message": str(e)}, status=500)
 
-# to get listings
+# get listings
 @require_GET
 def get_listings(request):
     VALID_CONDITIONS = ("BRAND_NEW", "USED")
@@ -102,7 +98,7 @@ def get_listings(request):
     if condition_filter in VALID_CONDITIONS:
         listings_queryset = listings_queryset.filter(condition=condition_filter)
 
-    # serialize to JSON
+    # serialize
     serialized_listings = serializers.serialize(
         "json",
         listings_queryset,
@@ -111,9 +107,10 @@ def get_listings(request):
     
     return HttpResponse(serialized_listings, content_type="application/json")
 
+
 # get listing detail
 @require_GET
-def get_listing_detail(request, listing_id):
+def listing_detail(request, listing_id):
     listing_queryset = Listing.objects.filter(pk=listing_id, is_active=True)
     
     if not listing_queryset.exists():
@@ -145,23 +142,21 @@ def wishlist_page(request):
         {"page_config_json": json.dumps(config)},
     )
 
-# get wishlist ids
+# array wishlist ids
 @login_required
 @require_GET
 def wishlist_ids(request):
-    """Return an array of listing ids the current user saved."""
-    from marketplace_module.models import Wishlist  # no DB changes, just import
+    from marketplace_module.models import Wishlist 
     ids = list(
         Wishlist.objects.filter(user=request.user)
         .values_list("listing__id", flat=True)
     )
     return JsonResponse(ids, safe=False)
 
-# get wishlist listings
+# list wishlist listings
 @login_required
 @require_GET
 def wishlist_listings(request):
-    """Return serialized listings the user saved (Django serializer shape)."""
     from marketplace_module.models import Wishlist, Listing
     listing_ids = Wishlist.objects.filter(user=request.user)\
                                   .values_list("listing_id", flat=True)
@@ -173,15 +168,11 @@ def wishlist_listings(request):
     )
     return HttpResponse(data, content_type="application/json")
 
-#get toggle wishlist
+# toggle wishlist
 @csrf_exempt
 @require_POST
 @login_required
 def wishlist_toggle(request):
-    """
-    POST body: listing_id
-    Response: {"status": "added" | "removed", "id": "<uuid>"}
-    """
     from marketplace_module.models import Wishlist, Listing
     listing_id = request.POST.get("listing_id")
     if not listing_id:
