@@ -12,7 +12,8 @@
 <meta name="csrf-token" content="{{ csrf_token }}">
 
 <!-- FILTER BAR -->
-<div class="flex flex-col sm:flex-row sm:items-center mb-6 sm:mb-8 bg-white rounded-lg border border-gray-200 p-3 sm:p-4 gap-2 sm:gap-4">
+<div
+  class="flex flex-col sm:flex-row sm:items-center mb-6 sm:mb-8 bg-white rounded-lg border border-gray-200 p-3 sm:p-4 gap-2 sm:gap-4">
 
   {% if user.is_authenticated %}
   <!-- Create Product -->
@@ -86,7 +87,7 @@
 <!-- grid -->
 <div id="grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 px-2 sm:px-0 hidden"></div>
 
-
+{% include "listing_modal.html" %}
 <script>
   function getCSRFToken() {
     const meta = document.querySelector('meta[name="csrf-token"]');
@@ -265,9 +266,7 @@
         const tag = (el.tagName || '').toLowerCase();
         if (tag === 'select') {
           el.value = value ?? '';
-          // if value not in options, nothing will show—fallback if needed:
           if (!Array.from(el.options).some(o => o.value == el.value)) {
-            // try upper/lower variants (optional)
             const tryVal = String(value ?? '').toUpperCase();
             const opt = Array.from(el.options).find(o => o.value.toUpperCase() === tryVal);
             if (opt) el.value = opt.value;
@@ -276,26 +275,24 @@
         } else if (el.type === 'checkbox' || el.type === 'radio') {
           el.checked = Boolean(value);
           el.dispatchEvent(new Event('change'));
-        } else if (el.type === 'file') {
-          // can't set file inputs programmatically — skip
-        } else {
+        } else if (el.type !== 'file') {
           el.value = value ?? '';
           el.dispatchEvent(new Event('input'));
           el.dispatchEvent(new Event('change'));
         }
-        return true; 
+        return true;
       }
       return false;
     }
 
     function fillListingForm(item = {}) {
       const map = {
-        title:       ['#id_title', '#title', '[name="title"]'],
+        title: ['#id_title', '#title', '[name="title"]'],
         description: ['#id_description', '#description', '[name="description"]', 'textarea[name="description"]'],
-        price:       ['#id_price', '#price', '[name="price"]'],
-        condition:   ['#id_condition', '#condition', '[name="condition"]'],
-        location:    ['#id_location', '#location', '[name="location"]'],
-        image_url:   ['#id_image_url', '#image_url', '[name="image_url"]', '[name="image"]'] // include your actual field name here
+        price: ['#id_price', '#price', '[name="price"]'],
+        condition: ['#id_condition', '#condition', '[name="condition"]'],
+        location: ['#id_location', '#location', '[name="location"]'],
+        image_url: ['#id_image_url', '#image_url', '[name="image_url"]', '[name="image"]']
       };
 
       // set values
@@ -308,6 +305,16 @@
 
       const preview = document.querySelector('#image_preview');
       if (preview) preview.src = item.image_url || '';
+    }
+
+    async function waitForListingForm(timeout = 1500) {
+      const start = performance.now();
+      while (performance.now() - start < timeout) {
+        const form = document.querySelector('#listingForm');
+        if (form && (form.querySelector('input,textarea,select'))) return form;
+        await new Promise(r => requestAnimationFrame(r));
+      }
+      return null;
     }
 
     // wishlist
@@ -428,7 +435,7 @@
       els.refreshBtn?.addEventListener('click', () => fetchAndRender(true));
     }
 
-    els.grid.addEventListener('click', (e) => {
+    els.grid.addEventListener('click', async (e) => {
       const btn = e.target.closest('.edit-btn');
       if (!btn) return;
 
@@ -436,22 +443,25 @@
       const item = window.MP_LISTINGS.get(id);
       if (!item) { alert('Failed to load data'); return; }
 
-      // fill initial data
+      if (window.showListingModal) showListingModal();
+      else document.getElementById('listingModal')?.showModal();
+
+      // Wait for the form to be mounted
+      const form = await waitForListingForm(2000);
+      if (!form) { alert('Form not ready'); return; }
+
+      // edit mode
+      form.dataset.mode = 'edit';
+      form.dataset.id = id;
+
+      // fill form
       fillListingForm(item);
 
-      const form = document.querySelector('#listingForm');
-      if (form) {
-        form.dataset.mode = 'edit';
-        form.dataset.id = id;
-      }
-
+      // modal title and button
       const titleEl = document.querySelector('#listingModalTitle');
       if (titleEl) titleEl.textContent = 'Edit Product';
       const saveBtn = document.querySelector('#modalSaveBtn');
       if (saveBtn) saveBtn.textContent = 'Save Changes';
-
-      if (window.showListingModal) showListingModal();
-      else document.getElementById('listingModal')?.showModal();
     });
 
     // create
@@ -507,44 +517,44 @@
     });
 
     const saveBtn = document.getElementById('modalSaveBtn');
-      if (saveBtn) {
-        saveBtn.addEventListener('click', async () => {
-          const form = document.querySelector('#listingForm');
-          if (!form) return;
+    if (saveBtn) {
+      saveBtn.addEventListener('click', async () => {
+        const form = document.querySelector('#listingForm');
+        if (!form) return;
 
-          const mode = form.dataset.mode === 'edit' ? 'edit' : 'create';
-          const id = form.dataset.id;
-          const body = new FormData(form);
+        const mode = form.dataset.mode === 'edit' ? 'edit' : 'create';
+        const id = form.dataset.id;
+        const body = new FormData(form);
+        const CREATE_URL = "{% url 'marketplace_module:add_listing_entry_ajax' %}";
+        const url = mode === 'edit'
+          ? `/marketplace/listing/${id}/edit-ajax/`
+          : CREATE_URL;
 
-          const url = mode === 'edit'
-            ? `/marketplace/listing/${id}/edit-ajax/`
-            : `/marketplace/add-listing-ajax/`;
+        try {
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCSRFToken() },
+            body
+          });
+          const data = await res.json().catch(() => ({}));
+          const ok = mode === 'edit' ? data.status === 'updated' : (res.ok || data.status === 'created');
+          if (!ok) return alert('Save failed');
 
-          try {
-            const res = await fetch(url, {
-              method: 'POST',
-              headers: { 'X-CSRFToken': getCSRFToken() },
-              body
-            });
-            const data = await res.json().catch(() => ({}));
-            const ok = mode === 'edit' ? data.status === 'updated' : (res.ok || data.status === 'created');
-            if (!ok) return alert('Save failed');
+          // close modal
+          (document.getElementById('listingModal') || {}).close?.();
 
-            // close modal
-            (document.getElementById('listingModal') || {}).close?.();
+          // reset create state for next open
+          delete form.dataset.mode;
+          delete form.dataset.id;
 
-            // reset create state for next open
-            delete form.dataset.mode;
-            delete form.dataset.id;
-
-            // refresh the grid
-            document.dispatchEvent(new CustomEvent(mode === 'edit' ? 'listing:updated' : 'listing:created'));
-          } catch (err) {
-            console.error(err);
-            alert('Network error');
-          }
-        });
-      }
+          // refresh the grid
+          document.dispatchEvent(new CustomEvent(mode === 'edit' ? 'listing:updated' : 'listing:created'));
+        } catch (err) {
+          console.error(err);
+          alert('Network error');
+        }
+      });
+    }
 
     setupWishlistListeners();
 
@@ -555,7 +565,7 @@
     // init
     (function init() {
       setupEventListeners();
-      setActiveChip(''); 
+      setActiveChip('');
       fetchAndRender();
     })();
 
