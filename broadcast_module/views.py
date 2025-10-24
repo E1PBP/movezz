@@ -2,11 +2,14 @@ from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.core.paginator import Paginator
-from django.db.models import F
+from django.db.models import F, Count
 from django.utils import timezone
 from .models import Event
 from .forms import EventForm
 from typing import Any
+from django.contrib.auth.models import User
+from profile_module.models import Follow
+from feeds_module.models import Hashtag
 
 @require_http_methods(["GET"])
 def broadcast_list(request) -> Any:
@@ -26,10 +29,18 @@ def broadcast_list(request) -> Any:
     except Exception:
         events_page = paginator.page(1)
 
+    # Suggested followers
+    if request.user.is_authenticated:
+        following_users_ids = Follow.objects.filter(follower=request.user).values_list('followee_id', flat=True)
+        suggested_followers = User.objects.exclude(id__in=list(following_users_ids) + [request.user.id]).order_by('?')[:2]
+    else:
+        suggested_followers = User.objects.order_by('?')[:2]
+
     return render(request, 'broadcasts/event_list.html', {
         'events': events_page.object_list,
         'initial_tab': 'trending',
         'has_next': events_page.has_next(),
+        'suggested_followers': suggested_followers
     })
 
 
