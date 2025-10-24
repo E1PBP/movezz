@@ -74,17 +74,17 @@ def profile_detail(request, username: str):
 
     posts = Post.objects.filter(user=page_user).order_by("-created_at")[:12]
 
-    broadcasts = []
-    if Event:
-        bqs = Event.objects.filter(user=page_user).order_by("-created_at")[:10]
-        for b in bqs:
-            broadcasts.append({
-                "title": getattr(b, "title", "Broadcast"),
-                "subtitle": getattr(b, "location", "") or getattr(b, "subtitle", ""),
-                "summary": getattr(b, "summary", "") or (getattr(b, "body", "")[:120] + "..."),
-                "image_url": getattr(getattr(b, "cover", None), "url", None) or getattr(b, "image_url", None),
-            })
-
+    # broadcasts = []
+    # if Event:
+    #     bqs = Event.objects.filter(user=page_user).order_by("-created_at")[:10]
+    #     for b in bqs:
+    #         broadcasts.append({
+    #             "title": getattr(b, "title", "Broadcast"),
+    #             "subtitle": getattr(b, "location", "") or getattr(b, "subtitle", ""),
+    #             "summary": getattr(b, "summary", "") or (getattr(b, "body", "")[:120] + "..."),
+    #             "image_url": getattr(getattr(b, "cover", None), "url", None) or getattr(b, "image_url", None),
+    #         })
+    events = Event.objects.filter(user=page_user).order_by("-created_at")
     context = {
         "page_user": page_user,
         "profile": profile,
@@ -100,7 +100,7 @@ def profile_detail(request, username: str):
         "format_hours_minutes": format_hours_minutes,
         "active_tab": active_tab,
         "posts": posts,
-        "broadcasts": broadcasts,
+        "events": events,
         "form": form,
         "image_form": image_form,
     }
