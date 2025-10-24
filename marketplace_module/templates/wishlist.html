@@ -4,6 +4,15 @@
 {% block marketplace_content %}
 <h1 class="text-2xl sm:text-3xl font-semibold tracking-tight mb-6">My Wishlist</h1>
 
+<div class="mb-4">
+  <a href="{% url 'marketplace_module:todays_pick' %}"
+     class="inline-flex items-center gap-2 rounded-lg border px-3 py-2
+            text-sm font-medium bg-white border-gray-200 text-gray-700
+            hover:bg-gray-100 hover:border-gray-300 transition-colors">
+    <i data-lucide="arrow-left" class="w-4 h-4"></i>
+  </a>
+</div>
+
 <script id="mp-config" type="application/json">
   {{ page_config_json|safe }}
 </script>
@@ -21,6 +30,8 @@
 <div id="empty" class="bg-base-100 rounded-lg border border-base-200 p-10 text-center hidden">
   <p class="text-base-content/70">No saved items yet.</p>
 </div>
+
+
 
 <!-- GRID -->
 <div id="grid" class="grid grid-cols-1 xs:grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 px-2 sm:px-0 hidden"></div>
@@ -166,5 +177,20 @@
 
     fetchAndRender();
   })();
+
+  (function () {
+    const link = document.querySelector('a[href$="{% url "marketplace_module:todays_pick" %}"]');
+    if (!link) return;
+    try {
+      const ref = document.referrer || '';
+      if (ref.includes('{% url "marketplace_module:todays_pick" %}')) {
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          history.back();
+        });
+      }
+    } catch (_) {}
+  })();
+
 </script>
 {% endblock %}
