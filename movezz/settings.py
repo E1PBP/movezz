@@ -29,7 +29,7 @@ SECRET_KEY = "django-insecure-lzhll+zrj2ihb1r*aqw&rye98tojuienf85srjxffzl+6_rf6p
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["https://muhamad-hakim41-movezz.pbp.cs.ui.ac.id/", "https://muhamad-hakim41-movezz.pbp.cs.ui.ac.id", "http://muhamad-hakim41-movezz.pbp.cs.ui.ac.id", "10.0.2.2", "localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ["https://muhamad-hakim41-movezz.pbp.cs.ui.ac.id/", "https://muhamad-hakim41-movezz.pbp.cs.ui.ac.id", "http://muhamad-hakim41-movezz.pbp.cs.ui.ac.id", "10.0.2.2", "localhost", "127.0.0.1", "muhamad-hakim41-movezz.pbp.cs.ui.ac.id"]
 
 
 CORS_ALLOW_ALL_ORIGINS = True
