@@ -29,9 +29,22 @@ SECRET_KEY = "django-insecure-lzhll+zrj2ihb1r*aqw&rye98tojuienf85srjxffzl+6_rf6p
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "muhamad-hakim41-movezz.pbp.cs.ui.ac.id"]
+ALLOWED_HOSTS = ["https://muhamad-hakim41-movezz.pbp.cs.ui.ac.id/", "https://muhamad-hakim41-movezz.pbp.cs.ui.ac.id", "http://muhamad-hakim41-movezz.pbp.cs.ui.ac.id", "10.0.2.2", "localhost", "127.0.0.1"]
 
-CSRF_TRUSTED_ORIGINS = ["https://muhamad-hakim41-movezz.pbp.cs.ui.ac.id/", "https://muhamad-hakim41-movezz.pbp.cs.ui.ac.id"]
+
+CORS_ALLOW_ALL_ORIGINS = True
+
+CORS_ALLOW_CREDENTIALS = True
+
+CSRF_COOKIE_SECURE = True
+
+SESSION_COOKIE_SECURE = True
+
+CSRF_COOKIE_SAMESITE = 'None'
+
+SESSION_COOKIE_SAMESITE = 'None'
+
+CSRF_TRUSTED_ORIGINS = ["https://muhamad-hakim41-movezz.pbp.cs.ui.ac.id/", "https://muhamad-hakim41-movezz.pbp.cs.ui.ac.id", "http://muhamad-hakim41-movezz.pbp.cs.ui.ac.id", "http://10.0.2.2" , "http://127.0.0.1" ]
 
 
 PRODUCTION = os.getenv('PRODUCTION', 'False').lower() == 'true'
@@ -55,7 +68,7 @@ INSTALLED_APPS = [
     "feeds_module",
     "cloudinary",
     "cloudinary_storage",
-    
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
