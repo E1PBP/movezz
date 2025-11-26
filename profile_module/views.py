@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 from django.db.models import Prefetch
 from .models import Profile, Follow, UserBadge, UserSport
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_POST, require_GET
+from django.views.decorators.http import require_POST
 from django.utils import timezone
 from django.utils.timesince import timesince
 from django.http import JsonResponse, Http404

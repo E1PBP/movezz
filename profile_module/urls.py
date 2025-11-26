@@ -15,5 +15,4 @@ urlpatterns = [
     path("api/posts/<slug:pk>/update/", views.post_update_ajax, name="post_update"),
     path("api/posts/<slug:pk>/delete/", views.post_delete_ajax, name="post_delete"),
     path("api/broadcasts/create/", views.create_broadcast_ajax, name="create_broadcast_ajax"),
-    # path("broadcast/<uuid:pk>/toggle-pin/", views.toggle_broadcast_pin, name="toggle_broadcast_pin"),
 ]
