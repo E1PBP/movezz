@@ -91,7 +91,7 @@ def logout_user(request):
 
 
 @csrf_exempt
-def logout(request):
+def logout_api(request):
     """ This view handles user logout for API requests.
     Args:
         request : Django HttpRequest object.
@@ -116,7 +116,7 @@ def logout(request):
         
         
 @csrf_exempt
-def login(request):
+def login_api(request):
     """ This view handles user login for API requests.
     Args:
         request: Django HttpRequest object.
@@ -150,7 +150,7 @@ def login(request):
         
         
 @csrf_exempt
-def register(request):
+def register_api(request):
     """ This view handles user registration for API requests.
     Args:
         request: Django HttpRequest object.
