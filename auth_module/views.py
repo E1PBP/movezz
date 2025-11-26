@@ -32,10 +32,11 @@ def login_view(request):
     if request.method == "POST":
         form = LoginForm(data=request.POST or None)
         if form.is_valid():
-            logger.info(f"User {form.get_user().username} logged in successfully.")
             user = form.get_user()
-            login(request=request)
+            logger.info(f"User {user.username} logged in successfully.")
+            login(request, user)
             return redirect('feeds_module:main_view')
+
 
     else:
         form = LoginForm()
