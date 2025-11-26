@@ -78,8 +78,6 @@ def add_listing_entry_ajax(request):
             price=price,
             is_active=True,
         )
-
-        # <- penting: balas JSON agar script modal paham
         return JsonResponse({"status": "created", "id": str(listing.id)}, status=201)
 
     except Exception as e:
@@ -238,6 +236,7 @@ def edit_listing_entry_ajax(request, listing_id):
 
     except Exception as e: 
         return JsonResponse({"error": "exception", "message": str(e)}, status=500)
+    
 # delete listing with AJAX
 @csrf_exempt
 @require_POST

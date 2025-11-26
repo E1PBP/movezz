@@ -1,4 +1,5 @@
 {% extends 'base_marketplace.html' %}
+
 {% load static currency %}
 
 {% block marketplace_content %}
@@ -12,8 +13,7 @@
 <meta name="csrf-token" content="{{ csrf_token }}">
 
 <!-- FILTER BAR -->
-<div
-  class="flex flex-col sm:flex-row sm:items-center mb-6 sm:mb-8 bg-white rounded-lg border border-gray-200 p-3 sm:p-4 gap-2 sm:gap-4">
+<div class="flex flex-col sm:flex-row sm:items-center mb-6 sm:mb-8 bg-white rounded-lg border border-gray-200 p-3 sm:p-4 gap-2 sm:gap-4">
 
   {% if user.is_authenticated %}
   <!-- Create Product -->
@@ -257,7 +257,7 @@
       `;
     }
 
-    // fill form fields
+   // fill form fields
     function setFirstValue(selectors, value) {
       for (const sel of selectors) {
         const el = document.querySelector(sel);
@@ -280,19 +280,19 @@
           el.dispatchEvent(new Event('input'));
           el.dispatchEvent(new Event('change'));
         }
-        return true;
+        return true; 
       }
       return false;
     }
 
     function fillListingForm(item = {}) {
       const map = {
-        title: ['#id_title', '#title', '[name="title"]'],
+        title:       ['#id_title', '#title', '[name="title"]'],
         description: ['#id_description', '#description', '[name="description"]', 'textarea[name="description"]'],
-        price: ['#id_price', '#price', '[name="price"]'],
-        condition: ['#id_condition', '#condition', '[name="condition"]'],
-        location: ['#id_location', '#location', '[name="location"]'],
-        image_url: ['#id_image_url', '#image_url', '[name="image_url"]', '[name="image"]']
+        price:       ['#id_price', '#price', '[name="price"]'],
+        condition:   ['#id_condition', '#condition', '[name="condition"]'],
+        location:    ['#id_location', '#location', '[name="location"]'],
+        image_url:   ['#id_image_url', '#image_url', '[name="image_url"]', '[name="image"]'] 
       };
 
       // set values
@@ -517,44 +517,44 @@
     });
 
     const saveBtn = document.getElementById('modalSaveBtn');
-    if (saveBtn) {
-      saveBtn.addEventListener('click', async () => {
-        const form = document.querySelector('#listingForm');
-        if (!form) return;
+      if (saveBtn) {
+        saveBtn.addEventListener('click', async () => {
+          const form = document.querySelector('#listingForm');
+          if (!form) return;
 
-        const mode = form.dataset.mode === 'edit' ? 'edit' : 'create';
-        const id = form.dataset.id;
-        const body = new FormData(form);
-        const CREATE_URL = "{% url 'marketplace_module:add_listing_entry_ajax' %}";
-        const url = mode === 'edit'
-          ? `/marketplace/listing/${id}/edit-ajax/`
-          : CREATE_URL;
+          const mode = form.dataset.mode === 'edit' ? 'edit' : 'create';
+          const id = form.dataset.id;
+          const body = new FormData(form);
+          const CREATE_URL = "{% url 'marketplace_module:add_listing_entry_ajax' %}";
+          const url = mode === 'edit'
+            ? `/marketplace/listing/${id}/edit-ajax/`
+            : CREATE_URL;
 
-        try {
-          const res = await fetch(url, {
-            method: 'POST',
-            headers: { 'X-CSRFToken': getCSRFToken() },
-            body
-          });
-          const data = await res.json().catch(() => ({}));
-          const ok = mode === 'edit' ? data.status === 'updated' : (res.ok || data.status === 'created');
-          if (!ok) return alert('Save failed');
+          try {
+            const res = await fetch(url, {
+              method: 'POST',
+              headers: { 'X-CSRFToken': getCSRFToken() },
+              body
+            });
+            const data = await res.json().catch(() => ({}));
+            const ok = mode === 'edit' ? data.status === 'updated' : (res.ok || data.status === 'created');
+            if (!ok) return alert('Save failed');
 
-          // close modal
-          (document.getElementById('listingModal') || {}).close?.();
+            // close modal
+            (document.getElementById('listingModal') || {}).close?.();
 
-          // reset create state for next open
-          delete form.dataset.mode;
-          delete form.dataset.id;
+            // reset create state for next open
+            delete form.dataset.mode;
+            delete form.dataset.id;
 
-          // refresh the grid
-          document.dispatchEvent(new CustomEvent(mode === 'edit' ? 'listing:updated' : 'listing:created'));
-        } catch (err) {
-          console.error(err);
-          alert('Network error');
-        }
-      });
-    }
+            // refresh the grid
+            document.dispatchEvent(new CustomEvent(mode === 'edit' ? 'listing:updated' : 'listing:created'));
+          } catch (err) {
+            console.error(err);
+            alert('Network error');
+          }
+        });
+      }
 
     setupWishlistListeners();
 
@@ -565,7 +565,7 @@
     // init
     (function init() {
       setupEventListeners();
-      setActiveChip('');
+      setActiveChip(''); 
       fetchAndRender();
     })();
 
