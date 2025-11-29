@@ -189,7 +189,11 @@ def poll_messages(request, conversation_id):
 
     data = []
     for msg in new_messages:
-        prof = getattr(msg.sender, 'profile', None)
+        try:
+            prof = msg.sender.profile
+
+        except Exception:
+            prof = None
         avatar_url = getattr(getattr(prof, 'avatar_url', None), 'url', None) if prof else None
         local_created = timezone.localtime(msg.created_at)
         data.append({
@@ -305,8 +309,8 @@ def get_messages_api(request, conversation_id):
         except Message.DoesNotExist:
             pass
 
-    messages = messages_query.order_by('-created_at')[:HISTORY_LIMIT_FETCH]
-    messages = reversed(messages)
+    messages_queryset = messages_query.order_by('-created_at')[:HISTORY_LIMIT_FETCH]
+    messages = list(reversed(messages_queryset))
     logger.debug(f"Fetched {len(list(messages))} messages for conversation {conversation.id}.")
     data = []
     for msg in messages:
@@ -323,6 +327,7 @@ def get_messages_api(request, conversation_id):
         })
     logger.debug(f"Prepared {len(data)} messages for JSON response in conversation {conversation.id}.")
     logger.info(f"User {request.user.username} fetched messages for conversation {conversation.id}, found {len(data)} messages.")
+    logger.debug(f"Messages data: {data}")
     return JsonResponse({"messages": data})
 
 
