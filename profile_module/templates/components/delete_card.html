@@ -1,0 +1,13 @@
+<input type="checkbox" id="delete-modal-toggle" class="modal-toggle" />
+
+<div class="modal z-[10000]" role="dialog">
+  <div class="modal-box w-full max-w-md rounded-2xl">
+    <h3 class="font-semibold text-lg">Delete Post</h3>
+    <p class="text-gray-600 mt-2">Are you sure you want to delete this post?</p>
+    <div class="mt-6 flex justify-end gap-3">
+      <label for="delete-modal-toggle" class="btn">Cancel</label>
+      <button id="confirmDelete" type="button" class="btn bg-red-600 text-white">Delete</button>
+    </div>
+  </div>
+  <label class="modal-backdrop" for="delete-modal-toggle"></label>
+</div>

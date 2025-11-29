@@ -41,6 +41,7 @@
   </head>
   <body
     class="flex flex-col min-h-screen bg-base-200 text-base-content transition-all duration-300"
+    data-like-url="{% url 'feeds_module:like_post_ajax' %}"
   >
   
   {% include "navbar.html" %}
@@ -55,6 +56,8 @@
   </body>
   
   <script src="{% static 'js/create_post.js' %}" defer></script>
+  <script src="{% static 'js/like_post.js' %}" defer></script>
+  <script src="{% static 'js/comment_system.js' %}" defer></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       if (window.lucide?.createIcons) {

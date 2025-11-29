@@ -10,3 +10,4 @@ Pillow
 cloudinary
 django-cloudinary-storage
 coverage
+django-cors-headers

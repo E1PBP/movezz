@@ -114,11 +114,8 @@ GitHub.sublime-settings
 !.vscode/extensions.json
 .history
 
-<<<<<<< HEAD
 
+# *.zip
+# /dataset-pbp
+repomix-output.*
 
-*.zip
-=======
-*.zip
-/dataset-pbp
->>>>>>> 4cebc6522e0e26107afe69bd362d4d492def6625

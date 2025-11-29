@@ -7,26 +7,26 @@
             <!-- Left Column -->
             <div>
                 <div class="flex items-center gap-3">
-                    <div class="avatar">
+                    <a href="{% url 'profile_module:profile_detail' username=post.user.username %}" class="avatar">
                         <div
-                            class="w-10 h-10 rounded-full bg-primary text-primary-content flex items-center justify-center overflow-hidden"
+                            class="cursor-pointer w-10 h-10 rounded-full bg-primary text-primary-content flex items-center justify-center overflow-hidden"
                             >
-                            {% if user.is_authenticated and user_avatar_url %}
+                            {% if post.author_avatar_url %}
                             <img
-                                src="{{ user_avatar_url }}"
-                                alt="{{ user.get_full_name|default:user.username }}"
+                                src="{{ post.author_avatar_url }}"
+                                alt="{{ post.author_display_name|default:post.user.username }}"
                                 class="object-cover w-full h-full"
                             />
                             {% else %}
                             <span class="text-sm font-bold"
-                            >{{ user.username|slice:":1"|upper }}</span
+                            >{{ post.user.username|slice:":1"|upper }}</span
                             >
                             {% endif %}
                         </div>
-                    </div>
+                    </a>
                     <div>
                         <div class="flex items-center gap-2">
-                            <span class="font-bold text-lg">{{ post.author_display_name|default:post.user.username }}</span>
+                            <a href="{% url 'profile_module:profile_detail' username=post.user.username %}" class="font-bold text-lg hover:underline">{{ post.author_display_name|default:post.user.username }}</a>
                             <span class="text-neutral-500">@{{ post.user.username }}</span>
                             {% if post.author_badges_url %}
                                 {% for badge_url in post.author_badges_url|split:"," %}
@@ -34,17 +34,6 @@
                                     <img src="{{ badge_url }}" alt="Badge" class="w-4 h-4">
                                     {% endif %}
                                 {% endfor %}
-                            {% endif %}
-                            {% if post.author.avatar_url %}
-                            <img
-                                src="{{ post.author.avatar_url }}"
-                                alt="{{ post.author.get_full_name|default:post.author.username }}"
-                                class="object-cover w-full h-full"
-                            />
-                            {% else %}
-                            <span class="text-sm font-bold"
-                            >{{ post.author.username|slice:":1"|upper }}</span
-                            >
                             {% endif %}
                         </div>
                         <div class="text-sm text-neutral-500">{{ post.location_name }}</div>
@@ -74,24 +63,37 @@
                         {% endif %}
                     </div>
                     <div class="flex text-neutral-600 items-center gap-4">
-                        <div class="flex gap-1 items-center">
-                            {{ post.likes_count }}
-                            <i data-lucide="heart" class="w-5 h-5 shrink-0"></i>
-                        </div>
-                        <div class="flex gap-1 items-center">
-                            {{ post.comments_count }}
+                        <button class="cursor-pointer like-btn flex gap-1 items-center" data-post-id="{{ post.id }}">
+                            <span class="likes-count">{{ post.likes_count }}</span>
+                            <i data-lucide="heart" class="w-5 h-5 shrink-0 {% if post.has_liked %}text-red-500 fill-current{% endif %}"></i>
+                        </button>
+                        <button class="comment-btn flex gap-1 items-center" data-post-id="{{ post.id }}">
+                            <span class="comments-count">{{ post.comments_count }}</span>
                             <i data-lucide="message-circle" class="w-5 h-5 shrink-0"></i>
-                        </div>
+                        </button>
                         <i data-lucide="share" class="w-5 h-5 shrink-0"></i>
                     </div>
                 </div>
+            </div>
+        </div>
+        <div id="comment-section-{{ post.id }}" class="hidden mt-4">
+            <div class="space-y-2" id="comment-list-{{ post.id }}">
+                <!-- Comments will be loaded here -->
+            </div>
+            <div class="mt-4">
+                <form class="add-comment-form" data-post-id="{{ post.id }}">
+                    <div class="flex gap-2">
+                        <input type="text" name="comment_text" class="input input-bordered w-full" placeholder="Add a comment...">
+                        <button type="submit" class="btn btn-primary">Post</button>
+                    </div>
+                </form>
             </div>
         </div>
         {% else %}
         {# Layout for posts WITHOUT an image (Single Column) #}
         <div>
             <div class="flex items-center gap-3">
-                <div class="avatar">
+                <a href="{% url 'profile_module:profile_detail' username=post.user.username %}" class="avatar">
                     <div class="w-12 rounded-full">
                         {% if post.author_avatar_url %}
                         <img src="{{ post.author_avatar_url }}" alt="{{ post.author_display_name }}" />
@@ -101,10 +103,10 @@
                         </div>
                         {% endif %}
                     </div>
-                </div>
+                </a>
                 <div>
                     <div class="flex items-center gap-2">
-                        <span class="font-bold text-lg">{{ post.author_display_name|default:post.user.username }}</span>
+                        <a href="{% url 'profile_module:profile_detail' username=post.user.username %}" class="font-bold text-lg hover:underline">{{ post.author_display_name|default:post.user.username }}</a>
                         <span class="text-neutral-500">@{{ post.user.username }}</span>
                         {% if post.author_badges_url %}
                             {% for badge_url in post.author_badges_url|split:"," %}
@@ -133,16 +135,29 @@
                     {% endif %}
                 </div>
                 <div class="flex text-neutral-600 items-center gap-4">
-                    <div class="flex gap-1 items-center">
-                        {{ post.likes_count }}
-                        <i data-lucide="heart" class="w-5 h-5 shrink-0"></i>
-                    </div>
-                    <div class="flex gap-1 items-center">
-                        {{ post.comments_count }}
+                    <button class="like-btn flex gap-1 items-center" data-post-id="{{ post.id }}">
+                        <span class="likes-count">{{ post.likes_count }}</span>
+                        <i data-lucide="heart" class="w-5 h-5 shrink-0 {% if post.has_liked %}text-red-500 fill-current{% endif %}"></i>
+                    </button>
+                    <button class="comment-btn flex gap-1 items-center" data-post-id="{{ post.id }}">
+                        <span class="comments-count">{{ post.comments_count }}</span>
                         <i data-lucide="message-circle" class="w-5 h-5 shrink-0"></i>
-                    </div>
+                    </button>
                     <i data-lucide="share" class="w-5 h-5 shrink-0"></i>
                 </div>
+            </div>
+        </div>
+        <div id="comment-section-{{ post.id }}" class="hidden mt-4">
+            <div class="space-y-2" id="comment-list-{{ post.id }}">
+                <!-- Comments will be loaded here -->
+            </div>
+            <div class="mt-4">
+                <form class="add-comment-form" data-post-id="{{ post.id }}">
+                    <div class="flex gap-2">
+                        <input type="text" name="comment_text" class="input input-bordered w-full" placeholder="Add a comment...">
+                        <button type="submit" class="btn btn-primary">Post</button>
+                    </div>
+                </form>
             </div>
         </div>
         {% endif %}

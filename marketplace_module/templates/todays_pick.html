@@ -1,170 +1,542 @@
-  {% extends 'base_marketplace.html' %}
-  {% load static currency %}
+{% extends 'base_marketplace.html' %}
+{% load static currency %}
 
-  {% block marketplace_content %}
+{% block marketplace_content %}
 
-  <h1 class="text-2xl sm:text-3xl font-semibold tracking-tight mb-6">Today's Pick</h1>
+<h1 class="text-2xl sm:text-3xl font-semibold tracking-tight mb-6">Today's Pick</h1>
 
-  <script id="mp-config" type="application/json">
+<script id="mp-config" type="application/json">
     {{ page_config_json|safe }}
   </script>
 
-  <meta name="csrf-token" content="{{ csrf_token }}">
+<meta name="csrf-token" content="{{ csrf_token }}">
 
-  <!-- FILTER BAR -->
-  <div
-    class="flex flex-col sm:flex-row sm:items-center mb-8 bg-white rounded-lg border border-gray-200 p-4 gap-3 sm:gap-4">
+<!-- FILTER BAR -->
+<div
+  class="flex flex-col sm:flex-row sm:items-center mb-6 sm:mb-8 bg-white rounded-lg border border-gray-200 p-3 sm:p-4 gap-2 sm:gap-4">
 
-    {% if user.is_authenticated %}
-    <!-- Create Product -->
-    <button id="open-create-modal" type="button"
-      class="order-1 btn btn-primary bg-lime-500 border-lime-500 hover:bg-lime-600 hover:border-lime-600 text-white"
-      onclick="showListingModal()">
-      <i data-lucide="plus" class="w-4 h-4"></i>
-      <span class="hidden xs:inline">Create Product</span>
-    </button>
-    {% endif %}
+  {% if user.is_authenticated %}
+  <!-- Create Product -->
+  <button id="open-create-modal" type="button"
+    class="order-1 btn btn-primary bg-lime-500 border-lime-500 hover:bg-lime-600 hover:border-lime-600 text-white"
+    onclick="showListingModal()">
+    <i data-lucide="plus" class="w-4 h-4"></i>
+    <span class="hidden xs:inline">Create Product</span>
+  </button>
+  {% endif %}
 
 
-    <!-- search -->
-    <label
-      class="order-2 input input-sm sm:input-md input-bordered flex items-center gap-2 w-full sm:w-72 md:w-[28rem] flex-1">
-      <svg class="h-[1em] opacity-50 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-        <g stroke-linejoin="round" stroke-linecap="round" stroke-width="2.5" fill="none" stroke="currentColor">
-          <circle cx="11" cy="11" r="8"></circle>
-          <path d="m21 21-4.3-4.3"></path>
-        </g>
-      </svg>
-      <input id="input-search" type="search" class="grow" required placeholder="Search" />
-    </label>
+  <!-- search -->
+  <label
+    class="order-2 input input-sm sm:input-md input-bordered flex items-center gap-2 w-full sm:w-72 md:w-[28rem] flex-1">
+    <svg class="h-[1em] opacity-50 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+      <g stroke-linejoin="round" stroke-linecap="round" stroke-width="2.5" fill="none" stroke="currentColor">
+        <circle cx="11" cy="11" r="8"></circle>
+        <path d="m21 21-4.3-4.3"></path>
+      </g>
+    </svg>
+    <input id="input-search" type="search" class="grow" required placeholder="Search" />
+  </label>
 
-    <!-- filter button chip -->
-    <div class="order-3 w-full sm:w-auto overflow-x-auto">
-      <div class="join whitespace-nowrap">
-        <button id="chip-all" type="button"
-          class="btn btn-sm join-item text-neutral-900 bg-base-200 border-base-200 hover:bg-base-300 active:bg-base-400">
-          All
-        </button>
-        <button id="chip-new" type="button"
-          class="btn btn-sm join-item text-neutral-900 bg-[#A3E635] border-[#A3E635] hover:bg-[#8FD542] active:bg-[#7BC536]">
-          Brand New
-        </button>
-        <button id="chip-used" type="button"
-          class="btn btn-sm join-item text-neutral-900 bg-[#FB923C] border-[#FB923C] hover:bg-[#FFA24F] active:bg-[#F78E2D]">
-          Used
-        </button>
-      </div>
+  <!-- filter button chip -->
+  <div class="order-3 w-full sm:w-auto -mx-2 px-2 overflow-x-auto">
+    <div class="join whitespace-nowrap [&>button]:shrink-0">
+      <button id="chip-all" type="button"
+        class="btn btn-sm join-item text-neutral-900 bg-base-200 border-base-200 hover:bg-base-300 active:bg-base-400">
+        All
+      </button>
+      <button id="chip-new" type="button"
+        class="btn btn-sm join-item text-neutral-900 bg-[#A3E635] border-[#A3E635] hover:bg-[#8FD542] active:bg-[#7BC536]">
+        Brand New
+      </button>
+      <button id="chip-used" type="button"
+        class="btn btn-sm join-item text-neutral-900 bg-[#FB923C] border-[#FB923C] hover:bg-[#FFA24F] active:bg-[#F78E2D]">
+        Used
+      </button>
     </div>
-
-    {% if user.is_authenticated %}
-    <!-- wishlist -->
-    <a href="{% url 'marketplace_module:wishlist_page' %}"
-      class="order-4 btn bg-[#FFEEF0] border-[#FFEEF0] text-rose-600 hover:bg-[#FFE3E7] hover:border-[#FFE3E7]">
-      <i data-lucide="heart" class="w-4 h-4"></i>
-      <span class="hidden xs:inline">Wishlist</span>
-    </a>
-    {% endif %}
-
-    <!-- refresh -->
-    <button id="btn-refresh" class="order-5 btn btn-xs sm:btn-sm sm:ml-auto">
-      <span class="hidden sm:inline">Refresh</span>
-      <i data-lucide="refresh-ccw" class="w-4 h-4 sm:ml-1"></i>
-    </button>
   </div>
 
-  <!-- states -->
-  <div id="loading" class="bg-base-100 rounded-lg border border-base-200 p-10 text-center hidden">
-    <span class="loading loading-spinner loading-md"></span>
-    <p class="mt-3 text-base-content/70">Loading listings…</p>
-  </div>
-  <div id="error" class="bg-base-100 rounded-lg border border-error p-6 text-center hidden">
-    <p class="text-error font-semibold">Failed to load data. Please try again.</p>
-  </div>
-  <div id="empty" class="bg-base-100 rounded-lg border border-base-200 p-10 text-center hidden">
-    <p class="text-base-content/70">No listings found.</p>
-  </div>
+  {% if user.is_authenticated %}
+  <!-- wishlist -->
+  <a href="{% url 'marketplace_module:wishlist_page' %}"
+    class="order-4 btn bg-[#FFEEF0] border-[#FFEEF0] text-rose-600 hover:bg-[#FFE3E7] hover:border-[#FFE3E7]">
+    <i data-lucide="heart" class="w-4 h-4"></i>
+    <span class="hidden xs:inline">Wishlist</span>
+  </a>
+  {% endif %}
 
-  <!-- grid -->
-  <div id="grid" class="grid grid-cols-1 xs:grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 px-2 sm:px-0 hidden"></div>
+  <!-- refresh -->
+  <button id="btn-refresh" class="order-5 btn btn-xs sm:btn-sm sm:ml-auto">
+    <span class="hidden sm:inline">Refresh</span>
+    <i data-lucide="refresh-ccw" class="w-4 h-4 sm:ml-1"></i>
+  </button>
+</div>
 
+<!-- states -->
+<div id="loading" class="bg-base-100 rounded-lg border border-base-200 p-10 text-center hidden">
+  <span class="loading loading-spinner loading-md"></span>
+  <p class="mt-3 text-base-content/70">Loading listings…</p>
+</div>
+<div id="error" class="bg-base-100 rounded-lg border border-error p-6 text-center hidden">
+  <p class="text-error font-semibold">Failed to load data. Please try again.</p>
+</div>
+<div id="empty" class="bg-base-100 rounded-lg border border-base-200 p-10 text-center hidden">
+  <p class="text-base-content/70">No listings found.</p>
+</div>
 
-  <script>
-    (function () {
-      'use strict';
-    
-      const CONFIG = JSON.parse(document.getElementById('mp-config').textContent || '{}');
-      const API_URL = CONFIG.apiListings;
-      const DETAIL_PATTERN = CONFIG.detailUrlPattern;
-    
-      const els = {
-        grid: document.getElementById('grid'),
-        loading: document.getElementById('loading'),
-        error: document.getElementById('error'),
-        empty: document.getElementById('empty'),
-      };
-    
-      function show({loading=false, error=false, empty=false, grid=false}) {
-        els.loading.classList.toggle('hidden', !loading);
-        els.error.classList.toggle('hidden', !error);
-        els.empty.classList.toggle('hidden', !empty);
-        els.grid.classList.toggle('hidden', !grid);
-      }
-    
-      function cardHtml(o) {
-        const id = String(o.id);
-        const f  = o.fields || {};
-        const detailUrl = DETAIL_PATTERN.replace('00000000-0000-0000-0000-000000000000', id);
-        const title = f.title || '';
-        const img   = f.image_url || '';
-        const price = new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(Number(f.price||0));
-        const cond  = f.condition === 'BRAND_NEW' ? 'Brand New' : 'Used';
-        const chipCls = f.condition === 'BRAND_NEW' ? 'bg-lime-400 text-[#3F6212]' : 'bg-orange-300 text-[#7C2D12]';
-    
-        return `
-          <article class="card border rounded-[16px] overflow-hidden">
-            <a href="${detailUrl}" class="block">
-              <img src="${img}" alt="${title}" class="w-full h-[220px] object-cover" loading="lazy">
-            </a>
-            <div class="p-4">
-              <p class="font-semibold">${price}</p>
-              <div class="flex justify-between items-center mt-1">
-                <h2 class="font-semibold line-clamp-1">${title}</h2>
-                <span class="px-2 py-0.5 text-xs rounded-full ${chipCls}">${cond}</span>
-              </div>
-            </div>
-          </article>
+<!-- grid -->
+<div id="grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 px-2 sm:px-0 hidden"></div>
+
+{% comment %} {% include "listing_modal.html" %} {% endcomment %}
+<script>
+  function getCSRFToken() {
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    if (meta && meta.content && meta.content !== 'NOTPROVIDED') return meta.content;
+    const m = document.cookie.match(/(?:^|;)\s*csrftoken=([^;]+)/);
+    return m ? decodeURIComponent(m[1]) : '';
+  }
+  (function () {
+    'use strict';
+
+    const CONFIG = JSON.parse(document.getElementById('mp-config').textContent || '{}');
+    const API_URL = CONFIG.apiListings;
+    const DETAIL_PATTERN = CONFIG.detailUrlPattern;
+    const IS_AUTHENTICATED = CONFIG.isAuthenticated || false;
+    const CURRENT_USER_ID = CONFIG.currentUserId || null;
+    const WL_IDS_URL = CONFIG.wishlistIdsUrl || null;
+    const WL_TOGGLE_URL = CONFIG.wishlistToggleUrl || null;
+
+    const els = {
+      grid: document.getElementById('grid'),
+      loading: document.getElementById('loading'),
+      error: document.getElementById('error'),
+      empty: document.getElementById('empty'),
+      chipAll: document.getElementById('chip-all'),
+      chipNew: document.getElementById('chip-new'),
+      chipUsed: document.getElementById('chip-used'),
+      searchInput: document.getElementById('input-search'),
+      refreshBtn: document.getElementById('btn-refresh'),
+    };
+
+    // state
+    let activeCondition = '';
+    let wishlistSet = new Set();
+    let wishlistLoaded = false;
+    let currentFetchController = null;
+
+    // cache flat items for edit modal
+    window.MP_LISTINGS = new Map();
+
+    function showSection({ loading = false, error = false, empty = false, grid = false }) {
+      els.loading.classList.toggle('hidden', !loading);
+      els.error.classList.toggle('hidden', !error);
+      els.empty.classList.toggle('hidden', !empty);
+      els.grid.classList.toggle('hidden', !grid);
+    }
+
+    function setActiveChip(condition) {
+      activeCondition = condition;
+      [els.chipAll, els.chipNew, els.chipUsed].forEach(b => b?.classList.remove('btn-active'));
+      if (!condition) els.chipAll?.classList.add('btn-active');
+      else if (condition === 'BRAND_NEW') els.chipNew?.classList.add('btn-active');
+      else if (condition === 'USED') els.chipUsed?.classList.add('btn-active');
+    }
+    function debounce(fn, ms = 300) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); } }
+
+    function formatIDR(price) {
+      return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 })
+        .format(Number(price || 0));
+    }
+    function escapeHtml(text) { const d = document.createElement('div'); d.textContent = text ?? ''; return d.innerHTML; }
+    const getConditionLabel = c => c === 'BRAND_NEW' ? 'Brand New' : 'Used';
+    const getConditionClasses = c => c === 'BRAND_NEW' ? 'bg-lime-400 text-[#3F6212]' : 'bg-orange-300 text-[#7C2D12]';
+
+    // wishlist id for hearts
+    async function ensureWishlistLoaded() {
+      if (!IS_AUTHENTICATED || wishlistLoaded || !WL_IDS_URL) return;
+      try {
+        const r = await fetch(WL_IDS_URL, { headers: { 'Accept': 'application/json' } });
+        if (r.ok) {
+          const data = await r.json();
+          const ids = Array.isArray(data) ? data : (data.ids || []);
+          wishlistSet = new Set(ids.map(String));
+          wishlistLoaded = true;
+        }
+      } catch { }
+    }
+    function paintWishlistHearts() {
+      if (!IS_AUTHENTICATED) return;
+      els.grid.querySelectorAll('.wishlist-btn').forEach(btn => {
+        const id = String(btn.dataset.id || '');
+        const active = wishlistSet.has(id);
+        btn.classList.toggle('text-rose-500', active);
+        btn.classList.toggle('text-base-content/40', !active);
+        btn.setAttribute('aria-pressed', String(active));
+      });
+    }
+
+    // card template
+    function cardHtml(item) {
+      const id = String(item.id);
+      const title = item.title || '';
+      const safeTitle = escapeHtml(title);
+      const img = item.image_url || '';
+      const location = IS_AUTHENTICATED ? (item.location || '') : 'Login to view';
+      const detailUrl = DETAIL_PATTERN.replace('00000000-0000-0000-0000-000000000000', id);
+      const ownerField = item.owner_id ?? item.owner ?? item.user ?? null;
+      const IS_OWNER = IS_AUTHENTICATED && CURRENT_USER_ID != null && String(ownerField) === String(CURRENT_USER_ID);
+
+      let buttonSection = `
+        <div class="mt-3 flex flex-col gap-2 z-20 relative pointer-events-auto">
+          <a href="${detailUrl}"
+             class="btn w-full bg-lime-500 border-lime-500 hover:bg-lime-600 hover:border-lime-600 text-white">
+            View Details
+          </a>
+        </div>
+      `;
+      if (IS_OWNER) {
+        buttonSection = `
+          <div class="mt-3 flex flex-col sm:flex-row gap-2">
+            <button type="button"
+                    class="btn flex-1 border-gray-300 text-gray-700 hover:bg-gray-50 edit-btn"
+                    data-id="${id}">
+              Edit
+            </button>
+            <button type="button"
+                    class="btn flex-1 bg-rose-500 border-rose-500 hover:bg-rose-600 hover:border-rose-600 text-white delete-btn"
+                    data-id="${id}">
+              Delete
+            </button>
+          </div>
         `;
       }
-    
-      async function fetchAndRender() {
-        try {
-          show({loading:true});
-          const r = await fetch(API_URL, {headers:{'Accept':'application/json'}, cache:'no-store'});
-          if (!r.ok) throw new Error('Bad response');
-          const raw = await r.json(); // Django serializer returns array
-          const data = Array.isArray(raw) ? raw.map(item => ({ id: item.pk, fields: item.fields })) : [];
-          els.grid.innerHTML = data.map(cardHtml).join('');
-          if (data.length === 0) show({empty:true}); else show({grid:true});
-          try {
-            if (window.lucide && typeof window.lucide.createIcons === 'function') {
-              window.lucide.createIcons();
-            }
-          } catch (err) {
-            console.warn('Lucide init failed:', err);
+
+      const isSaved = wishlistSet.has(id);
+
+      return `
+        <article class="relative card bg-base-100 border border-base-300/60 shadow-sm
+               hover:shadow-md hover:ring-2 hover:ring-[#A3E635] hover:border-[#A3E635]/60 hover:bg-lime-50
+               transition-all duration-300 overflow-hidden rounded-[16px] w-full max-w-[422px] mx-auto"
+               style="min-height:auto;"> 
+
+          <figure class="h-[180px] sm:h-[260px] lg:h-[320px] overflow-hidden">
+            <a href="${detailUrl}" aria-label="Open ${safeTitle}">
+              <img src="${img}" alt="${safeTitle}" class="w-full h-full object-cover" loading="lazy" decoding="async"/>
+            </a>
+          </figure>
+
+          <div class="absolute top-3 right-3 z-20">
+            <button type="button"
+                    class="wishlist-btn grid place-items-center w-9 h-9 rounded-full bg-white/90 shadow ring-1 ring-black/5
+                           ${isSaved ? 'text-rose-500' : 'text-base-content/40 hover:text-rose-500'}"
+                    aria-pressed="${isSaved}" title="Save" data-id="${id}">
+              <svg viewBox="0 0 28 28" class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M14 24.9083L12.3083 23.3683C6.3 17.92 2.33333 14.315 2.33333 9.91667C2.33333 6.31167 5.15666 3.5 8.74999 3.5C10.78 3.5 12.7283 4.445 14 5.92667C15.2717 4.445 17.22 3.5 19.25 3.5C22.8433 3.5 25.6667 6.31167 25.6667 9.91667C25.6667 14.315 21.7 17.92 15.6917 23.3683L14 24.9083Z" fill="currentColor"/>
+              </svg>
+            </button>
+          </div>
+
+          <div class="p-3 sm:p-5">
+            <p class="text-[15px] sm:text-lg font-semibold mb-1">${formatIDR(item.price)}</p>
+
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+              <h2 class="text-[15px] sm:text-[20px] leading-5 sm:leading-[18px] font-semibold line-clamp-1">${safeTitle}</h2>
+              <span class="px-2.5 py-0.5 text-[11px] sm:text-[14px] leading-[18px] sm:leading-[20px] font-semibold rounded-full ${getConditionClasses(item.condition)}">
+                ${getConditionLabel(item.condition)}
+              </span>
+            </div>
+
+            <div class="mt-1.5 sm:mt-2 text-xs sm:text-sm text-base-content/70 flex items-center gap-1.5">
+              <i data-lucide="map-pin" class="w-4 h-4 sm:w-4 sm:h-4"></i>
+              <span class="truncate">${escapeHtml(location)}</span>
+            </div>
+
+            ${buttonSection}
+          </div>
+        </article>
+      `;
+    }
+
+    // fill form fields
+    function setFirstValue(selectors, value) {
+      for (const sel of selectors) {
+        const el = document.querySelector(sel);
+        if (!el) continue;
+
+        const tag = (el.tagName || '').toLowerCase();
+        if (tag === 'select') {
+          el.value = value ?? '';
+          if (!Array.from(el.options).some(o => o.value == el.value)) {
+            const tryVal = String(value ?? '').toUpperCase();
+            const opt = Array.from(el.options).find(o => o.value.toUpperCase() === tryVal);
+            if (opt) el.value = opt.value;
           }
-        } catch (e) {
-          console.error('Failed to load listings:', e);
-          show({error:true});
+          el.dispatchEvent(new Event('change'));
+        } else if (el.type === 'checkbox' || el.type === 'radio') {
+          el.checked = Boolean(value);
+          el.dispatchEvent(new Event('change'));
+        } else if (el.type !== 'file') {
+          el.value = value ?? '';
+          el.dispatchEvent(new Event('input'));
+          el.dispatchEvent(new Event('change'));
         }
+        return true;
       }
+      return false;
+    }
+
+    function fillListingForm(item = {}) {
+      const map = {
+        title: ['#id_title', '#title', '[name="title"]'],
+        description: ['#id_description', '#description', '[name="description"]', 'textarea[name="description"]'],
+        price: ['#id_price', '#price', '[name="price"]'],
+        condition: ['#id_condition', '#condition', '[name="condition"]'],
+        location: ['#id_location', '#location', '[name="location"]'],
+        image_url: ['#id_image_url', '#image_url', '[name="image_url"]', '[name="image"]']
+      };
+
+      // set values
+      setFirstValue(map.title, item.title);
+      setFirstValue(map.description, item.description);
+      setFirstValue(map.price, item.price);
+      setFirstValue(map.condition, item.condition || 'USED');
+      setFirstValue(map.location, item.location);
+      setFirstValue(map.image_url, item.image_url);
+
+      const preview = document.querySelector('#image_preview');
+      if (preview) preview.src = item.image_url || '';
+    }
+
+    async function waitForListingForm(timeout = 1500) {
+      const start = performance.now();
+      while (performance.now() - start < timeout) {
+        const form = document.querySelector('#listingForm');
+        if (form && (form.querySelector('input,textarea,select'))) return form;
+        await new Promise(r => requestAnimationFrame(r));
+      }
+      return null;
+    }
+
+    // wishlist
+    function setupWishlistListeners() {
+      els.grid.addEventListener('click', async (e) => {
+        const btn = e.target.closest('.wishlist-btn');
+        if (!btn) return;
+        e.stopPropagation();
+
+        if (!IS_AUTHENTICATED || !WL_TOGGLE_URL) {
+          window.showToast && showToast('Please log in to use wishlist', '', 'error');
+          return;
+        }
+        const id = String(btn.dataset.id);
+
+        try {
+          const fd = new FormData();
+          fd.append('listing_id', id);
+          const r = await fetch(WL_TOGGLE_URL, {
+            method: 'POST',
+            body: fd,
+            headers: { 'X-CSRFToken': getCSRFToken() }
+          });
+          if (!r.ok) throw new Error('toggle failed');
+          const payload = await r.json();
+
+          if (payload.status === 'added') {
+            wishlistSet.add(id);
+            window.showToast && showToast('Saved to wishlist', '', 'success');
+          } else if (payload.status === 'removed') {
+            wishlistSet.delete(id);
+            window.showToast && showToast('Removed from wishlist', '', 'normal');
+          }
+          paintWishlistHearts();
+        } catch (err) {
+          console.error(err);
+          window.showToast && showToast('Wishlist error', 'Please try again', 'error');
+        }
+      }, { passive: true });
+    }
+
+    async function fetchAndRender(showToastOnDone = false) {
+      try {
+        showSection({ loading: true });
+
+        if (currentFetchController) currentFetchController.abort();
+        currentFetchController = new AbortController();
+
+        await ensureWishlistLoaded();
+
+        const params = new URLSearchParams();
+        if (activeCondition) params.set('condition', activeCondition);
+        const q = (els.searchInput?.value || '').trim();
+        if (q) params.set('q', q);
+
+        const r = await fetch(`${API_URL}?${params.toString()}`, {
+          headers: { 'Accept': 'application/json' },
+          signal: currentFetchController.signal,
+          cache: 'no-store',
+        });
+        if (!r.ok) throw new Error('Bad response');
+        const raw = await r.json();
+
+        // normalize data
+        const data = Array.isArray(raw)
+          ? raw.map(x => {
+            const id = (x?.fields?.id ?? x.pk);
+            return { id, ...(x.fields || {}) };
+          })
+          : [];
+
+        // cache for edit modal
+        window.MP_LISTINGS = new Map(data.map(it => [String(it.id), it]));
+
+        els.grid.innerHTML = data.length ? data.map(cardHtml).join('') : '';
+
+        // create lucide icons 
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+          window.lucide.createIcons();
+        }
+
+        if (!data.length) showSection({ empty: true }); else {
+          paintWishlistHearts();
+          showSection({ grid: true });
+        }
+        if (showToastOnDone && window.showToast) showToast('Refreshed');
+      } catch (err) {
+        if (err.name === 'AbortError') return;
+        console.error('Failed to fetch listings:', err);
+        showSection({ error: true });
+      } finally {
+        currentFetchController = null;
+      }
+    }
+
+    // buttons and inputs
+    function setupEventListeners() {
+      const runWithDisable = (btn, fn) => {
+        if (!btn) return fn();
+        btn.disabled = true;
+        return Promise.resolve(fn()).finally(() => { btn.disabled = false; });
+      };
+
+      els.chipAll?.addEventListener('click', () => {
+        setActiveChip('');
+        runWithDisable(els.chipAll, () => fetchAndRender(true));
+      });
+      els.chipNew?.addEventListener('click', () => {
+        setActiveChip('BRAND_NEW');
+        runWithDisable(els.chipNew, () => fetchAndRender(true));
+      });
+      els.chipUsed?.addEventListener('click', () => {
+        setActiveChip('USED');
+        runWithDisable(els.chipUsed, () => fetchAndRender(true));
+      });
+
+      els.searchInput?.addEventListener('input', debounce(() => fetchAndRender(), 250));
+      els.refreshBtn?.addEventListener('click', () => fetchAndRender(true));
+    }
+
+    els.grid.addEventListener('click', async (e) => {
+      const btn = e.target.closest('.edit-btn');
+      if (!btn) return;
+
+      const id = String(btn.dataset.id);
+      const item = window.MP_LISTINGS.get(id);
+      if (!item) { alert('Failed to load data'); return; }
+
+      if (window.showListingModal) showListingModal();
+      else document.getElementById('listingModal')?.showModal();
+
+      // Wait for the form to be mounted
+      const form = await waitForListingForm(2000);
+      if (!form) { alert('Form not ready'); return; }
+
+      // edit mode
+      form.dataset.mode = 'edit';
+      form.dataset.id = id;
+
+      // fill form
+      fillListingForm(item);
+
+      // modal title and button
+      const titleEl = document.querySelector('#listingModalTitle');
+      if (titleEl) titleEl.textContent = 'Edit Product';
+      const saveBtn = document.querySelector('#modalSaveBtn'); // Fix this selector
+      if (saveBtn) saveBtn.textContent = 'Save Changes';
+    });
+
+    const openCreate = document.getElementById('open-create-modal');
+    if (openCreate) {
+      openCreate.addEventListener('click', () => {
+        // clear form
+        fillListingForm({
+          condition: 'USED'
+        });
+        const form = document.querySelector('#listingForm');
+        if (form) {
+          delete form.dataset.mode;
+          delete form.dataset.id;
+        }
+        const titleEl = document.querySelector('#listingModalTitle');
+        if (titleEl) titleEl.textContent = 'Create Product';
+        const saveBtn = document.querySelector('#modalSaveBtn');
+        if (saveBtn) saveBtn.textContent = 'Publish'; // Add this line back
+
+        if (window.showListingModal) showListingModal();
+        else document.getElementById('listingModal')?.showModal();
+      });
+    }
+
+    // delete
+    els.grid.addEventListener('click', async (e) => {
+      const btn = e.target.closest('.delete-btn');
+      if (!btn) return;
+
+      const id = String(btn.dataset.id);
+      if (!confirm('Are you sure you want to delete this listing?')) return;
+
+      try {
+        const res = await fetch(`/marketplace/listing/${id}/delete-ajax/`, {
+          method: 'POST',
+          headers: { 'X-CSRFToken': getCSRFToken() },
+        });
+        const data = await res.json();
+        if (data.status === 'deleted') {
+          const card = btn.closest('.card');
+          if (card) {
+            card.classList.add('opacity-0', 'scale-95', 'transition-all', 'duration-300');
+            setTimeout(() => card.remove(), 200);
+          }
+        } else {
+          alert('Failed to delete listing');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Error deleting listing');
+      }
+    });
+
+    document.addEventListener('listing:created', () => {
+      console.log('Listing created - refreshing');
+      fetchAndRender(true);
+    });
     
-      // refresh ketika ada event dari modal
-      document.addEventListener('listing:created', fetchAndRender);
-      document.addEventListener('listing:updated', fetchAndRender);
-    
-      // init
+    document.addEventListener('listing:updated', () => {
+      console.log('Listing updated - refreshing');
+      fetchAndRender(true);
+    });
+    setupWishlistListeners();
+
+
+
+
+    // init
+    (function init() {
+      setupEventListeners();
+      setActiveChip('');
       fetchAndRender();
     })();
-  </script>
-    
-  {% endblock %}
+
+
+  })();
+</script>
+{% endblock %}

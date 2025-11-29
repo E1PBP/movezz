@@ -13,8 +13,10 @@
         <img src="{{ profile.avatar_url.url }}" alt="{{ profile.display_name|default:page_user.username }}"
              class="w-28 h-28 rounded-full object-cover" />
       {% else %}
-        <div class="w-28 h-28 rounded-full bg-primary text-primary-content flex items-center justify-center">
-          <span class="text-2xl font-bold">{{ profile.display_name|default:page_user.username|first|upper }}</span>
+        <div class="w-28 h-28 rounded-full bg-indigo-600 text-white flex items-center justify-center">
+          <span class="text-3xl font-bold">
+            {{ profile.display_name|default:page_user.username|slice:":1"|upper }}
+          </span>
         </div>
       {% endif %}
     </div>
@@ -138,20 +140,29 @@
 
   {% if active_tab == "broadcasts" %}
     <!-- BROADCASTS LIST -->
-    <section class="mt-6 space-y-4" id="broadcasts-list">
-      {% for bc in broadcasts %}
-        {% include 'components/broadcast_card.html' with event=bc %}
-      {% empty %}
-        <p class="text-base-content/60">Belum ada broadcast.</p>
-      {% endfor %}
+    <section class="mt-4 space-y-4" id="broadcasts-list">
+      {% include 'components/broadcast_item.html' %}
     </section>
+    
   {% else %}
     <!-- POSTS GRID -->
     <section id="posts-grid" class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {% for post in posts %}
         <div class="rounded overflow-hidden bg-base-100 shadow-sm">
           <a href="{% url 'profile_module:post_detail' username=page_user.username pk=post.id %}" class="block w-full h-48 overflow-hidden">
-            <img src="{{ post.image_url|default:default_avatar }}" alt="{{ post.alt_text|default:'post' }}" class="w-full h-full object-cover"/>
+            {% if post.images.first %}
+              <img
+                src="{{ post.images.first.image.url }}"
+                alt="{{ post.caption|default:'post' }}"
+                class="w-full h-full object-cover"
+              />
+            {% else %}
+              <img
+                src="{% static 'images/logo.svg' %}"
+                alt="post"
+                class="w-full h-full object-cover"
+              />
+            {% endif %}
           </a>
         </div>
       {% empty %}

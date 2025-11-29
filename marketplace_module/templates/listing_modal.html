@@ -109,25 +109,34 @@
     const form = document.getElementById('listingForm');
     if (!form) return;
 
+    let isSubmitting = false; // Add this missing variable
+
     form.addEventListener('submit', async function(e){
       e.preventDefault();
-
-      // validasi sederhana harga
-      const price = Number((new FormData(form)).get('price') || 0);
-      if (Number.isNaN(price) || price < 0) {
-        if (window.showToast) showToast('Price must be a non-negative number', '', 'error');
+      
+      if (isSubmitting) {
+        console.log('Form already submitting, ignoring...');
         return;
       }
-
-      const mode = form.dataset.mode === 'edit' ? 'edit' : 'create';
-      const id   = form.dataset.id;
-      const csrf = __getCSRFToken();
-
-      const url = mode === 'edit'
-        ? `/marketplace/listing/${id}/edit-ajax/`
-        : `{% url 'marketplace_module:add_listing_entry_ajax' %}`;
+      
+      isSubmitting = true;
 
       try {
+        // validasi sederhana harga 
+        const price = Number((new FormData(form)).get('price') || 0);
+        if (Number.isNaN(price) || price < 0) {
+          if (window.showToast) showToast('Price must be a non-negative number', '', 'error');
+          return;
+        }
+
+        const mode = form.dataset.mode === 'edit' ? 'edit' : 'create';
+        const id   = form.dataset.id;
+        const csrf = __getCSRFToken();
+
+        const url = mode === 'edit'
+          ? `/marketplace/listing/${id}/edit-ajax/`
+          : `{% url 'marketplace_module:add_listing_entry_ajax' %}`;
+
         const res = await fetch(url, {
           method: "POST",
           headers: { "X-CSRFToken": csrf, "Accept": "application/json" },
@@ -146,6 +155,12 @@
           form.reset();
           hideListingModal();
           if (window.showToast) showToast('Product created!', '', 'success', 2500);
+          
+          // Clear form state
+          delete form.dataset.mode;
+          delete form.dataset.id;
+          
+          // Dispatch single event
           document.dispatchEvent(new CustomEvent('listing:created', { detail: data }));
           return;
         }
@@ -153,6 +168,12 @@
         if (mode === 'edit' && data.status === 'updated') {
           hideListingModal();
           if (window.showToast) showToast('Listing updated', '', 'success', 2500);
+          
+          // Clear form state
+          delete form.dataset.mode;
+          delete form.dataset.id;
+          
+          // Dispatch single event
           document.dispatchEvent(new CustomEvent('listing:updated', { detail: data }));
           return;
         }
@@ -164,6 +185,8 @@
       } catch (err) {
         console.error('Listing submit error:', err);
         if (window.showToast) showToast('Network error', 'Please try again', 'error');
+      } finally {
+        isSubmitting = false; // Reset flag in finally block
       }
     });
   })();

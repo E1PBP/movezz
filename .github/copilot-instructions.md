@@ -6,7 +6,7 @@ It consists of multiple Django apps (modules) that handle different social featu
 The project emphasizes:
 
 - **Modular Django architecture**
-- **Clean, readable, and maintainable code**
+- **Clean, readable, and  maintainable code**
 - **Consistency across modules**
 
 ---
