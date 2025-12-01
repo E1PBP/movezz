@@ -378,13 +378,18 @@ def start_chat_api(request, username):
 @login_required
 def search_users_api(request):
     query = request.GET.get('q', '').strip()
+    user = request.user
+    
     if not query:
-        return JsonResponse({"users": []})
-    users = User.objects.filter(
-        Q(username__icontains=query) | 
-        Q(profile__display_name__icontains=query)
-    ).select_related('profile')
+        users = User.objects.exclude(id=user.id).select_related('profile')
+    else:
+        users = User.objects.filter(
+            Q(username__icontains=query) | 
+            Q(profile__display_name__icontains=query)
+        ).exclude(id=user.id).select_related('profile')
+    
     logger.debug(f"User {request.user.username} is searching users with query '{query}' via API, found {users.count()} users.")
+    
     data = []
     for u in users:
         avatar = None
@@ -399,7 +404,6 @@ def search_users_api(request):
             "avatar_url": avatar,
             "is_verified": getattr(u.profile, 'is_verified', False) if hasattr(u, 'profile') else False
         })
+    
     logger.info(f"User {request.user.username} searched users with query '{query}', found {len(data)} users.")
     return JsonResponse({"users": data})
-
-
