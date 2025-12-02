@@ -78,7 +78,7 @@ def add_listing_entry_ajax(request):
             price=price,
             is_active=True,
         )
-
+        print(listing)
         # <- penting: balas JSON agar script modal paham
         return JsonResponse({"status": "created", "id": str(listing.id)}, status=201)
 
@@ -140,7 +140,7 @@ def wishlist_page(request):
         ),
         "apiWishlistListings": reverse("marketplace_module:wishlist_listings"),
         "apiToggleWishlist": reverse("marketplace_module:wishlist_toggle"),
-    }
+    } 
     return render(
         request,
         "wishlist.html",
@@ -237,6 +237,7 @@ def edit_listing_entry_ajax(request, listing_id):
         return JsonResponse({"status": "updated", "id": str(listing.id)}, status=200)
 
     except Exception as e: 
+        print(  e)
         return JsonResponse({"error": "exception", "message": str(e)}, status=500)
 # delete listing with AJAX
 @csrf_exempt
