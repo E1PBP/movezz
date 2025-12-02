@@ -214,3 +214,25 @@ def create_broadcast_ajax(request):
     )
     return JsonResponse({"ok": True, "id": str(event.id)})
 
+def profile_detail_api(request, username):
+    profile = get_object_or_404(Profile, user__username=username)
+
+    data = {
+        "username": profile.user.username,
+        "display_name": profile.display_name,
+        "bio": profile.bio,
+        "link": profile.link,
+        "avatar_url": profile.avatar_url.url if profile.avatar_url else None,
+        "current_sport": profile.current_sport.name if profile.current_sport else None,
+        "post_count": profile.post_count,
+        "broadcast_count": profile.broadcast_count,
+        "following_count": profile.following_count,
+        "followers_count": profile.followers_count,
+        "is_verified": profile.is_verified,
+        "created_at": profile.created_at.isoformat(),
+        "updated_at": profile.updated_at.isoformat(),
+    }
+
+    return JsonResponse(data, status=200)
+
+
