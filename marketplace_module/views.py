@@ -79,14 +79,18 @@ def add_listing_entry_ajax(request):
             is_active=True,
         )
         print(listing)
-        # <- penting: balas JSON agar script modal paham
         return JsonResponse({"status": "created", "id": str(listing.id)}, status=201)
 
     except Exception as e:
         return JsonResponse({"error": "exception", "message": str(e)}, status=500)
 
+import json
+from django.http import HttpResponse
+from django.core import serializers
+from django.views.decorators.http import require_GET
 
-# get listings
+from .models import Listing
+
 @require_GET
 def get_listings(request):
     VALID_CONDITIONS = ("BRAND_NEW", "USED")
@@ -103,14 +107,24 @@ def get_listings(request):
     if condition_filter in VALID_CONDITIONS:
         listings_queryset = listings_queryset.filter(condition=condition_filter)
 
-    # serialize
+    # serialize 
     serialized_listings = serializers.serialize(
         "json",
         listings_queryset,
         fields=("title", "price", "condition", "location", "image_url", "owner"),
     )
-    
-    return HttpResponse(serialized_listings, content_type="application/json")
+
+    data = json.loads(serialized_listings)
+    user_id = request.user.id if request.user.is_authenticated else None
+
+    for obj in data:
+        owner_id = obj["fields"]["owner"] 
+        obj["isMine"] = bool(user_id is not None and owner_id == user_id)
+
+    return HttpResponse(
+        json.dumps(data),
+        content_type="application/json",
+    )
 
 
 # get listing detail
