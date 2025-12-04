@@ -94,7 +94,7 @@ from .models import Listing
 @require_GET
 def get_listings(request):
     VALID_CONDITIONS = ("BRAND_NEW", "USED")
-    
+    print("GET params:", request.GET)
     listings_queryset = Listing.objects.filter(is_active=True)
 
     # search filter
@@ -111,7 +111,7 @@ def get_listings(request):
     serialized_listings = serializers.serialize(
         "json",
         listings_queryset,
-        fields=("title", "price", "condition", "location", "image_url", "owner"),
+        fields=("title", "price", "condition", "location", "image_url", "owner","description"),
     )
 
     data = json.loads(serialized_listings)
@@ -138,7 +138,7 @@ def get_listing_detail(request, listing_id):
     serialized_listing = serializers.serialize(
         "json",
         listing_queryset,
-        fields=("title", "price", "condition", "location", "image_url", "description"),
+        fields=("title", "price", "condition", "location", "image_url", "description", "owner"),
     )
     
     return HttpResponse(serialized_listing, content_type="application/json")
@@ -183,7 +183,7 @@ def wishlist_listings(request):
     data = serializers.serialize(
         "json",
         qs,
-        fields=("title", "price", "condition", "location", "image_url"),
+        fields=("title", "price", "condition", "location", "image_url", "owner"),
     )
     return HttpResponse(data, content_type="application/json")
 
