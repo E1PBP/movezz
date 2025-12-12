@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .forms import PostForm, PostImageForm
-from .models import Post, PostHashtag, Hashtag, PostLike, Comment
+from .models import Post, PostHashtag, Hashtag, PostLike, Comment, Sport
 from profile_module.models import Follow
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
@@ -50,18 +50,21 @@ def main_view(request):
     return render(request, 'main.html', context)
 
 @csrf_exempt
-@require_POST
 def create_post_ajax(request):
-    if not request.user.is_authenticated:
-        return JsonResponse({
-            'status': 'error',
-            'message': 'User not logged in. Please login again.'
-        }, status=401)
-    
-    form = PostForm(request.POST)
+    data = request.POST.copy()
+    sport_name = data.get('sport') 
+    if sport_name:
+        try:
+            sport_obj = Sport.objects.get(name__iexact=sport_name)
+            data['sport'] = sport_obj.id 
+        except Sport.DoesNotExist:
+            pass
+
+    form = PostForm(data)
     image_form = PostImageForm(request.POST, request.FILES)
 
     if not form.is_valid():
+        print("Form Errors:", form.errors)
         return JsonResponse({'status': 'error', 'errors': form.errors})
 
     post = form.save(commit=False)
@@ -94,10 +97,20 @@ def create_post_ajax(request):
         post.created_at = post.created_at.replace(hour=int(time_h), minute=int(time_m), second=0, microsecond=0)
         post.save()
 
-    if image_form.is_valid() and request.FILES.get('image'):
-        post_image = image_form.save(commit=False)
-        post_image.post = post
-        post_image.save()
+    uploaded_file = request.FILES.get('image')
+    
+    if uploaded_file:
+        print(f"File diterima: {uploaded_file.name}")
+        
+        if image_form.is_valid():
+            post_image = image_form.save(commit=False)
+            post_image.post = post
+            post_image.save()
+            print("Sukses simpan gambar ke Cloudinary/DB")
+        else:
+            print("Gagal Validasi Image:", image_form.errors) 
+    else:
+        print("TIDAK ADA file 'image' yang terbaca di request.FILES")
 
     return JsonResponse({'status': 'success', 'message': 'Post created successfully!'})
 
