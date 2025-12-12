@@ -1,6 +1,6 @@
 from datetime import timedelta
 from typing import List
-
+from django.views.decorators.csrf import csrf_exempt
 from django.apps import apps
 from django.shortcuts import render
 from django.shortcuts import get_object_or_404, redirect, render
@@ -166,6 +166,7 @@ def post_detail(request, username: str, pk):
     }
     return render(request, "post_detail.html", context)
 
+@csrf_exempt
 @require_POST
 @login_required
 def post_update_ajax(request, pk):
@@ -184,7 +185,7 @@ def post_update_ajax(request, pk):
     postingan.save(update_fields=update_fields or None)
     return JsonResponse({"ok": True, "caption": caption})
 
-
+@csrf_exempt
 @require_POST
 @login_required
 def post_delete_ajax(request, pk):
