@@ -12,7 +12,7 @@ from django.views.decorators.http import require_POST, require_GET
 from django.utils import timezone
 from django.http import JsonResponse, Http404
 from django.conf import settings 
-from feeds_module.models import Post
+from feeds_module.models import Post, PostHashtag, PostLike
 from feeds_module.forms import PostForm, PostImageForm
 from broadcast_module.models import Event
 
@@ -213,4 +213,76 @@ def create_broadcast_ajax(request):
         rsvp_url=request.POST.get("rsvp_url") or None,
     )
     return JsonResponse({"ok": True, "id": str(event.id)})
+
+@login_required
+def profile_detail_api(request, username):
+    profile = get_object_or_404(Profile, user__username=username)
+
+    is_following = False
+    if request.user.is_authenticated and request.user != profile.user:
+        is_following = Follow.objects.filter(follower=request.user, followee=profile.user).exists()
+
+    data = {
+        "username": profile.user.username,
+        "display_name": profile.display_name,
+        "bio": profile.bio,
+        "link": profile.link,
+        "avatar_url": profile.avatar_url.url if profile.avatar_url else None,
+        "current_sport": profile.current_sport.name if profile.current_sport else None,
+        "post_count": profile.post_count,
+        "broadcast_count": profile.broadcast_count,
+        "following_count": profile.following_count,
+        "followers_count": profile.followers_count,
+        "is_verified": profile.is_verified,
+        "is_following": is_following,
+        "created_at": profile.created_at.isoformat(),
+        "updated_at": profile.updated_at.isoformat(),
+    }
+
+    return JsonResponse(data, status=200)
+
+def user_posts_api(request, username):
+    profile = get_object_or_404(Profile, user__username=username)
+
+    posts = (
+        Post.objects.filter(user__username=username)
+        .order_by("-created_at")
+        .prefetch_related("images")
+    )
+
+    post_list = []
+
+    for post in posts:
+        first_image_url = None
+        try:
+            img = post.images.first()
+            if img and img.image:
+                first_image_url = img.image.url
+        except:
+            first_image_url = None
+        
+        has_liked = False
+        if request.user.is_authenticated:
+            has_liked = PostLike.objects.filter(post=post, user=request.user).exists()
+
+        post_list.append({
+            "id": str(post.id),
+            "caption": post.text or "",
+            "sport": post.sport.name if post.sport else None,
+            "location": post.location_name or "",
+            "likes_count": post.likes_count,
+            "comments_count": post.comments_count,
+            "has_liked": has_liked,
+            "image_url": first_image_url,
+            "created_at": post.created_at.isoformat(),
+        })
+
+    data = {
+        "username": profile.user.username,
+        "post_count": len(post_list),
+        "posts": post_list,
+    }
+
+    return JsonResponse(data, status=200)
+
 

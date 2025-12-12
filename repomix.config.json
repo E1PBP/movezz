@@ -1,0 +1,85 @@
+{
+  "$schema": "https://repomix.com/schemas/latest/schema.json",
+
+  "output": {
+    "filePath": "repomix-output.md",
+    "style": "markdown",
+    "parsableStyle": false,
+    "compress": false,
+    "fileSummary": true,
+    "directoryStructure": true,
+    "files": true,
+    "removeComments": false,
+    "removeEmptyLines": false,
+    "topFilesLength": 5,
+    "showLineNumbers": false,
+    "truncateBase64": false,
+    "copyToClipboard": false,
+    "includeEmptyDirectories": false,
+    "git": {
+      "sortByChanges": true,
+      "sortByChangesMaxCommits": 100,
+      "includeDiffs": false,
+      "includeLogs": false,
+      "includeLogsCount": 50
+    }
+  },
+  "include": ["**/*"],
+  "ignore": {
+    "useGitignore": true,
+    "useDefaultPatterns": true,
+
+    "customPatterns": [
+      ".env",
+      ".env.production",
+      "**/*.key",
+      "**/*.pem",
+
+      "venv/**",
+      ".venv/**",
+      "env/**",
+      "dataset-pbp/**",
+      "staticfiles/**",
+      "**/.git/**",
+      "**/.github/**",
+      "**/.idea/**",
+      "**/.vscode/**",
+
+      "**/__pycache__/**",
+      "**/*.pyc",
+      "**/*.pyo",
+      "db.sqlite3",
+      "**/migrations/**",
+      ".coverage",
+      "htmlcov/**",
+
+      "**/*.png",
+      "**/*.jpg",
+      "**/*.jpeg",
+      "**/*.gif",
+      "**/*.webp",
+      "**/*.svg",
+      "**/*.mp4",
+      "**/*.webm",
+      "**/*.zip",
+      "**/*.gz",
+      "**/*.ico",
+      "**/*.pdf",
+      "**/*.woff",
+      "**/*.woff2",
+      "**/*.ttf",
+
+      "LICENSE",
+      ".vscode/**",
+      "**/*.log",
+      "repomix.config.json",
+      "repomix-output.*"
+    ]
+  },
+  "security": {
+    "enableSecurityCheck": true
+  },
+  "tokenCount": {
+    "encoding": "o200k_base"
+  }
+}

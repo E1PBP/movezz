@@ -87,7 +87,7 @@
 <!-- grid -->
 <div id="grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 px-2 sm:px-0 hidden"></div>
 
-{% include "listing_modal.html" %}
+{% comment %} {% include "listing_modal.html" %} {% endcomment %}
 <script>
   function getCSRFToken() {
     const meta = document.querySelector('meta[name="csrf-token"]');
@@ -460,11 +460,10 @@
       // modal title and button
       const titleEl = document.querySelector('#listingModalTitle');
       if (titleEl) titleEl.textContent = 'Edit Product';
-      const saveBtn = document.querySelector('#modalSaveBtn');
+      const saveBtn = document.querySelector('#modalSaveBtn'); // Fix this selector
       if (saveBtn) saveBtn.textContent = 'Save Changes';
     });
 
-    // create
     const openCreate = document.getElementById('open-create-modal');
     if (openCreate) {
       openCreate.addEventListener('click', () => {
@@ -480,7 +479,7 @@
         const titleEl = document.querySelector('#listingModalTitle');
         if (titleEl) titleEl.textContent = 'Create Product';
         const saveBtn = document.querySelector('#modalSaveBtn');
-        if (saveBtn) saveBtn.textContent = 'Create';
+        if (saveBtn) saveBtn.textContent = 'Publish'; // Add this line back
 
         if (window.showListingModal) showListingModal();
         else document.getElementById('listingModal')?.showModal();
@@ -516,51 +515,19 @@
       }
     });
 
-    const saveBtn = document.getElementById('modalSaveBtn');
-    if (saveBtn) {
-      saveBtn.addEventListener('click', async () => {
-        const form = document.querySelector('#listingForm');
-        if (!form) return;
-
-        const mode = form.dataset.mode === 'edit' ? 'edit' : 'create';
-        const id = form.dataset.id;
-        const body = new FormData(form);
-        const CREATE_URL = "{% url 'marketplace_module:add_listing_entry_ajax' %}";
-        const url = mode === 'edit'
-          ? `/marketplace/listing/${id}/edit-ajax/`
-          : CREATE_URL;
-
-        try {
-          const res = await fetch(url, {
-            method: 'POST',
-            headers: { 'X-CSRFToken': getCSRFToken() },
-            body
-          });
-          const data = await res.json().catch(() => ({}));
-          const ok = mode === 'edit' ? data.status === 'updated' : (res.ok || data.status === 'created');
-          if (!ok) return alert('Save failed');
-
-          // close modal
-          (document.getElementById('listingModal') || {}).close?.();
-
-          // reset create state for next open
-          delete form.dataset.mode;
-          delete form.dataset.id;
-
-          // refresh the grid
-          document.dispatchEvent(new CustomEvent(mode === 'edit' ? 'listing:updated' : 'listing:created'));
-        } catch (err) {
-          console.error(err);
-          alert('Network error');
-        }
-      });
-    }
-
+    document.addEventListener('listing:created', () => {
+      console.log('Listing created - refreshing');
+      fetchAndRender(true);
+    });
+    
+    document.addEventListener('listing:updated', () => {
+      console.log('Listing updated - refreshing');
+      fetchAndRender(true);
+    });
     setupWishlistListeners();
 
-    // refresh
-    document.addEventListener('listing:created', () => fetchAndRender(true));
-    document.addEventListener('listing:updated', () => fetchAndRender(true));
+
+
 
     // init
     (function init() {
@@ -568,6 +535,7 @@
       setActiveChip('');
       fetchAndRender();
     })();
+
 
   })();
 </script>
