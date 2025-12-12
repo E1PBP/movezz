@@ -9,6 +9,7 @@ from django.db.models import Count, Exists, OuterRef, F
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator
 from django.template.loader import render_to_string
+from django.views.decorators.csrf import csrf_exempt
 
 @login_required
 def main_view(request):
@@ -48,9 +49,15 @@ def main_view(request):
     }
     return render(request, 'main.html', context)
 
-@login_required
+@csrf_exempt
 @require_POST
 def create_post_ajax(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'User not logged in. Please login again.'
+        }, status=401)
+    
     form = PostForm(request.POST)
     image_form = PostImageForm(request.POST, request.FILES)
 
@@ -94,6 +101,7 @@ def create_post_ajax(request):
 
     return JsonResponse({'status': 'success', 'message': 'Post created successfully!'})
 
+@csrf_exempt
 @login_required
 @require_POST
 def like_post_ajax(request):
@@ -132,6 +140,7 @@ def load_more_posts(request):
     html = render_to_string('components/post_list.html', {'posts': posts})
     return JsonResponse({'html': html, 'has_next': posts.has_next()})
 
+@csrf_exempt
 @login_required
 @require_POST
 def add_comment_ajax(request):
@@ -167,6 +176,7 @@ def add_comment_ajax(request):
         'comments_count': post.comments_count
     })
 
+@csrf_exempt
 @login_required
 def get_comments_ajax(request):
     post_id = request.GET.get('post_id')
