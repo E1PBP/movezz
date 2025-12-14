@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .forms import PostForm, PostImageForm
-from .models import Post, PostHashtag, Hashtag, PostLike, Comment
+from .models import Post, PostHashtag, Hashtag, PostLike, Comment, Sport
 from profile_module.models import Follow
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
@@ -13,6 +13,7 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from django.http import HttpResponse
 from django.core.serializers import serialize
+from django.views.decorators.csrf import csrf_exempt
 
 @login_required
 def main_view(request):
@@ -52,13 +53,22 @@ def main_view(request):
     }
     return render(request, 'main.html', context)
 
-@login_required
-@require_POST
+@csrf_exempt
 def create_post_ajax(request):
-    form = PostForm(request.POST)
+    data = request.POST.copy()
+    sport_name = data.get('sport') 
+    if sport_name:
+        try:
+            sport_obj = Sport.objects.get(name__iexact=sport_name)
+            data['sport'] = sport_obj.id 
+        except Sport.DoesNotExist:
+            pass
+
+    form = PostForm(data)
     image_form = PostImageForm(request.POST, request.FILES)
 
     if not form.is_valid():
+        print("Form Errors:", form.errors)
         return JsonResponse({'status': 'error', 'errors': form.errors})
 
     post = form.save(commit=False)
@@ -91,13 +101,24 @@ def create_post_ajax(request):
         post.created_at = post.created_at.replace(hour=int(time_h), minute=int(time_m), second=0, microsecond=0)
         post.save()
 
-    if image_form.is_valid() and request.FILES.get('image'):
-        post_image = image_form.save(commit=False)
-        post_image.post = post
-        post_image.save()
+    uploaded_file = request.FILES.get('image')
+    
+    if uploaded_file:
+        print(f"File diterima: {uploaded_file.name}")
+        
+        if image_form.is_valid():
+            post_image = image_form.save(commit=False)
+            post_image.post = post
+            post_image.save()
+            print("Sukses simpan gambar ke Cloudinary/DB")
+        else:
+            print("Gagal Validasi Image:", image_form.errors) 
+    else:
+        print("TIDAK ADA file 'image' yang terbaca di request.FILES")
 
     return JsonResponse({'status': 'success', 'message': 'Post created successfully!'})
 
+@csrf_exempt
 @login_required
 @require_POST
 def like_post_ajax(request):
@@ -136,6 +157,7 @@ def load_more_posts(request):
     html = render_to_string('components/post_list.html', {'posts': posts})
     return JsonResponse({'html': html, 'has_next': posts.has_next()})
 
+@csrf_exempt
 @login_required
 @require_POST
 def add_comment_ajax(request):
@@ -171,6 +193,7 @@ def add_comment_ajax(request):
         'comments_count': post.comments_count
     })
 
+@csrf_exempt
 @login_required
 def get_comments_ajax(request):
     post_id = request.GET.get('post_id')
