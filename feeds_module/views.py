@@ -334,18 +334,21 @@ def load_more_posts_api(request):
     posts_data = []
     for post in posts:
         posts_data.append({
-            'id': post.id,
-            'user': post.user.username,
-            'content': post.content,
-            'sport_type': post.sport_type,
-            'likes_count': post.likes_count,
-            'comments_count': post.comments_count,
-            'created_at': post.created_at.strftime('%Y-%m-%d %H:%M:%S'),
-            'has_liked': post.has_liked,
-            'author_badges_url': post.author_badges_url,
-            'author_display_name': post.user.profile.display_name if hasattr(post.user, 'profile') else post.user.username,
-            'author_avatar_url': post.user.profile.avatar_url.url if hasattr(post.user, 'profile') and post.user.profile.avatar_url else '',
-        })
+    'id': post.id,
+    'user': post.user.username,
+    'text': post.text,
+
+    'sport': post.sport.name if post.sport else None,
+    'sport_id': post.sport_id,  # optional tapi berguna di FE
+
+    'likes_count': post.likes_count,
+    'comments_count': post.comments_count,
+    'created_at': post.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+    'has_liked': post.has_liked,
+    'author_badges_url': post.author_badges_url,
+    'author_display_name': post.user.profile.display_name if hasattr(post.user, 'profile') else post.user.username,
+    'author_avatar_url': post.user.profile.avatar_url.url if hasattr(post.user, 'profile') and post.user.profile.avatar_url else '',
+})
 
     return JsonResponse({
         'posts': posts_data, 
