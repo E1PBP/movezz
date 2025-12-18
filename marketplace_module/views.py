@@ -10,6 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.html import strip_tags
 from decimal import Decimal, InvalidOperation
 from django.middleware.csrf import get_token
+import requests
 
 # show todays pick page
 def todays_pick(request):
@@ -264,3 +265,20 @@ def delete_listing_entry_ajax(request, listing_id):
         return JsonResponse({"status": "deleted", "id": str(listing_id)}, status=200)
     except Exception as e:
         return JsonResponse({"error": "exception", "message": str(e)}, status=500)
+
+@require_GET
+def proxy_image(request):
+    image_url = request.GET.get('url')
+    if not image_url:
+        return HttpResponse('No URL provided', status=400)
+
+    try:
+        response = requests.get(image_url, timeout=10)
+        response.raise_for_status()
+
+        return HttpResponse(
+            response.content,
+            content_type=response.headers.get('Content-Type', 'image/jpeg')
+        )
+    except requests.RequestException as e:
+        return HttpResponse(f'Error fetching image: {str(e)}', status=500)

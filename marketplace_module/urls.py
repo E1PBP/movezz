@@ -16,4 +16,5 @@ urlpatterns = [
     path("api/listings/create-ajax/", views.add_listing_entry_ajax,name="add_listing_entry_ajax"),
     path("listing/<uuid:listing_id>/edit-ajax/", views.edit_listing_entry_ajax, name="edit_listing_entry_ajax"),
     path("listing/<uuid:listing_id>/delete-ajax/", views.delete_listing_entry_ajax, name="delete_listing_entry_ajax"),
+    path("proxy-image/", views.proxy_image, name="proxy_image"),
 ]
