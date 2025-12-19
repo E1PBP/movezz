@@ -78,19 +78,23 @@ def add_listing_entry_ajax(request):
             price=price,
             is_active=True,
         )
-
-        # <- penting: balas JSON agar script modal paham
+        print(listing)
         return JsonResponse({"status": "created", "id": str(listing.id)}, status=201)
 
     except Exception as e:
         return JsonResponse({"error": "exception", "message": str(e)}, status=500)
 
+import json
+from django.http import HttpResponse
+from django.core import serializers
+from django.views.decorators.http import require_GET
 
-# get listings
+from .models import Listing
+
 @require_GET
 def get_listings(request):
     VALID_CONDITIONS = ("BRAND_NEW", "USED")
-    
+    print("GET params:", request.GET)
     listings_queryset = Listing.objects.filter(is_active=True)
 
     # search filter
@@ -103,14 +107,24 @@ def get_listings(request):
     if condition_filter in VALID_CONDITIONS:
         listings_queryset = listings_queryset.filter(condition=condition_filter)
 
-    # serialize
+    # serialize 
     serialized_listings = serializers.serialize(
         "json",
         listings_queryset,
-        fields=("title", "price", "condition", "location", "image_url", "owner"),
+        fields=("title", "price", "condition", "location", "image_url", "owner","description"),
     )
-    
-    return HttpResponse(serialized_listings, content_type="application/json")
+
+    data = json.loads(serialized_listings)
+    user_id = request.user.id if request.user.is_authenticated else None
+
+    for obj in data:
+        owner_id = obj["fields"]["owner"] 
+        obj["isMine"] = bool(user_id is not None and owner_id == user_id)
+
+    return HttpResponse(
+        json.dumps(data),
+        content_type="application/json",
+    )
 
 
 # get listing detail
@@ -124,7 +138,7 @@ def get_listing_detail(request, listing_id):
     serialized_listing = serializers.serialize(
         "json",
         listing_queryset,
-        fields=("title", "price", "condition", "location", "image_url", "description"),
+        fields=("title", "price", "condition", "location", "image_url", "description", "owner"),
     )
     
     return HttpResponse(serialized_listing, content_type="application/json")
@@ -140,7 +154,7 @@ def wishlist_page(request):
         ),
         "apiWishlistListings": reverse("marketplace_module:wishlist_listings"),
         "apiToggleWishlist": reverse("marketplace_module:wishlist_toggle"),
-    }
+    } 
     return render(
         request,
         "wishlist.html",
@@ -169,7 +183,7 @@ def wishlist_listings(request):
     data = serializers.serialize(
         "json",
         qs,
-        fields=("title", "price", "condition", "location", "image_url"),
+        fields=("title", "price", "condition", "location", "image_url", "owner"),
     )
     return HttpResponse(data, content_type="application/json")
 
@@ -237,6 +251,7 @@ def edit_listing_entry_ajax(request, listing_id):
         return JsonResponse({"status": "updated", "id": str(listing.id)}, status=200)
 
     except Exception as e: 
+        print(  e)
         return JsonResponse({"error": "exception", "message": str(e)}, status=500)
 # delete listing with AJAX
 @csrf_exempt
