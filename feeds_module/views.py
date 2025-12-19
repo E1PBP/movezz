@@ -10,6 +10,10 @@ from django.contrib.auth.models import User
 from django.core.paginator import Paginator
 from django.template.loader import render_to_string
 from django.views.decorators.csrf import csrf_exempt
+import json
+from django.http import HttpResponse
+from django.core.serializers import serialize
+from django.views.decorators.csrf import csrf_exempt
 
 @login_required
 def main_view(request):
@@ -205,3 +209,149 @@ def get_comments_ajax(request):
     } for c in comments]
 
     return JsonResponse({'status': 'success', 'comments': comments_data})
+
+@csrf_exempt
+@login_required
+def create_post_api(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        form = PostForm(data)
+
+        if not form.is_valid():
+            return JsonResponse({'status': 'error', 'errors': form.errors}, status=400)
+
+        post = form.save(commit=False)
+        post.user = request.user
+
+        user_badges = post.user.userbadge_set.select_related('badge').all()
+        badge_urls = [user_badge.badge.icon_url for user_badge in user_badges if user_badge.badge.icon_url]
+        post.author_badges_url = ",".join(badge_urls)
+        
+        post.save()
+
+        hashtag_str = data.get('hashtags')
+        if hashtag_str:
+            hashtag_names = [name.strip() for name in hashtag_str.split(',') if name.strip()]
+            for name in hashtag_names:
+                hashtag, _ = Hashtag.objects.get_or_create(tag=name)
+                PostHashtag.objects.create(post=post, hashtag=hashtag)
+
+        return JsonResponse({'status': 'success', 'message': 'Post created successfully!'})
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=405)
+
+@csrf_exempt
+@login_required
+def like_post_api(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        post_id = data.get('post_id')
+        post = get_object_or_404(Post, id=post_id)
+        
+        like, created = PostLike.objects.get_or_create(post=post, user=request.user)
+
+        if not created:
+            like.delete()
+            post.likes_count = F('likes_count') - 1
+            liked = False
+        else:
+            post.likes_count = F('likes_count') + 1
+            liked = True
+        
+        post.save(update_fields=['likes_count'])
+        post.refresh_from_db()
+
+        return JsonResponse({'status': 'success', 'likes_count': post.likes_count, 'liked': liked})
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=405)
+
+@csrf_exempt
+@login_required
+def add_comment_api(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        post_id = data.get('post_id')
+        comment_text = data.get('comment_text', '').strip()
+
+        if not comment_text:
+            return JsonResponse({'status': 'error', 'message': 'Comment cannot be empty.'}, status=400)
+
+        post = get_object_or_404(Post, id=post_id)
+
+        comment = Comment.objects.create(
+            post=post,
+            user=request.user,
+            text=comment_text,
+            author_display_name=request.user.profile.display_name or request.user.username,
+            author_avatar_url=request.user.profile.avatar_url.url if hasattr(request.user, 'profile') and request.user.profile.avatar_url else ''
+        )
+
+        post.comments_count = F('comments_count') + 1
+        post.save(update_fields=['comments_count'])
+        post.refresh_from_db()
+
+        return JsonResponse({
+            'status': 'success',
+            'comment': {
+                'text': comment.text,
+                'author': comment.author_display_name,
+                'username': comment.user.username,
+                'avatar_url': comment.author_avatar_url,
+                'created_at': comment.created_at.strftime('%d %b, %Y'),
+            },
+            'comments_count': post.comments_count
+        })
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=405)
+
+@login_required
+def get_comments_api(request):
+    post_id = request.GET.get('post_id')
+    post = get_object_or_404(Post, id=post_id)
+    comments = post.comment_set.all().order_by('created_at')
+    
+    comments_data = [{
+        'text': c.text,
+        'author': c.author_display_name,
+        'username': c.user.username,
+        'avatar_url': c.author_avatar_url,
+        'created_at': c.created_at.strftime('%d %b, %Y'),
+    } for c in comments]
+
+    return JsonResponse({'status': 'success', 'comments': comments_data})
+
+@login_required
+def load_more_posts_api(request):
+    active_tab = request.GET.get('tab', 'foryou')
+    user_likes = PostLike.objects.filter(post=OuterRef('pk'), user=request.user)
+    if active_tab == 'following':
+        following_users = Follow.objects.filter(follower=request.user).values_list('followee', flat=True)
+        post_list = Post.objects.filter(user__in=following_users).annotate(has_liked=Exists(user_likes)).order_by('-created_at')
+    else:
+        post_list = Post.objects.all().annotate(has_liked=Exists(user_likes)).order_by('-created_at')
+
+    paginator = Paginator(post_list, 5)
+    page_number = request.GET.get('page', 1)
+    posts = paginator.get_page(page_number)
+
+    posts_data = []
+    for post in posts:
+        posts_data.append({
+    'id': post.id,
+    'user': post.user.username,
+    'text': post.text,
+
+    'sport': post.sport.name if post.sport else None,
+    'sport_id': post.sport_id,  # optional tapi berguna di FE
+
+    'likes_count': post.likes_count,
+    'comments_count': post.comments_count,
+    'created_at': post.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+    'has_liked': post.has_liked,
+    'author_badges_url': post.author_badges_url,
+    'author_display_name': post.user.profile.display_name if hasattr(post.user, 'profile') else post.user.username,
+    'author_avatar_url': post.user.profile.avatar_url.url if hasattr(post.user, 'profile') and post.user.profile.avatar_url else '',
+})
+
+    return JsonResponse({
+        'posts': posts_data, 
+        'has_next': posts.has_next(),
+        'next_page_number': posts.next_page_number() if posts.has_next() else None
+    })
