@@ -41,7 +41,7 @@ def broadcast_list(request) -> Any:
     else:
         suggested_followers = User.objects.order_by('?')[:2]
 
-    from django.db.models import Q
+    # from django.db.models import Q
     upcoming_event = Event.objects.filter(
         Q(end_time__isnull=True) | Q(end_time__gte=now)
     ).select_related(
