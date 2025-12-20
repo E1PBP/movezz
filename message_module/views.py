@@ -15,8 +15,7 @@ from django.db.models import Q
 
 
 logger = logging.getLogger(__name__)
-HISTORY_LIMIT_FETCH = 50
-
+PAGE_SIZE = 20 
 
 @login_required
 def chat_view(request, conversation_id=None):
@@ -299,9 +298,11 @@ def get_messages_api(request, conversation_id):
     if not conversation.members.filter(user=request.user).exists():
         logger.warning(f"Unauthorized access attempt by user {request.user.username} to conversation {conversation.id}.")
         return JsonResponse({"error": "Unauthorized"}, status=403)
+    
+    
     before_id = request.GET.get('before_id') 
     messages_query = Message.objects.filter(conversation=conversation).select_related('sender__profile')
-    logger.debug(f"Initial message query for conversation {conversation.id} prepared.")
+    
     if before_id:
         try:
             ref_msg = Message.objects.get(id=before_id)
@@ -309,7 +310,8 @@ def get_messages_api(request, conversation_id):
         except Message.DoesNotExist:
             pass
 
-    messages_queryset = messages_query.order_by('-created_at')[:HISTORY_LIMIT_FETCH]
+
+    messages_queryset = messages_query.order_by('-created_at')[:PAGE_SIZE]
     messages = list(reversed(messages_queryset))
     logger.debug(f"Fetched {len(list(messages))} messages for conversation {conversation.id}.")
     data = []
@@ -407,3 +409,7 @@ def search_users_api(request):
     
     logger.info(f"User {request.user.username} searched users with query '{query}', found {len(data)} users.")
     return JsonResponse({"users": data})
+
+
+
+

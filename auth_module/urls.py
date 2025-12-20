@@ -1,6 +1,6 @@
 from django.urls import path
 from django.http import HttpResponse
-from .views import login_view, logout_user, register_view, login_api, register_api, logout_api
+from .views import login_view, logout_user, register_view, login_api, register_api, logout_api, me_api
 
 app_name = 'auth_module'
 
@@ -12,5 +12,6 @@ urlpatterns = [
     path('api/login/', login_api, name='api_login'),
     path('api/register/', register_api, name='api_register'),
     path('api/logout/', logout_api, name='api_logout'),
+    path("api/me/", me_api, name="me_api"),
 ]
 
