@@ -333,6 +333,13 @@ def load_more_posts_api(request):
 
     posts_data = []
     for post in posts:
+        
+        # 1. Get all image URLs for the post
+        image_urls = [image.image.url for image in post.images.all()]
+        
+        # 2. Get all hashtag names for the post
+        hashtags = [ph.hashtag.tag for ph in post.posthashtag_set.all()]
+
         posts_data.append({
     'id': post.id,
     'user': post.user.username,
@@ -348,6 +355,9 @@ def load_more_posts_api(request):
     'author_badges_url': post.author_badges_url,
     'author_display_name': post.user.profile.display_name if hasattr(post.user, 'profile') else post.user.username,
     'author_avatar_url': post.user.profile.avatar_url.url if hasattr(post.user, 'profile') and post.user.profile.avatar_url else '',
+
+    'image_urls': image_urls,
+    'hashtags': hashtags,
 })
 
     return JsonResponse({
