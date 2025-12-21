@@ -114,6 +114,8 @@ def profile_detail(request, username: str):
 
     return render(request, "profile.html", context)
 
+
+@csrf_exempt
 @require_POST
 @login_required
 def follow_toggle_ajax(request, username: str):
