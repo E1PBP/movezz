@@ -212,35 +212,6 @@ def get_comments_ajax(request):
 
 @csrf_exempt
 @login_required
-def create_post_api(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        form = PostForm(data)
-
-        if not form.is_valid():
-            return JsonResponse({'status': 'error', 'errors': form.errors}, status=400)
-
-        post = form.save(commit=False)
-        post.user = request.user
-
-        user_badges = post.user.userbadge_set.select_related('badge').all()
-        badge_urls = [user_badge.badge.icon_url for user_badge in user_badges if user_badge.badge.icon_url]
-        post.author_badges_url = ",".join(badge_urls)
-        
-        post.save()
-
-        hashtag_str = data.get('hashtags')
-        if hashtag_str:
-            hashtag_names = [name.strip() for name in hashtag_str.split(',') if name.strip()]
-            for name in hashtag_names:
-                hashtag, _ = Hashtag.objects.get_or_create(tag=name)
-                PostHashtag.objects.create(post=post, hashtag=hashtag)
-
-        return JsonResponse({'status': 'success', 'message': 'Post created successfully!'})
-    return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=405)
-
-@csrf_exempt
-@login_required
 def like_post_api(request):
     if request.method == 'POST':
         data = json.loads(request.body)
