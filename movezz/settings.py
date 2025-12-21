@@ -44,7 +44,7 @@ CSRF_COOKIE_SAMESITE = 'None'
 
 SESSION_COOKIE_SAMESITE = 'None'
 
-CSRF_TRUSTED_ORIGINS = ["https://muhamad-hakim41-movezz.pbp.cs.ui.ac.id/", "https://muhamad-hakim41-movezz.pbp.cs.ui.ac.id", "http://muhamad-hakim41-movezz.pbp.cs.ui.ac.id", "http://10.0.2.2" , "http://127.0.0.1", 'http://localhost:3000', "http://localhost:58180",]
+CSRF_TRUSTED_ORIGINS = ["https://muhamad-hakim41-movezz.pbp.cs.ui.ac.id/", "https://muhamad-hakim41-movezz.pbp.cs.ui.ac.id", "http://muhamad-hakim41-movezz.pbp.cs.ui.ac.id", "http://10.0.2.2" , "http://127.0.0.1", 'http://localhost:3000', "http://localhost:58180", "http://localhost:58978", "http://127.0.0.1:58978"]
 
 
 PRODUCTION = os.getenv('PRODUCTION', 'False').lower() == 'true'

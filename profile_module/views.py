@@ -1,4 +1,5 @@
 from datetime import timedelta
+import json
 from typing import List
 
 from django.apps import apps
@@ -15,6 +16,12 @@ from django.conf import settings
 from feeds_module.models import Post, PostHashtag, PostLike
 from feeds_module.forms import PostForm, PostImageForm
 from broadcast_module.models import Event
+import base64
+from django.core.files.base import ContentFile
+from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
+
+
 
 def format_short_number(number: int) -> str:
     integer_number = int(number or 0)
@@ -285,4 +292,60 @@ def user_posts_api(request, username):
 
     return JsonResponse(data, status=200)
 
+@csrf_exempt
+@login_required
+@require_http_methods(["POST"])
+def update_profile(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({"status": "error", "message": "Not authenticated"}, status=401)
 
+    profile, _ = Profile.objects.get_or_create(user=request.user)
+
+    display_name = request.POST.get("display_name", "").strip()
+    avatar_file = request.FILES.get("avatar")
+    avatar_base64 = request.POST.get("avatar")
+
+    if display_name:
+        profile.display_name = display_name
+
+    if avatar_file:
+        try:
+            profile.avatar_url.save(
+                f"avatar_{request.user.id}",
+                avatar_file,
+                save=False,
+            )
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": "invalid_avatar"}, status=400)
+    elif avatar_base64:
+        try:
+            header, imgstr = avatar_base64.split(";base64,")
+            ext = header.split("/")[-1]
+            profile.avatar_url.save(
+                f"avatar_{request.user.id}.{ext}",
+                ContentFile(base64.b64decode(imgstr)),
+                save=False,
+            )
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": "invalid_avatar"}, status=400)
+
+    profile.updated_at = timezone.now()
+    profile.save()
+    profile.refresh_from_db()
+
+    return JsonResponse({
+        "status": "success",
+        "username": request.user.username,
+        "display_name": profile.display_name,
+        "avatar_url": profile.avatar_url.url if profile.avatar_url else None,
+        "bio": profile.bio,
+        "link": profile.link,
+        "current_sport": str(profile.current_sport.id) if profile.current_sport else None,
+        "post_count": profile.post_count,
+        "broadcast_count": profile.broadcast_count,
+        "followers_count": profile.followers_count,
+        "following_count": profile.following_count,
+        "is_verified": profile.is_verified,
+        "created_at": profile.created_at.isoformat(),
+        "updated_at": profile.updated_at.isoformat(),
+    })

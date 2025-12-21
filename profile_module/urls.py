@@ -1,6 +1,7 @@
 from django.urls import path, include
 from django.http import HttpResponse
 from . import views
+from .views import update_profile
 
 app_name = 'profile_module'
 
@@ -17,5 +18,6 @@ urlpatterns = [
     path("api/broadcasts/create/", views.create_broadcast_ajax, name="create_broadcast_ajax"),
     path("api/u/<str:username>/", views.profile_detail_api, name="profile_detail_api"),
     path("api/u/<str:username>/posts/", views.user_posts_api, name="user_posts_api"),
+    path("api/update/", update_profile, name="update_profile"),
     # path("broadcast/<uuid:pk>/toggle-pin/", views.toggle_broadcast_pin, name="toggle_broadcast_pin"),
 ]
