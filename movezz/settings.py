@@ -68,7 +68,7 @@ INSTALLED_APPS = [
     "cloudinary",
     "cloudinary_storage",
     'corsheaders',
-    'rest_framework',
+    # 'rest_framework',
 ]
 
 MIDDLEWARE = [

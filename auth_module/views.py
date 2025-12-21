@@ -200,3 +200,19 @@ def register_api(request):
             "message": "Invalid request method."
         }, status=400)
 
+@csrf_exempt
+def me_api(request):
+    if not request.user.is_authenticated:
+        return JsonResponse(
+            {"status": False, "message": "Unauthorized"},
+            status=401
+        )
+
+    u = request.user
+    return JsonResponse({
+        "status": True,
+        "username": u.username,
+        "email": u.email,
+        "first_name": u.first_name,
+        "last_name": u.last_name,
+    })
