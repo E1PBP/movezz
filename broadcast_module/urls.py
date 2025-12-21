@@ -19,4 +19,6 @@ urlpatterns = [
     path('api/trending/', views.api_trending_events, name='api_trending'),
     path('api/latest/', views.api_latest_events, name='api_latest'),
     path('api/events/create/', views.api_create_event, name='api_create_event'),
+    path("api/u/<str:username>/broadcasts/", views.api_user_broadcasts, name="api_user_broadcasts",
+),
 ]

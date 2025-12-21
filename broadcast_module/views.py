@@ -409,3 +409,21 @@ def api_create_event(request):
         print(traceback.format_exc())
         return JsonResponse({"error": "exception", "message": str(e)}, status=500)
 
+@require_http_methods(["GET"])
+def api_user_broadcasts(request, username):
+    user = get_object_or_404(User, username=username)
+
+    events = (
+        Event.objects
+        .filter(user=user)
+        .select_related('user', 'user__profile')
+        .order_by('-created_at')
+    )
+
+    return JsonResponse({
+        "username": username,
+        "broadcast_count": events.count(),
+        "broadcasts": [_serialize_event(e) for e in events],
+    })
+
+
