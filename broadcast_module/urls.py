@@ -15,4 +15,8 @@ urlpatterns = [
     
     path('pin/<uuid:pk>/', staff_member_required(views.pin_event), name='pin'),
     path('unpin/<uuid:pk>/', staff_member_required(views.unpin_event), name='unpin'),
+
+    path('api/trending/', views.api_trending_events, name='api_trending'),
+    path('api/latest/', views.api_latest_events, name='api_latest'),
+    path('api/events/create/', views.api_create_event, name='api_create_event'),
 ]

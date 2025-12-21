@@ -10,6 +10,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.html import strip_tags
 from decimal import Decimal, InvalidOperation
 from django.middleware.csrf import get_token
+from django.contrib.auth.models import User
+
 
 # show todays pick page
 def todays_pick(request):
@@ -117,9 +119,14 @@ def get_listings(request):
     data = json.loads(serialized_listings)
     user_id = request.user.id if request.user.is_authenticated else None
 
+    owner_ids = set(obj['fields']['owner'] for obj in data)
+    users_map = User.objects.filter(id__in=owner_ids).in_bulk()
+
     for obj in data:
         owner_id = obj["fields"]["owner"] 
         obj["isMine"] = bool(user_id is not None and owner_id == user_id)
+        owner_user = users_map.get(owner_id)
+        obj["fields"]["owner_username"] = owner_user.username if owner_user else ""
 
     return HttpResponse(
         json.dumps(data),
@@ -141,7 +148,13 @@ def get_listing_detail(request, listing_id):
         fields=("title", "price", "condition", "location", "image_url", "description", "owner"),
     )
     
-    return HttpResponse(serialized_listing, content_type="application/json")
+    data = json.loads(serialized_listing)
+
+    if data:
+        listing_obj = listing_queryset.first()
+        data[0]['fields']['owner_username'] = listing_obj.owner.username
+
+    return HttpResponse(json.dumps(data), content_type="application/json")
 
 # show wishlist page
 @login_required

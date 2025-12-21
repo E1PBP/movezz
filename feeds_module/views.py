@@ -212,35 +212,6 @@ def get_comments_ajax(request):
 
 @csrf_exempt
 @login_required
-def create_post_api(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        form = PostForm(data)
-
-        if not form.is_valid():
-            return JsonResponse({'status': 'error', 'errors': form.errors}, status=400)
-
-        post = form.save(commit=False)
-        post.user = request.user
-
-        user_badges = post.user.userbadge_set.select_related('badge').all()
-        badge_urls = [user_badge.badge.icon_url for user_badge in user_badges if user_badge.badge.icon_url]
-        post.author_badges_url = ",".join(badge_urls)
-        
-        post.save()
-
-        hashtag_str = data.get('hashtags')
-        if hashtag_str:
-            hashtag_names = [name.strip() for name in hashtag_str.split(',') if name.strip()]
-            for name in hashtag_names:
-                hashtag, _ = Hashtag.objects.get_or_create(tag=name)
-                PostHashtag.objects.create(post=post, hashtag=hashtag)
-
-        return JsonResponse({'status': 'success', 'message': 'Post created successfully!'})
-    return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=405)
-
-@csrf_exempt
-@login_required
 def like_post_api(request):
     if request.method == 'POST':
         data = json.loads(request.body)
@@ -333,6 +304,13 @@ def load_more_posts_api(request):
 
     posts_data = []
     for post in posts:
+        
+        # 1. Get all image URLs for the post
+        image_urls = [image.image.url for image in post.images.all()]
+        
+        # 2. Get all hashtag names for the post
+        hashtags = [ph.hashtag.tag for ph in post.posthashtag_set.all()]
+
         posts_data.append({
     'id': post.id,
     'user': post.user.username,
@@ -348,6 +326,9 @@ def load_more_posts_api(request):
     'author_badges_url': post.author_badges_url,
     'author_display_name': post.user.profile.display_name if hasattr(post.user, 'profile') else post.user.username,
     'author_avatar_url': post.user.profile.avatar_url.url if hasattr(post.user, 'profile') and post.user.profile.avatar_url else '',
+
+    'image_urls': image_urls,
+    'hashtags': hashtags,
 })
 
     return JsonResponse({
